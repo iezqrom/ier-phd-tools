@@ -45,7 +45,7 @@ import curses
 import re
 
 
-class ardUIno(grabPorts):
+class ArdUIno(grabPorts):
     def __init__(self, winPort = None, num_ards = 1):
         self.ports = grabPorts()
         self.ports.arduinoPort(winPort, num_ards)

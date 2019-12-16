@@ -2,7 +2,6 @@
 
 ### Data structure
 from __future__ import print_function
-from classes_arduino import ardUIno
 import numpy as np
 import ctypes
 import struct
@@ -23,8 +22,10 @@ from matplotlib import animation
 ## Comms
 from uvctypes import *
 
-from queue import Queue
-
+try:
+  from queue import Queue
+except ImportError:
+  from Queue import Queue
 import platform
 # from pynput import keyboard
 import os
@@ -208,7 +209,12 @@ colorMapType = 0
 class TherCam(object):
 
     def __init__(self):
-        pass
+        vminT = input("What minimum temperature would you like for the range?  ")
+        vmaxT = input("What maximum temperature would you like for the range?  ")
+
+        self.vminT = int(vminT)
+        self.vmaxT = int(vmaxT)
+
 
     def startStream(self):
       global devh
@@ -219,7 +225,6 @@ class TherCam(object):
       ctrl = uvc_stream_ctrl()
 
       res = libuvc.uvc_init(byref(ctx), 0)
-      # print(res)
       if res < 0:
         print("uvc_init error")
         #exit(1)
@@ -305,7 +310,7 @@ class TherCam(object):
         finally:
             libuvc.uvc_stop_streaming(devh)
 
-    def saveRawData(self, output, vminT, vmaxT):
+    def saveRawData(self, output):
         global dev
         global devh
         global tiff_frame
@@ -321,7 +326,7 @@ class TherCam(object):
 
         dummy = np.zeros([120, 160])
 
-        img = ax.imshow(dummy, interpolation='nearest', vmin = vminT, vmax = vmaxT, animated = True)
+        img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
 
         current_cmap = plt.cm.get_cmap()
@@ -671,7 +676,7 @@ class TherCam(object):
             libuvc.uvc_stop_streaming(devh)
 
 
-    def plotLive(self, vminT, vmaxT):
+    def plotLive(self):
         import matplotlib as mpl
         mpl.rc('image', cmap='hot')
 
@@ -688,7 +693,7 @@ class TherCam(object):
 
         dummy = np.zeros([120, 160])
 
-        img = ax.imshow(dummy, interpolation='nearest', vmin = vminT, vmax = vmaxT, animated = True)
+        img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
 
         current_cmap = plt.cm.get_cmap()
@@ -725,7 +730,7 @@ class TherCam(object):
                 ax.spines['right'].set_visible(False)
                 ax.spines['left'].set_visible(False)
                 ax.spines['bottom'].set_visible(False)
-                ax.imshow(data, vmin = vminT, vmax = vmaxT)
+                ax.imshow(data, vmin = self.vminT, vmax = self.vmaxT)
                 # print(data)
                 plt.pause(0.0005)
 
@@ -747,7 +752,7 @@ class TherCam(object):
         #     # print('Stop streaming')
         #     libuvc.uvc_stop_streaming(devh)
 
-    def plotLiveROI(self, vminT, vmaxT):
+    def plotLiveROI(self):
         import matplotlib as mpl
         mpl.rc('image', cmap='hot')
 
@@ -764,7 +769,7 @@ class TherCam(object):
 
         dummy = np.zeros([120, 160])
 
-        img = ax.imshow(dummy, interpolation='nearest', vmin = vminT, vmax = vmaxT, animated = True)
+        img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
 
         try:
@@ -809,7 +814,7 @@ class TherCam(object):
                 ax.spines['right'].set_visible(False)
                 ax.spines['left'].set_visible(False)
                 ax.spines['bottom'].set_visible(False)
-                ax.imshow(dataC, vmin = vminT, vmax = vmaxT)
+                ax.imshow(dataC, vmin = self.vminT, vmax = self.vmaxT)
                 ax.add_artist(circles[0])
                 # print(data)
                 plt.pause(0.0005)
@@ -920,7 +925,7 @@ class TherCam(object):
             print('Stop streaming')
             libuvc.uvc_stop_streaming(devh)
 
-    def testSkinWarm(self, output, vminT, vmaxT, r):
+    def testSkinWarm(self, output, r):
         global tiff_frame
 
         f = h5py.File("./{}.hdf5".format(output), "w")
@@ -937,7 +942,7 @@ class TherCam(object):
 
         dummy = np.zeros([120, 160])
 
-        img = ax.imshow(dummy, interpolation='nearest', vmin = vminT, vmax = vmaxT, animated = True)
+        img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
 
         try:
@@ -968,7 +973,7 @@ class TherCam(object):
                 ax.spines['right'].set_visible(False)
                 ax.spines['left'].set_visible(False)
                 ax.spines['bottom'].set_visible(False)
-                ax.imshow(dataC, vmin = vminT, vmax = vmaxT)
+                ax.imshow(dataC, vmin = self.vminT, vmax = self.vmaxT)
 
                 plt.pause(0.0005)
 
@@ -985,7 +990,7 @@ class TherCam(object):
         finally:
             libuvc.uvc_stop_streaming(devh)
 
-    def testSkinCold(self, output, vminT, vmaxT, r):
+    def testSkinCold(self, output, r):
         global dev
         global devh
         global tiff_frame

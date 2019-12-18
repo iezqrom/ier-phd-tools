@@ -46,12 +46,13 @@ import re
 
 
 class ArdUIno(grabPorts):
-    def __init__(self, winPort = None, num_ards = 1):
+    def __init__(self, winPort = None, num_ards = 1, n_modem = None):
         self.ports = grabPorts()
-        self.ports.arduinoPort(winPort, num_ards)
+        self.ports.arduinoPort(winPort, num_ards, n_modem)
+        # print(self.ports.arduino_ports)
 
         if num_ards == 1:
-            self.arduino = serial.Serial(self.ports.arduino_ports, 9600, timeout = 5)
+            self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
         elif num_ards > 1:
             self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
             self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 5)

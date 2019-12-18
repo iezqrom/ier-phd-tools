@@ -9,17 +9,16 @@ import numpy as np
 ############ apending to file with all subjects ############
 def apendAll(name_file, subj_n, data):
     llaves = data.keys()
-    of1 = open('./src_analysis/data/{}.csv'.format(name_file), 'a')
+    of1 = open('../src_analysis/data/{}.csv'.format(name_file), 'a')
     data_writer = csv.writer(of1)
 
     if subj_n == '1':
-        print('We are here')
         data_writer.writerow(llaves)
 
-    for i in np.arange(len(subject[[*keys][0]])):
+    for i in np.arange(len(data[[*llaves][0]])):
         rowToWrite = []
         for j in llaves:
-            datapoint = subject[j][i]
+            datapoint = data[j][i]
             rowToWrite.append(datapoint)
 
         data_writer.writerow(rowToWrite)
@@ -32,15 +31,15 @@ def apendAll(name_file, subj_n, data):
 def apendIndv(indv_file, subj_n, data):
     llaves = data.keys()
 
-    of2 = open('./src_analysis/data/{}.csv'.format(indv_file), 'w')
+    of2 = open('../src_analysis/data/{}.csv'.format(indv_file), 'w')
     writer_subject = csv.writer(of2)
 
     writer_subject.writerow(llaves)
 
-    for i in np.arange(len(subject[[*keys][0]])):
+    for i in np.arange(len(data[[*llaves][0]])):
         rowToWrite = []
         for j in llaves:
-            datapoint = subject[j][i]
+            datapoint = data[j][i]
             rowToWrite.append(datapoint)
 
         data_writer.writerow(rowToWrite)
@@ -50,7 +49,7 @@ def apendIndv(indv_file, subj_n, data):
 ############# Age files #############
 def apendAge(age_file, subj_n, age):
 
-    of3 = open('./src_analysis/data/{}.csv', 'a')
+    of3 = open('../src_analysis/data/{}.csv'.format(age_file), 'a')
 
     writer_subject = csv.writer(of3)
     writer_subject.writerow([subj_n, age])

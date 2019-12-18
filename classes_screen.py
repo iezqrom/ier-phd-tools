@@ -102,7 +102,6 @@ class InputScreen:
         entry = Entry(self.win, validate = "key")
         entry['validatecommand'] = (entry.register(testVal),'%P','%d')
 
-
         label.grid(column = 0, row = 0)
         entry.grid(column = 1, row = 0)
         label2.grid(column = 2, row = 0)
@@ -112,7 +111,6 @@ class InputScreen:
         self.win.rowconfigure(0, weight=1)
 
         def enterEndTherm(event):
-
             self.input = entry.get()
             self.win.destroy()
 
@@ -143,7 +141,6 @@ class Fixation_cross(tk.Frame):
         win.attributes('-fullscreen', True)
         win.configure(background = 'black')
 
-        # getting screen's width in pixels
         height = win.winfo_screenheight()
         width = win.winfo_screenwidth()
 

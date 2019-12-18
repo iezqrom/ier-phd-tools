@@ -36,16 +36,15 @@ class grabPorts(object):
     def arduinoPort(self, winPort = None, num_ards = 1, n_modem = None):
         if sys.platform.startswith('win'):
             if num_ards == 1:
-                self.arduino_port = winPort
+                self.arduino_ports = winPort
             elif num_ards > 1:
-                self.arduino_port = []
+                self.arduino_ports = []
                 for i in winPort:
                     self.arduino_ports.append(winPort)
 
         elif sys.platform.startswith('darwin'):
             if num_ards == 1:
-
-                self.zaber_port = [s for s in self.ports  if "usbmodem142{}01".format(n_modem) in s]
+                self.arduino_ports = [s for s in self.ports  if "usbmodem142{}01".format(n_modem) in s]
 
             elif num_ards > 1:
                 self.arduino_ports = []

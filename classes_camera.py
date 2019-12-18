@@ -39,6 +39,7 @@ try:
 except:
     pass
 
+
 def py_frame_callback(frame, userptr):
 
   array_pointer = cast(frame.contents.data, POINTER(c_uint16 * (frame.contents.width * frame.contents.height)))
@@ -209,8 +210,8 @@ colorMapType = 0
 class TherCam(object):
 
     def __init__(self):
-        vminT = input("What minimum temperature would you like for the range?  ")
-        vmaxT = input("What maximum temperature would you like for the range?  ")
+        vminT = 30 # input("What minimum temperature would you like for the range?  ")
+        vmaxT = 40 # input("What maximum temperature would you like for the range?  ")
 
         self.vminT = int(vminT)
         self.vmaxT = int(vmaxT)

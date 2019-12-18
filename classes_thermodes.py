@@ -25,7 +25,12 @@ import scipy as sci
 from scipy import stats
 import sklearn as skl
 import scipy.stats as st
+<<<<<<< HEAD
 # import statsmodels as sm
+=======
+
+import statsmodels as sm
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 
 # import matplotlib
 from numpy import (isscalar, r_, log, around, unique, asarray,
@@ -34,10 +39,9 @@ from numpy import (isscalar, r_, log, around, unique, asarray,
                    pi, exp, ravel, count_nonzero, sin, cos, arctan2, hypot)
 import pandas as pd
 
-try:
-    import matlab.engine as me
-except:
-    pass
+
+import matlab.engine as me
+
     # print('No module Matlab')
 ## NIDAQMX
 import nidaqmx.system.watchdog as nsw
@@ -57,22 +61,39 @@ except:
     # import audio
 
 ## My scripts
-import globals
+try:
+    import globals
+except:
+    pass
 
+<<<<<<< HEAD
 
+=======
+# This class is to use a single thermode, useful for simple scripts
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 class Thermode(object):
     steps_range = 0.1
+
+    # We first initialise the object by mapping temperatures onto the voltages given by the manual of the thermodes.
+    # This manual can be found in office 207a as of December 2019
     def __init__(self, lower = 17, upper = 51):
         ## We need to map the temperatures with the Voltages ##
         self.range_temp = np.arange(lower, upper, self.steps_range)
+        self.range_temp = self.range_temp.round(decimals=1)
+
         self.temp = np.arange(0, 51, 5) # From manual
+
         self.mVolts = np.array([-62.2, -12.9, 35.9, 85, 134.6, 182.2, 234.2, 286, 338.2, 389.3, 440.9]) # Analog Output mV AOP
         self.volts = np.divide(self.mVolts,1000) # conversion from mV to V
+        self.volts = self.volts.round(decimals=4)
+
         # Interpolating
         self.range_volt = np.interp(self.range_temp, self.temp, self.volts)
 
         # We stack the data
         self.temp_volt = np.stack((self.range_temp, self.range_volt))
+        # self.temp_volt = self.temp_volt.T
+
 
     ## This method creates a ramp to reach temperature X from temperature Y ##
     def ramp(self, start_temp, target_temp):
@@ -82,8 +103,13 @@ class Thermode(object):
          self.nearest_temp_start = find_nearest(self.temp_volt[0], start_temp)
          self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
 
-         self.volt_ref_start = self.temp_volt[1, self.nearest_temp_start]
-         self.volt_ref_target = self.temp_volt[1, self.nearest_temp_target]
+         self.indx_start = np.where(self.temp_volt[0] == self.nearest_temp_start)
+         self.indx_target = np.where(self.temp_volt[0] == self.nearest_temp_target)
+
+         self.volt_ref_start = self.temp_volt[1,  self.indx_start]
+         self.volt_ref_target = self.temp_volt[1, self.indx_target]
+
+         # print(self.volt_ref_start)
 
          if start_temp > target_temp:
              self.volt = np.arange(self.volt_ref_start, self.volt_ref_target, - self.volt_ref_target/1000)
@@ -94,16 +120,16 @@ class Thermode(object):
     ## This is the most IMPORTANT method it is the way you write data to the box (e.g. a ramp)
     ## to the NI DAQ box and read from the boxes
 
-    def IO_thermode(self, rate, Ia, Io, dev = globals.dev):
+    def IO_thermode(self, Ai, Ao, rate = globals.rate_NI, dev = globals.dev):
 
         self.ai_task = NT.Task()
-        self.ai_task.ai_channels.add_ai_voltage_chan(physical_channel = '/{}/{}'.format(dev, Ia))
+        self.ai_task.ai_channels.add_ai_voltage_chan(physical_channel = '/{}/{}'.format(dev, Ai))
         self.ai_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(self.volt), sample_mode= NC.AcquisitionType.FINITE)
 
         # configuring ao task: writing data
 
         self.ao_task = NT.Task()
-        self.ao_task.ao_channels.add_ao_voltage_chan('/{}/{}'.format(dev, Io))
+        self.ao_task.ao_channels.add_ao_voltage_chan('/{}/{}'.format(dev, Ao))
         self.ao_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(self.volt), sample_mode = NC.AcquisitionType.FINITE,
         source = 'ai/SampleClock') # samps_per_chan = 1000
 
@@ -167,6 +193,7 @@ class Thermode(object):
             elif key == ord('q'):
                 break
 
+<<<<<<< HEAD
 
 class AttentionScreen:
 
@@ -276,6 +303,10 @@ class InputScreen:
 
 
 class Gethermodes(object):
+=======
+# This class is to use multiple thermodes, useful for simple scripts
+class gethermodes(object):
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
     def __init__(self, thermodes = 'all'):
         # This class is to run the thermodes, __init__ starts a global task and set thermode array
         self.tisk = NT.Task()
@@ -497,6 +528,7 @@ class Constant(Thermode, Gethermodes):
             else:
                 continue
 
+<<<<<<< HEAD
     # def IO_cons(self, IaT, OaT, time, cons_dummy = 0.001, rate = globals.rate_NI):
     #     self.start_cons = datetime.now()
     #     self.elapsed_cons = 0
@@ -539,6 +571,9 @@ class Constant(Thermode, Gethermodes):
 
 
 class Target(Thermode, Gethermodes):
+=======
+class target(thermode, gethermodes):
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
     steps_range = 0.004
     def __init__(self, reach_temp, thermodes = 'all', lower = 17, upper = 51):
         thermode.__init__(self, lower = 17, upper = 51)
@@ -654,6 +689,7 @@ class Target(Thermode, Gethermodes):
                 # print('we are here')
                 continue
 
+<<<<<<< HEAD
         # print('We are completely done')
 
 
@@ -664,6 +700,8 @@ def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return array[idx]
+=======
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 
 def audio_trig(duration, fs = 500, volume = 0.9, f = 4400):
     duration = duration * 1000
@@ -680,24 +718,7 @@ def audio_trig(duration, fs = 500, volume = 0.9, f = 4400):
                 print("Stimulus")
                 audio.audio(duration, fs, volume, f)
 
-
-
-    # def sub_age(self):
-    #     while True:
-    #         self.age = input("\n How old are you?   ")
-    #
-    #         if self.age in np.arange(18,100):
-    #           break
-    #         else:
-    #           print('\n Only numbers from 18-99 are valid answers')
-    #           continue
-    #
-    # def sub_sex(self):
-    #     while True:
-    #         self.sex = input("\n What sex do you identify with? (f for female, m for male and o for other)")
-    #
-    #         if self.sex in ('f', 'm', 'o'):
-    #           break
-    #         else:
-    #           print('\n Only f, m and o are valid answers')
-    #           continue
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]

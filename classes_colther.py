@@ -686,36 +686,6 @@ class Zaber(grabPorts):
 ################### FUNCTIONS ##############################################
 ############################################################################
 
-def grabbino(arduino_port):
-
-    arduino = serial.Serial(arduino_port, 9600, timeout = 5)
-
-    time.sleep(0.01)
-    arduino.flush()
-
-    while True:
-        ##### THIS CODE NEEDS TO BE MODIFIED TO EXTRACT DATA FROM proximity sensor AND ir sensor
-        # WHAT YOU PROBABLY NEED TO DO IS TO PUT IN ARDUINO AN INDICATOR AT EACH LINE OF WHAT TYPE OF DATA
-        # WE ARE WRITING, THEN HERE CONVERT TO STRING AND CREATE IF CONDITION, SO IF IN DATA FROM ARDUINO WE HAVE
-        # CAHRACTER C IT'S TEMP IF WE HAVE CHARACTER P IT'S DISTANCE THEN WE NEED TO CREATE TWO GLOBAL VARAIBLES
-        # ONE FOR TEMP AND ANOTHER FOR DISTANCE
-        data = arduino.readline()
-        time.sleep(0.0001)
-        data = str(data)
-        # print(data)
-        try:
-            data = data[2:7]
-
-            # print(type(data))
-            data = float(data)
-            # print(data)
-            globals.temp = data
-            print(globals.temp)
-            # print(globals.data)
-
-        except:
-            continue
-    return [data]
 
 def zrabber(n_trail, port, low_temp):
 

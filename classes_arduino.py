@@ -46,7 +46,11 @@ import re
 
 
 class ArdUIno(grabPorts):
+<<<<<<< HEAD
     def __init__(self, winPort = None, num_ards = 1, n_modem = None):
+=======
+    def __init__(self, winPort = None, num_ards = 1):
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
         self.ports = grabPorts()
         self.ports.arduinoPort(winPort, num_ards, n_modem)
         # print(self.ports.arduino_ports)
@@ -57,7 +61,7 @@ class ArdUIno(grabPorts):
             self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
             self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 5)
 
-    def OpenClose(self, wait_close, wait_open, devices):
+    def OpenClose(self, wait_close, wait_open, devices = None):
 
         if devices != None:
             devices[0].device.move_abs(globals.posX)
@@ -74,7 +78,7 @@ class ArdUIno(grabPorts):
 
                 self.arduino.write(shutter.encode())
 
-                time.sleep(0.9)
+                # time.sleep(0.9)
                 temp_shutter = str(self.arduino.readline())
                 # print(temp_shutter)
                 globals.shutter_state = temp_shutter[temp_shutter.find("'")+1:temp_shutter.find(str("\\"))]
@@ -87,7 +91,7 @@ class ArdUIno(grabPorts):
 
                 self.arduino.write(shutter.encode())
 
-                time.sleep(0.9)
+                # time.sleep(0.9)
                 temp_shutter = str(self.arduino.readline())
                 # print(temp_shutter)
                 globals.shutter_state = temp_shutter[temp_shutter.find("'")+1:temp_shutter.find(str("\\"))]

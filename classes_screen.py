@@ -3,6 +3,26 @@
 from datetime import datetime
 import time
 from time import sleep
+<<<<<<< HEAD
+=======
+#System
+try:
+    import sys
+except:
+    pass
+
+try:
+    import tty
+except:
+    pass
+
+try:
+    import termios
+except:
+    pass
+
+import zaber.serial as zs
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 
 import keyboard
 import serial
@@ -11,23 +31,35 @@ try:
 except:
     pass
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 # My stuff
 try:
     import globals
 except:
     pass
 
+<<<<<<< HEAD
+=======
+from classes_arduino import ardUIno
+from grabPorts import grabPorts
+
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 # Maths
 import numpy as np
 import pandas as pd
 import curses
 
+<<<<<<< HEAD
 import tkinter as tk
 from tkinter import font  as tkfont
 import threading
 
 
+=======
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 class AttentionScreen:
 
     def __init__(self, message, data, repeats):
@@ -74,7 +106,11 @@ class AttentionScreen:
 
 class InputScreen:
 
+<<<<<<< HEAD
     def __init__(self, message):
+=======
+    def __init__(self, message, data):
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 
         self.win = Tk()
 
@@ -83,12 +119,17 @@ class InputScreen:
         def testVal(ans, acttyp):
 
             if acttyp == '1': #insert
+<<<<<<< HEAD
                 try:
                     inte = int(ans)
                     return True
                 except:
                     return False
 
+=======
+                if ans != 'y' and ans != 'n':
+                    return False
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
             return True
 
 
@@ -102,6 +143,10 @@ class InputScreen:
         entry = Entry(self.win, validate = "key")
         entry['validatecommand'] = (entry.register(testVal),'%P','%d')
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
         label.grid(column = 0, row = 0)
         entry.grid(column = 1, row = 0)
         label2.grid(column = 2, row = 0)
@@ -111,6 +156,11 @@ class InputScreen:
         self.win.rowconfigure(0, weight=1)
 
         def enterEndTherm(event):
+<<<<<<< HEAD
+=======
+
+            globals.text_state += 1
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
             self.input = entry.get()
             self.win.destroy()
 
@@ -118,6 +168,7 @@ class InputScreen:
         self.win.mainloop()
 
 
+<<<<<<< HEAD
 class Fixation_cross(tk.Frame):
 
     def __init__(self, interval=1):
@@ -155,3 +206,21 @@ class Fixation_cross(tk.Frame):
 
         # win.after(5000, win.destroy)
         win.mainloop()
+=======
+    def thermode_screen(self, data):
+
+        while True:
+
+            trio = gethermodes()
+            trio.InputChannels(data[0])
+            trio.OutputChannels(data[1])
+
+            therm_trio = threading.Thread(target = trio.run, args = [data])
+            print('we almost started this')
+            therm_trio.start()
+
+            if globals.text_state == 1:
+                break
+            else:
+                continue
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2

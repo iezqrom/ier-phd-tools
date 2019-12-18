@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import globals
 
+<<<<<<< HEAD
 #Time
 from datetime import datetime
 import time
@@ -44,6 +46,8 @@ import pandas as pd
 import curses
 
 
+=======
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 class TextIO:
     def __init__(self):
         pass
@@ -154,6 +158,10 @@ class TextIO:
                 print("\n Only 'C1' and 'C2' are valid answers")
                 continue
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
     def blocks(self):
 
         while True:

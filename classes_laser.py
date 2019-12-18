@@ -69,7 +69,7 @@ try:
 except:
     pass
 
-class laser(object):
+class Laser(object):
 
      def __init__(self, lower = 30, upper = 60):
          self.range_temp = np.arange(30, 60, 0.3)

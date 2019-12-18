@@ -372,6 +372,7 @@ def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return array[idx]
+<<<<<<< HEAD
 
 
 
@@ -1137,3 +1138,5 @@ def cdfplot(theor, data, path_qq, name_qq, range, distribution):
     plt.savefig('./{}/{}.svg'.format(path_qq, name_qq), transparent=True)
 
     return
+=======
+>>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2

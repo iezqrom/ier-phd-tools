@@ -753,6 +753,30 @@ class TherCam(object):
         #     # print('Stop streaming')
         #     libuvc.uvc_stop_streaming(devh)
 
+    def outputData(self):
+        import matplotlib as mpl
+        mpl.rc('image', cmap='hot')
+
+
+        try:
+
+            # print('in camera thread')
+            data = q.get(True, 500)
+            if data is None:
+                print('Data is none')
+                exit(1)
+
+
+            # Get data
+
+            data = (data - 27315) / 100
+            self.data = data
+
+        except:
+            pass
+
+
+
     def plotLiveROI(self):
         import matplotlib as mpl
         mpl.rc('image', cmap='hot')
@@ -926,6 +950,11 @@ class TherCam(object):
             print('Stop streaming')
             libuvc.uvc_stop_streaming(devh)
 
+    def StopStream(self):
+        global devh
+        print('Stop streaming')
+        libuvc.uvc_stop_streaming(devh)
+        
     def testSkinWarm(self, output, r):
         global tiff_frame
 

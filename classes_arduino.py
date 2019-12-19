@@ -46,11 +46,9 @@ import re
 
 
 class ArdUIno(grabPorts):
-<<<<<<< HEAD
+
     def __init__(self, winPort = None, num_ards = 1, n_modem = None):
-=======
-    def __init__(self, winPort = None, num_ards = 1):
->>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
+
         self.ports = grabPorts()
         self.ports.arduinoPort(winPort, num_ards, n_modem)
         # print(self.ports.arduino_ports)

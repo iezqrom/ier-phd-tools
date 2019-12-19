@@ -25,12 +25,8 @@ import scipy as sci
 from scipy import stats
 import sklearn as skl
 import scipy.stats as st
-<<<<<<< HEAD
-# import statsmodels as sm
-=======
 
 import statsmodels as sm
->>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 
 # import matplotlib
 from numpy import (isscalar, r_, log, around, unique, asarray,
@@ -66,11 +62,9 @@ try:
 except:
     pass
 
-<<<<<<< HEAD
 
-=======
 # This class is to use a single thermode, useful for simple scripts
->>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
+
 class Thermode(object):
     steps_range = 0.1
 
@@ -193,8 +187,6 @@ class Thermode(object):
             elif key == ord('q'):
                 break
 
-<<<<<<< HEAD
-
 class AttentionScreen:
 
     def __init__(self, message, data, repeats):
@@ -303,10 +295,7 @@ class InputScreen:
 
 
 class Gethermodes(object):
-=======
-# This class is to use multiple thermodes, useful for simple scripts
-class gethermodes(object):
->>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
+
     def __init__(self, thermodes = 'all'):
         # This class is to run the thermodes, __init__ starts a global task and set thermode array
         self.tisk = NT.Task()
@@ -528,7 +517,6 @@ class Constant(Thermode, Gethermodes):
             else:
                 continue
 
-<<<<<<< HEAD
     # def IO_cons(self, IaT, OaT, time, cons_dummy = 0.001, rate = globals.rate_NI):
     #     self.start_cons = datetime.now()
     #     self.elapsed_cons = 0
@@ -571,9 +559,7 @@ class Constant(Thermode, Gethermodes):
 
 
 class Target(Thermode, Gethermodes):
-=======
-class target(thermode, gethermodes):
->>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
+
     steps_range = 0.004
     def __init__(self, reach_temp, thermodes = 'all', lower = 17, upper = 51):
         thermode.__init__(self, lower = 17, upper = 51)
@@ -689,7 +675,7 @@ class target(thermode, gethermodes):
                 # print('we are here')
                 continue
 
-<<<<<<< HEAD
+
         # print('We are completely done')
 
 
@@ -700,8 +686,6 @@ def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
     return array[idx]
-=======
->>>>>>> 6377f90dd10e8b719bfc33a1f19c9f6353f58cf2
 
 def audio_trig(duration, fs = 500, volume = 0.9, f = 4400):
     duration = duration * 1000

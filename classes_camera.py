@@ -757,24 +757,43 @@ class TherCam(object):
         import matplotlib as mpl
         mpl.rc('image', cmap='hot')
 
-
         try:
-
             # print('in camera thread')
-            data = q.get(True, 500)
-            if data is None:
+            dataK = q.get(True, 500)
+            if dataK is None:
                 print('Data is none')
                 exit(1)
 
-
             # Get data
 
-            data = (data - 27315) / 100
-            self.data = data
+            dataC = (dataK - 27315) / 100
+            self.data = dataC
+
+            # We get the min temp and shape to draw the ROI
+            minimoK = np.min(dataK)
+            minimoC = (minimoK - 27315) / 100
+
+            r = 20
+
+            xs = np.arange(0, 160)
+            ys = np.arange(0, 120)
+
+            indx, indy = np.where(dataC == minimoC)
+
+            mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
+            roiC = dataC[mask]
+            mean = round(np.mean(roiC), 2)
+
+            self.circles = []
+
+            for a, j in zip(indx, indy):
+                cirD = plt.Circle((j, a), r, color='r', fill = False)
+                self.circles.append(cirD)
+
+            globals.indx0, globals.indy0  = indx[0], indy[0]
 
         except:
             pass
-
 
 
     def plotLiveROI(self):
@@ -805,7 +824,7 @@ class TherCam(object):
                     print('Data is none')
                     exit(1)
 
-                # We save the data
+                # We get the min temp and draw a circle
                 minimoK = np.min(dataK)
                 minimoC = (minimoK - 27315) / 100
 
@@ -954,7 +973,7 @@ class TherCam(object):
         global devh
         print('Stop streaming')
         libuvc.uvc_stop_streaming(devh)
-        
+
     def testSkinWarm(self, output, r):
         global tiff_frame
 

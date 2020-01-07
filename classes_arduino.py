@@ -51,10 +51,13 @@ class ArdUIno(grabPorts):
 
         self.ports = grabPorts()
         self.ports.arduinoPort(winPort, num_ards, n_modem)
-        # print(self.ports.arduino_ports)
+        print('Arduino port: ' + str(self.ports.arduino_ports[0]))
 
         if num_ards == 1:
-            self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
+            try:
+                self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
+            except IndexError:
+                print('I cannot find any arduino boards!')
         elif num_ards > 1:
             self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
             self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 5)

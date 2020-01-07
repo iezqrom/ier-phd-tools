@@ -49,6 +49,15 @@ import math
 
 from pyd import PYD
 
+def homingZabers(zabers):
+    for kzabers, vzabers in zabers.items():
+        for d in vzabers:
+            try:
+                d.device.home()
+
+            except:
+                d.home()
+
 def sineWave(set_point, amplitude, freq, phase = 0, repeats = 1):
 
     t = np.arange(0, repeats * 10, 0.01)
@@ -323,16 +332,18 @@ class Zaber(grabPorts):
                             i.device.home()
 
                 elif keyboard.is_pressed('o'): # Open Arduino shutter
-                    globals.shutter_state = 'open'
-                    arduino.arduino.write(globals.shutter_state.encode())
+                    if arduino != None:
+                        globals.shutter_state = 'open'
+                        arduino.arduino.write(globals.shutter_state.encode())
 
                 elif keyboard.is_pressed('c'): # Close Arduino shutter
-                    globals.shutter_state = 'close'
-                    arduino.arduino.write(globals.shutter_state.encode())
+                    if arduino != None:
+                        globals.shutter_state = 'close'
+                        arduino.arduino.write(globals.shutter_state.encode())
 
-                elif keyboard.is_pressed('p'):
-                    globals.indx_saved = globals.indx0
-                    globals.indy_saved = globals.indy0
+                # elif keyboard.is_pressed('p'):
+                #     globals.indx_saved = globals.indx0
+                #     globals.indy_saved = globals.indy0
 
                 else:
                     continue
@@ -342,6 +353,182 @@ class Zaber(grabPorts):
             if arduino != None:
                 globals.shutter_state = 'close'
                 arduino.arduino.write(globals.shutter_state.encode())
+
+
+    def manualConGUIthree(self, devices, arduino = None):
+
+        """
+        Controls:               # letter 'f' for colther
+                                # letter 'h' for camera
+                                # letter 't' for tactile
+                                # letter 'c' to close shutter
+                                # letter 'o' to open shutter
+                                # letter 'h' to home all zabers
+                                # press 'enter' to terminate
+                                # press arrow 'up' to move x axis forward
+                                # press arrow 'down' to move x axis backwards
+                                # press arrow 'left' to move y axis forward
+                                # press arrow 'right' to move y axis backwards
+                                # letter 'd' to move Z axis down
+                                # letter 'u' to move Z axis up
+                                # letter 'z' to save CONTROL spot position
+                                # letter 'x' to save EXPERIMENTAL spot position
+        """
+
+        if arduino != None:
+            globals.shutter = 'close'
+            arduino.arduino.write(globals.shutter.encode())
+            # print('make sure shutter is closed')
+
+        try:
+            # Default zaber is camera
+            device = devices['camera']
+            globals.current_device = 'camera'
+
+            while True:
+
+                #### Y axis
+                if keyboard.is_pressed('up'):
+                    try:
+                        device[1].move_rel(globals.amount)
+                    except:
+                        device[1].device.move_rel(globals.amount)
+                    # print(curses.KEY_UP)
+
+                elif keyboard.is_pressed('down'):
+                    try:
+                        device[1].move_rel(0 - globals.amount)
+                    except:
+                        device[1].device.move_rel(0 - globals.amount)
+
+                #### X axis
+
+                elif keyboard.is_pressed('left'):
+                    try:
+                        device[2].move_rel(0 - globals.amount)
+                    except:
+                        device[2].device.move_rel(0 - globals.amount)
+
+                elif keyboard.is_pressed('right'):
+                    try:
+                        device[2].move_rel(globals.amount)
+                    except:
+                        device[2].device.move_rel(globals.amount)
+
+                ### Z axis
+                elif keyboard.is_pressed('d'):
+                    try:
+                        device[0].move_rel(globals.amount)
+                    except:
+                        device[0].device.move_rel(globals.amount)
+
+                elif keyboard.is_pressed('u'):
+                    try:
+                        device[2].move_rel(0 - globals.amount)
+                    except:
+                        device[2].device.move_rel(0 - globals.amount)
+
+                ### TERMINATE
+                elif keyboard.is_pressed('enter'):
+                    homingZabers(devices)
+
+                    break
+
+
+                #### GET POSITION ZABER
+                # Experimental
+                elif keyboard.is_pressed('x'):
+                    try:
+                        posX = device[0].send("/get pos")
+
+                    except:
+                        posX = device[0].device.send("/get pos")
+
+
+                    try:
+                        posY = device[1].send("/get pos")
+                    except:
+                        posY = device[1].device.send("/get pos")
+
+
+                    try:
+                        posZ = device[2].send("/get pos")
+                    except:
+                        posZ = device[2].device.send("/get pos")
+
+                    globals.positions[globals.current_device]['experimental'][2] = int(posX.data)
+                    globals.positions[globals.current_device]['experimental'][1] = int(posY.data)
+                    globals.positions[globals.current_device]['experimental'][0] = int(posZ.data)
+
+                    # print(globals.positions)
+
+                elif keyboard.is_pressed('z'):
+                    try:
+                        posX = device[0].send("/get pos")
+
+                    except:
+                        posX = device[0].device.send("/get pos")
+
+
+                    try:
+                        posY = device[1].send("/get pos")
+                    except:
+                        posY = device[1].device.send("/get pos")
+
+
+                    try:
+                        posZ = device[2].send("/get pos")
+                    except:
+                        posZ = device[2].device.send("/get pos")
+
+                    globals.positions[globals.current_device]['control'][2] = int(posX.data)
+                    globals.positions[globals.current_device]['control'][1] = int(posY.data)
+                    globals.positions[globals.current_device]['control'][0] = int(posZ.data)
+
+                    # print(globals.positions)
+
+                # Press letter h and Zaber will home, first z axis, then y and finally x
+                # Control
+
+                elif keyboard.is_pressed('h'):
+                    homingZabers(devices)
+
+                elif keyboard.is_pressed('o'): # Open Arduino shutter
+                    globals.shutter = 'open'
+                    arduino.arduino.write(globals.shutter.encode())
+                    time.sleep(2)
+
+
+                elif keyboard.is_pressed('c'): # Close Arduino shutter
+                    globals.shutter = 'close'
+                    arduino.arduino.write(globals.shutter.encode())
+                    time.sleep(2)
+
+                elif keyboard.is_pressed('p'):
+                    globals.indx_saved = globals.indx0
+                    globals.indy_saved = globals.indy0
+
+                elif keyboard.is_pressed('t'):
+                    device = devices['tactile']
+                    globals.current_device = 'tactile'
+
+                elif keyboard.is_pressed('k'):
+                    device = devices['camera']
+                    globals.current_device = 'camera'
+
+                elif keyboard.is_pressed('f'):
+                    device = devices['colther']
+                    globals.current_device = 'colther'
+
+                else:
+                    continue
+
+
+        finally:
+            if arduino != None:
+                globals.shutter_state = 'close'
+                arduino.arduino.write(globals.shutter_state.encode())
+
 
     def goStartingPosition(self, x_Spos, y_Spos, devices):
         devices[0].device.move_abs(x_Spos)

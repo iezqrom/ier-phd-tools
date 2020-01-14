@@ -703,6 +703,18 @@ class Zaber(grabPorts):
                     device = devices['colther']
                     globals.current_device = 'colther'
 
+                elif keyboard.is_pressed('t'):
+                    device = devices['tactile']
+                    globals.current_device = 'tactile'
+
+                elif keyboard.is_pressed('k'):
+                    device = devices['camera']
+                    globals.current_device = 'camera'
+
+                elif keyboard.is_pressed('f'):
+                    device = devices['colther']
+                    globals.current_device = 'colther'
+
                 else:
                     continue
 

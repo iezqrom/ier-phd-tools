@@ -210,8 +210,8 @@ colorMapType = 0
 class TherCam(object):
 
     def __init__(self):
-        vminT = 30 # input("What minimum temperature would you like for the range?  ")
-        vmaxT = 40 # input("What maximum temperature would you like for the range?  ")
+        vminT = 20 # input("What minimum temperature would you like for the range?  ")
+        vmaxT = 34 # input("What maximum temperature would you like for the range?  ")
 
         self.vminT = int(vminT)
         self.vmaxT = int(vmaxT)
@@ -405,38 +405,73 @@ class TherCam(object):
         finally:
             libuvc.uvc_stop_streaming(devh)
 
-    def thresStream(self):
+
+    def PIDSavePosMeanShuFixROI(self, output, r, cond, duration, event1 = None):
         global dev
         global devh
-        frame_width = 640
-        frame_height = 480
+        global tiff_frame
+        import matplotlib as mpl
+        f = h5py.File("./{}.hdf5".format(output), "w")
 
         try:
+            timeout = time.time() + duration
+            print('\nROI centre: ')
+            print([globals.centreROI[cond]])
+
             while True:
-                data = q.get(True, 500)
-                if data is None:
+                # time.sleep(0.01)
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
                     break
 
+                if globals.shutter == 'open':
+                    event1.set()
 
-                data = cv2.resize(data[:,:], (640, 480))
+                # We save the data
 
-                # img = raw_to_8bit(data)
-                img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
-                print(img)
-               # img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
+                dataC = (dataK - 27315) / 100
 
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
 
-                cv2.imshow('Just streaming thermal video...', img)
-                # Press Q on keyboard to stop recording
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                  # When everything done, release the video capture and video write objects
+                indx, indy = globals.centreROI[cond][0], globals.centreROI[cond][1]
 
-                    # Closes all the frames
-                    cv2.destroyAllWindows()
-                    exit(1)
+                mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
+                roiC = dataC[mask]
+                globals.temp = round(np.mean(roiC), 2)
+                print('Mean: ' + str(round(np.mean(globals.temp), 2)))
+
+                posss = np.repeat(globals.pos_zaber, len(dataC[0]))
+                data_p = np.append(dataC, [posss], axis = 0)
+
+                if globals.shutter== 'open':
+                    shutter = np.repeat(1, len(dataC[0]))
+                    data_pp = np.append(data_p, [shutter], axis = 0)
+
+                elif globals.shutter == 'close':
+                    shutter = np.repeat(0, len(dataC[0]))
+                    data_pp = np.append(data_p, [shutter], axis = 0)
+
+                coor = np.repeat([indx, indy], len(dataC[0])/2)
+                data_ppp = np.append(data_pp, [coor], axis = 0)
+
+                f.create_dataset(('image'+str(tiff_frame)), data = data_ppp)
+                tiff_frame += 1
+
+                if time.time() > timeout:
+
+                    break
+
+            print('PID camera loop finished')
+            f.close()
 
         finally:
-            libuvc.uvc_stop_streaming(devh)
+            # print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            pass
+
+################################### Developing phase
 
     def saveShutter(self, output):
         global dev
@@ -611,6 +646,9 @@ class TherCam(object):
             print('Stop streaming')
             libuvc.uvc_stop_streaming(devh)
 
+
+################################### Developing phase
+
     def savePosMeanShuFix(self, output, r, event1 = None):
         global dev
         global devh
@@ -659,7 +697,8 @@ class TherCam(object):
                     shutter = np.repeat(0, len(dataC[0]))
                     data_pp = np.append(data_p, [shutter], axis = 0)
 
-                coor = np.repeat([indx, indy], len(dataC[0]))
+
+                coor = np.repeat([indx, indy], len(dataC[0])/2)
                 data_ppp = np.append(data_pp, [coor], axis = 0)
 
                 f.create_dataset(('image'+str(tiff_frame)), data = data_ppp)
@@ -757,24 +796,43 @@ class TherCam(object):
         import matplotlib as mpl
         mpl.rc('image', cmap='hot')
 
-
         try:
-
             # print('in camera thread')
-            data = q.get(True, 500)
-            if data is None:
+            dataK = q.get(True, 500)
+            if dataK is None:
                 print('Data is none')
                 exit(1)
 
-
             # Get data
 
-            data = (data - 27315) / 100
-            self.data = data
+            dataC = (dataK - 27315) / 100
+            self.data = dataC
+
+            # We get the min temp and shape to draw the ROI
+            minimoK = np.min(dataK)
+            minimoC = (minimoK - 27315) / 100
+
+            r = 20
+
+            xs = np.arange(0, 160)
+            ys = np.arange(0, 120)
+
+            indx, indy = np.where(dataC == minimoC)
+
+            mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
+            roiC = dataC[mask]
+            mean = round(np.mean(roiC), 2)
+
+            self.circles = []
+
+            for a, j in zip(indx, indy):
+                cirD = plt.Circle((j, a), r, color='r', fill = False)
+                self.circles.append(cirD)
+
+            globals.indx0, globals.indy0  = indx[0], indy[0]
 
         except:
             pass
-
 
 
     def plotLiveROI(self):
@@ -805,7 +863,7 @@ class TherCam(object):
                     print('Data is none')
                     exit(1)
 
-                # We save the data
+                # We get the min temp and draw a circle
                 minimoK = np.min(dataK)
                 minimoC = (minimoK - 27315) / 100
 
@@ -954,7 +1012,7 @@ class TherCam(object):
         global devh
         print('Stop streaming')
         libuvc.uvc_stop_streaming(devh)
-        
+
     def testSkinWarm(self, output, r):
         global tiff_frame
 
@@ -1481,6 +1539,43 @@ class ReAnRaw(object):
 
 ## Video communication
 # https://github.com/groupgets/purethermal1-uvc-capture
+
+
+## MY TRASH
+# def thresStream(self):
+#     global dev
+#     global devh
+#     frame_width = 640
+#     frame_height = 480
+#
+#     try:
+#         while True:
+#             data = q.get(True, 500)
+#             if data is None:
+#                 break
+#
+#
+#             data = cv2.resize(data[:,:], (640, 480))
+#
+#             # img = raw_to_8bit(data)
+#             img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
+#             print(img)
+#            # img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
+#
+#
+#             cv2.imshow('Just streaming thermal video...', img)
+#             # Press Q on keyboard to stop recording
+#             if cv2.waitKey(1) & 0xFF == ord('q'):
+#               # When everything done, release the video capture and video write objects
+#
+#                 # Closes all the frames
+#                 cv2.destroyAllWindows()
+#                 exit(1)
+#
+#     finally:
+#         libuvc.uvc_stop_streaming(devh)
+
+
 
 
 ### For easy & dirty python scripts

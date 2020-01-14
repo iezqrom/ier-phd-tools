@@ -49,6 +49,30 @@ import math
 
 from pyd import PYD
 
+def homingZabers(zabers):
+    for kzabers, vzabers in zabers.items():
+        for d in vzabers:
+            try:
+                d.device.home()
+
+            except:
+                d.home()
+
+def movetostartZabers(zabers, zaber, cond):
+    poses = globals.positions[zaber][cond]
+
+
+    if zaber == 'non_tactile':
+        zaber = 'tactile'
+
+    for d, p in zip(reversed(zabers[zaber]), poses):
+        # print(d)
+        # print(p)
+        try:
+            d.device.move_abs(p)
+        except:
+            d.move_abs(p)
+
 def sineWave(set_point, amplitude, freq, phase = 0, repeats = 1):
 
     t = np.arange(0, repeats * 10, 0.01)
@@ -68,9 +92,9 @@ def sineWave(set_point, amplitude, freq, phase = 0, repeats = 1):
 
 class Zaber(grabPorts):
 
-    def __init__(self, n_device, who, n_modem = None, winPort = None, port = None):
+    def __init__(self, n_device, who, usb_port = None, n_modem = None, winPort = None, port = None):
         self.ports = grabPorts()
-        self.ports.zaberPort(who, n_modem, winPort)
+        self.ports.zaberPort(who, usb_port, n_modem, winPort)
 
         if n_device == 1: # number 1 device is chosen to lead the Daisy chain
             self.port = zs.AsciiSerial(self.ports.zaber_port[0])
@@ -208,7 +232,7 @@ class Zaber(grabPorts):
                     globals.shutter_state = 'close'
                     arduino.arduino.write(globals.shutter_state.encode())
                 elif key == ord('p'):
-                    globals.indx_saved = globals.indx0
+                    u= globals.indx0
                     globals.indy_saved = globals.indy0
 
                 else:
@@ -231,6 +255,7 @@ class Zaber(grabPorts):
             arduino.arduino.write(globals.shutter.encode())
 
         try:
+            device = devices[globals.current_device]
 
             while True:
 
@@ -238,48 +263,46 @@ class Zaber(grabPorts):
 
                 if keyboard.is_pressed('up'):
                     try:
-                        devices[1].move_rel(globals.amount)
+                        device[2].move_rel(globals.amount)
                     except:
-                        devices[1].device.move_rel(globals.amount)
-                    # print(curses.KEY_UP)
-
+                        device[2].device.move_rel(globals.amount)
 
                 elif keyboard.is_pressed('down'):
                     try:
-                        devices[1].move_rel(0 - globals.amount)
+                        device[2].move_rel(0 - globals.amount)
                     except:
-                        devices[1].device.move_rel(0 - globals.amount)
+                        device[2].device.move_rel(0 - globals.amount)
 
                 #### X axis
 
                 elif keyboard.is_pressed('left'):
                     try:
-                        devices[2].move_rel(0 - globals.amount)
+                        device[1].move_rel(0 - globals.amount)
                     except:
-                        devices[2].device.move_rel(0 - globals.amount)
+                        device[1].device.move_rel(0 - globals.amount)
 
                 elif keyboard.is_pressed('right'):
                     try:
-                        devices[2].move_rel(globals.amount)
+                        device[1].move_rel(globals.amount)
                     except:
-                        devices[2].device.move_rel(globals.amount)
+                        device[1].device.move_rel(globals.amount)
 
                 ### Z axis
                 elif keyboard.is_pressed('d'):
                     try:
-                        devices[0].move_rel(globals.amount)
+                        device[0].move_rel(globals.amount)
                     except:
-                        devices[0].device.move_rel(globals.amount)
+                        device[0].device.move_rel(globals.amount)
 
                 elif keyboard.is_pressed('u'):
                     try:
-                        devices[2].move_rel(0 - globals.amount)
+                        device[0].move_rel(0 - globals.amount)
                     except:
-                        devices[2].device.move_rel(0 - globals.amount)
+                        device[0].device.move_rel(0 - globals.amount)
 
                 ### TERMINATE
                 elif keyboard.is_pressed('enter'):
-                    for i in devices:
+                    for i in device:
                         try:
                             i.device.home()
                         except:
@@ -296,43 +319,45 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('s'):
 
                     try:
-                        posX = devices[0].send("/get pos")
+                        posX = device[0].send("/get pos")
 
                     except:
-                        posX = devices[0].device.send("/get pos")
+                        posX = device[0].device.send("/get pos")
                     globals.posX = int(posX.data)
 
                     try:
-                        posY = devices[1].send("/get pos")
+                        posY = device[1].send("/get pos")
                     except:
-                        posY = devices[1].device.send("/get pos")
+                        posY = device[1].device.send("/get pos")
                     globals.posY = int(posY.data)
 
                     try:
-                        posZ = devices[2].send("/get pos")
+                        posZ = device[2].send("/get pos")
                     except:
-                        posZ = devices[2].device.send("/get pos")
+                        posZ = device[2].device.send("/get pos")
                     globals.posZ = int(posZ.data)
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
                 elif keyboard.is_pressed('h'):
-                    for i in devices:
+                    for i in device:
                         try:
                             i.home()
                         except:
                             i.device.home()
 
                 elif keyboard.is_pressed('o'): # Open Arduino shutter
-                    globals.shutter_state = 'open'
-                    arduino.arduino.write(globals.shutter_state.encode())
+                    if arduino != None:
+                        globals.shutter_state = 'open'
+                        arduino.arduino.write(globals.shutter_state.encode())
 
                 elif keyboard.is_pressed('c'): # Close Arduino shutter
-                    globals.shutter_state = 'close'
-                    arduino.arduino.write(globals.shutter_state.encode())
+                    if arduino != None:
+                        globals.shutter_state = 'close'
+                        arduino.arduino.write(globals.shutter_state.encode())
 
-                elif keyboard.is_pressed('p'):
-                    globals.indx_saved = globals.indx0
-                    globals.indy_saved = globals.indy0
+                # elif keyboard.is_pressed('p'):
+                #     globals.indx_saved = globals.indx0
+                #     globals.indy_saved = globals.indy0
 
                 else:
                     continue
@@ -343,10 +368,410 @@ class Zaber(grabPorts):
                 globals.shutter_state = 'close'
                 arduino.arduino.write(globals.shutter_state.encode())
 
-    def goStartingPosition(self, x_Spos, y_Spos, devices):
-        devices[0].device.move_abs(x_Spos)
-        devices[1].device.move_abs(y_Spos)
+    def manualConGUIdouble(self, devices, event, arduino = None):
 
+        """
+        Controls:               # letter 't' for EXPERIMENTAL
+                                # letter 'n' for CONTROL
+
+                                # letter 'h' to home all zabers
+
+                                # press 'enter' to terminate
+
+                                # press arrow 'up' to move x axis forward
+                                # press arrow 'down' to move x axis backwards
+                                # press arrow 'left' to move y axis forward
+                                # press arrow 'right' to move y axis backwards
+                                # letter 'd' to move Z axis down
+                                # letter 'u' to move Z axis up
+
+                                # letter 'q' to save CONTROL spot position
+                                # letter 'w' to save EXPERIMENTAL spot position
+        """
+
+        if arduino != None:
+            globals.shutter = 'close'
+            arduino.arduino.write(globals.shutter.encode())
+            # print('make sure shutter is closed')
+
+        try:
+            # Default zaber is camera
+            device = devices[globals.current_device]
+            # print(device)
+
+            while True:
+                event[0].wait()
+                # print('MOVE ZABER')
+                event[1].clear()
+
+                #### Y axis
+                if keyboard.is_pressed('up'):
+                    try:
+                        device[2].move_rel(globals.amount)
+                    except:
+                        device[2].device.move_rel(globals.amount)
+
+                elif keyboard.is_pressed('down'):
+                    try:
+                        device[2].move_rel(0 - globals.amount)
+                    except:
+                        device[2].device.move_rel(0 - globals.amount)
+
+                #### X axis
+
+                elif keyboard.is_pressed('left'):
+                    try:
+                        device[1].move_rel(0 - globals.amount)
+                    except:
+                        device[1].device.move_rel(0 - globals.amount)
+
+                elif keyboard.is_pressed('right'):
+                    try:
+                        device[1].move_rel(globals.amount)
+                    except:
+                        device[1].device.move_rel(globals.amount)
+
+                ### Z axis
+                elif keyboard.is_pressed('d'):
+                    try:
+                        device[0].move_rel(globals.amount)
+                    except:
+                        device[0].device.move_rel(globals.amount)
+
+                elif keyboard.is_pressed('u'):
+                    try:
+                        device[0].move_rel(0 - globals.amount)
+                    except:
+                        device[0].device.move_rel(0 - globals.amount)
+
+                ### TERMINATE
+                elif keyboard.is_pressed('enter'):
+                    homingZabers(devices)
+                    break
+
+
+                #### GET POSITION ZABER
+                # Experimental
+                elif keyboard.is_pressed('w'):
+                    try:
+                        posX = device[0].send("/get pos")
+
+                    except:
+                        posX = device[0].device.send("/get pos")
+
+                    try:
+                        posY = device[1].send("/get pos")
+                    except:
+                        posY = device[1].device.send("/get pos")
+
+                    try:
+                        posZ = device[2].send("/get pos")
+                    except:
+                        posZ = device[2].device.send("/get pos")
+
+                    globals.positions[globals.current_device]['experimental'][2] = int(posX.data)
+                    globals.positions[globals.current_device]['experimental'][1] = int(posY.data)
+                    globals.positions[globals.current_device]['experimental'][0] = int(posZ.data)
+
+                    # print(globals.positions)
+
+                elif keyboard.is_pressed('q'):
+                    try:
+                        posX = device[0].send("/get pos")
+
+                    except:
+                        posX = device[0].device.send("/get pos")
+
+                    try:
+                        posY = device[1].send("/get pos")
+                    except:
+                        posY = device[1].device.send("/get pos")
+
+                    try:
+                        posZ = device[2].send("/get pos")
+                    except:
+                        posZ = device[2].device.send("/get pos")
+
+                    globals.positions[globals.current_device]['control'][2] = int(posX.data)
+                    globals.positions[globals.current_device]['control'][1] = int(posY.data)
+                    globals.positions[globals.current_device]['control'][0] = int(posZ.data)
+
+                    # print(globals.positions)
+
+                # Press letter h and Zaber will home, first z axis, then y and finally x
+                # Control
+
+                elif keyboard.is_pressed('h'):
+                    homingZabers(devices)
+
+
+                #### Double
+
+                elif keyboard.is_pressed('t'):
+                    device = devices['tactile']
+                    globals.current_device = 'tactile'
+                    movetostartZabers(devices, 'tactile', 'experimental')
+
+                elif keyboard.is_pressed('n'):
+                    device = devices['tactile']
+                    globals.current_device = 'tactile'
+                    movetostartZabers(devices, 'tactile', 'control')
+
+                else:
+                    continue
+
+                event[1].set()
+                event[0].clear()
+
+        finally:
+            if arduino != None:
+                globals.shutter_state = 'close'
+                arduino.arduino.write(globals.shutter_state.encode())
+
+    def manualConGUIthree(self, devices, arduino = None):
+
+        """
+        Controls:               # letter 'f' for colther
+                                # letter 'h' for camera
+                                # letter 't' for tactile
+                                # letter 'n' for non-tactile
+
+                                # letter 'c' to close shutter
+                                # letter 'o' to open shutter
+
+                                # letter 'p' to get centre ROI tactile
+                                # letter 'i' to get centre ROI non-tactile
+
+                                # letter 'h' to home all zabers
+                                # press 'enter' to terminate
+                                # press arrow 'up' to move x axis forward
+                                # press arrow 'down' to move x axis backwards
+                                # press arrow 'left' to move y axis forward
+                                # press arrow 'right' to move y axis backwards
+                                # letter 'd' to move Z axis down
+                                # letter 'u' to move Z axis up
+                                # letter 'z' to save CONTROL spot position
+                                # letter 'x' to save EXPERIMENTAL spot position
+        """
+
+        if arduino != None:
+            globals.shutter = 'close'
+            arduino.arduino.write(globals.shutter.encode())
+            # print('make sure shutter is closed')
+
+        try:
+            # Default zaber is camera
+            device = devices[globals.current_device]
+
+            while True:
+
+                #### Y axis
+                if keyboard.is_pressed('up'):
+                    try:
+                        device[1].move_rel(globals.amount)
+                    except:
+                        device[1].device.move_rel(globals.amount)
+                    # print(curses.KEY_UP)
+
+                elif keyboard.is_pressed('down'):
+                    try:
+                        device[1].move_rel(0 - globals.amount)
+                    except:
+                        device[1].device.move_rel(0 - globals.amount)
+
+                #### X axis
+
+                elif keyboard.is_pressed('left'):
+                    try:
+                        device[2].move_rel(0 - globals.amount)
+                    except:
+                        device[2].device.move_rel(0 - globals.amount)
+
+                elif keyboard.is_pressed('right'):
+                    try:
+                        device[2].move_rel(globals.amount)
+                    except:
+                        device[2].device.move_rel(globals.amount)
+
+                ### Z axis
+                elif keyboard.is_pressed('d'):
+                    try:
+                        device[0].move_rel(globals.amount)
+                    except:
+                        device[0].device.move_rel(globals.amount)
+
+                elif keyboard.is_pressed('u'):
+                    try:
+                        device[0].move_rel(0 - globals.amount)
+                    except:
+                        device[0].device.move_rel(0 - globals.amount)
+
+                ### TERMINATE
+                elif keyboard.is_pressed('enter'):
+                    homingZabers(devices)
+
+                    break
+
+
+                #### GET POSITION ZABER
+                # Experimental
+                elif keyboard.is_pressed('x'):
+                    try:
+                        posX = device[0].send("/get pos")
+
+                    except:
+                        posX = device[0].device.send("/get pos")
+
+
+                    try:
+                        posY = device[1].send("/get pos")
+                    except:
+                        posY = device[1].device.send("/get pos")
+
+
+                    try:
+                        posZ = device[2].send("/get pos")
+                    except:
+                        posZ = device[2].device.send("/get pos")
+
+                    globals.positions[globals.current_device]['experimental'][2] = int(posX.data)
+                    globals.positions[globals.current_device]['experimental'][1] = int(posY.data)
+                    globals.positions[globals.current_device]['experimental'][0] = int(posZ.data)
+
+                    # print(globals.positions)
+
+                elif keyboard.is_pressed('z'):
+                    try:
+                        posX = device[0].send("/get pos")
+
+                    except:
+                        posX = device[0].device.send("/get pos")
+
+
+                    try:
+                        posY = device[1].send("/get pos")
+                    except:
+                        posY = device[1].device.send("/get pos")
+
+
+                    try:
+                        posZ = device[2].send("/get pos")
+                    except:
+                        posZ = device[2].device.send("/get pos")
+
+                    globals.positions[globals.current_device]['control'][2] = int(posX.data)
+                    globals.positions[globals.current_device]['control'][1] = int(posY.data)
+                    globals.positions[globals.current_device]['control'][0] = int(posZ.data)
+
+                    # print(globals.positions)
+
+                # Press letter h and Zaber will home, first z axis, then y and finally x
+                # Control
+
+                elif keyboard.is_pressed('h'):
+                    homingZabers(devices)
+
+                elif keyboard.is_pressed('o'): # Open Arduino shutter
+                    globals.shutter = 'open'
+                    arduino.arduino.write(globals.shutter.encode())
+                    time.sleep(2)
+
+                elif keyboard.is_pressed('c'): # Close Arduino shutter
+                    globals.shutter = 'close'
+                    arduino.arduino.write(globals.shutter.encode())
+                    time.sleep(2)
+
+                elif keyboard.is_pressed('p'):
+                        globals.centreROI['control'] = [globals.indx0, globals.indy0]
+
+                elif keyboard.is_pressed('i'):
+                        globals.centreROI['experimental'] = [globals.indx0, globals.indy0]
+
+                elif keyboard.is_pressed('t'):
+                    device = devices['tactile']
+                    globals.current_device = 'tactile'
+
+                elif keyboard.is_pressed('n'):
+                    device = devices['tactile']
+                    globals.current_device = 'non_tactile'
+
+                elif keyboard.is_pressed('k'):
+                    device = devices['camera']
+                    globals.current_device = 'camera'
+
+                elif keyboard.is_pressed('f'):
+                    device = devices['colther']
+                    globals.current_device = 'colther'
+
+                else:
+                    continue
+
+
+        finally:
+            if arduino != None:
+                globals.shutter_state = 'close'
+                arduino.arduino.write(globals.shutter_state.encode())
+
+    def ROIPID(self, device, set_point, event1, radio, arduino = None):
+
+        previous_temp = globals.temp
+
+        if arduino != None:
+            shutter = 'open'
+            arduino.arduino.write(shutter.encode())
+            time.sleep(1.2)
+            globals.shutter = 'open'
+            print('Shutter '+ globals.shutter)
+
+        counter = 0
+
+        try:
+            while True:
+                if globals.shutter == 'open':
+                    counter += 1
+
+                    event1.wait()
+
+                    if counter == 1:
+
+                        while globals.temp > (set_point + 0.4):
+                            # print('waiting to start close-loop')
+                            # print(type(set_point))
+                            time.sleep(0.0001)
+
+                        ## PID parameters
+                        Kp = -1500
+                        Ki = -100
+                        Kd = -800
+                        output_limits = (-3000, 3000)
+                        range = 0.3
+
+                        # we initialise PID object
+                        PID = PYD(Kp, Ki, Kd, set_point, output_limits)
+
+
+                    zaber_pos = PID(globals.temp)
+
+                    device[0].device.move_rel(int(zaber_pos))
+                    pos = device[0].device.send("/get pos")
+                    pos = int(pos.data)
+                    previous_temp = globals.temp
+                    globals.pos_zaber = pos
+
+                elif globals.shutter == 'close':
+                    # print('we are here actually')
+                    # time.sleep(0.01)
+                    continue
+
+                previous_temp = globals.temp
+                event1.clear()
+
+
+        except KeyboardInterrupt:
+            sys.exit(0)
+
+
+######################## Developing phase
     def maintainColdMinPeak(self, amount, devices, set_point, range, event1, arduino = None):
 
         devices[0].device.move_abs(globals.posX)
@@ -518,7 +943,6 @@ class Zaber(grabPorts):
         except KeyboardInterrupt:
             sys.exit(0)
 
-
     def OscColdMeanROIPID(self, devices, set_point, event1, radio, amplitude, frequency, arduino = None):
 
         devices[0].device.move_abs(globals.posX)
@@ -608,205 +1032,18 @@ class Zaber(grabPorts):
             # print(pos)
             globals.pos = pos
             # print(globals.pos)
-
-    def rampCold(self, amount, duration, devices, amplitude):
-
-        globals.trial = 'on'
-        globals.time_limit = duration
-        globals.shutter = 'open'
-
-        start = time.time()
-
-        while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit and globals.status == 'active' and globals.temp > 25:
-            startRamp = time.time()
-
-            while startRamp <= 1:
-
-                if globals.temp < globals.temp - amplitude:   #negative is up
-
-                    devices[2].device.move_rel(-amount)
-
-                    end = time.time()
-                    globals.elapsed = end - start
-
-                elif globals.temp > globals.temp + amplitude:
-
-                    devices[2].device.move_rel(amount)  #positive is down
-
-                    end = time.time()
-                    globals.elapsed = end - start
-
-            low_bound -= 0.3
-            high_bound -= 0.3
-
-
-
-        globals.status = 'inactive'
-        globals.shutter = 'close'
-
-    def rampColdOpen(self, amount, devices):
-
-            globals.trial = 'on'
-            globals.shutter = 'open'
-
-            start = time.time()
-
-            sleep(2)
-
-            while globals.distance > globals.distance_limit and globals.status == 'active' and globals.temp > 0:
-
-                devices[2].device.move_rel(amount)  #positive is down
-                # print(globals.status)
-
-
-            globals.status = 'inactive'
-            globals.shutter = 'close'
-            # print('ramp dead')
-
-    def rampColdStopFam(self, amount, duration, devices, amplitude):
-
-        globals.trial = 'on'
-        globals.time_limit = duration
-        globals.shutter = 'open'
-        globals.status = 'active'
-        globals.fam = 'solo'
-
-        start = time.time()
-        # First we ramp the temperature
-
-        while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit and globals.status == 'active' and globals.temp > 27:
-            startRamp = time.time()
-
-            while startRamp <= 1:
-
-                if globals.temp < globals.temp - amplitude:   #negative is up
-
-                    devices[2].device.move_rel(-amount)
-
-                    end = time.time()
-                    globals.elapsed = end - start
-
-                elif globals.temp > globals.temp + amplitude:
-
-                    devices[2].device.move_rel(amount)  #positive is down
-
-                    end = time.time()
-                    globals.elapsed = end - start
-
-            low_bound -= 0.3
-            high_bound -= 0.3
-
-        # Second we maintain the temperature
-        while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit:
-
-            if globals.status == 'active':
-
-                    if globals.temp < 27 - amplitude:   #negative is up
-
-                        devices[2].device.move_rel(-amount)
-
-                        end = time.time()
-                        globals.elapsed = end - start
-
-                    elif globals.temp > 27 + amplitude:
-
-                        devices[2].device.move_rel(amount)  #positive is down
-
-                        end = time.time()
-                        globals.elapsed = end - start
-
-                    elif keyboard.is_pressed('c'):
-                        globals.fam = 'tgi'
-
-            elif globals.status == 'inactive':
-                globals.shutter = 'close'
-                break
+    def goStartingPosition(self, x_Spos, y_Spos, devices):
+        devices[0].device.move_abs(x_Spos)
+        devices[1].device.move_abs(y_Spos)
 
 
     def __repr__(self):
 
         return 'Device {} at port {}'.format(self.device, self.port)
 
-    def plotLive(self, vminT, vmaxT):
-        import matplotlib as mpl
-        mpl.rc('image', cmap='hot')
-
-        global dev
-        global devh
-        global tiff_frame
-
-        # plt.ion()
-
-        fig = plt.figure()
-        ax = plt.axes()
-
-        fig.tight_layout()
-
-        dummy = np.zeros([120, 160])
-
-        img = ax.imshow(dummy, interpolation='nearest', vmin = vminT, vmax = vmaxT, animated = True)
-        fig.colorbar(img)
-
-        current_cmap = plt.cm.get_cmap()
-        current_cmap.set_bad(color='black')
-
-        try:
-            while True:
-                # time.sleep(0.01)
-                data = q.get(True, 500)
-                if data is None:
-                    print('Data is none')
-                    exit(1)
-
-                # We save the data
-                minimoK = np.min(data)
-                minimo = (minimoK - 27315) / 100
-                # print('Minimo: ' + str(minimo))
-                globals.temp = minimo
-
-                data = (data - 27315) / 100
-
-                # under_threshold_indices = data < 5
-                # data[under_threshold_indices] = np.nan
-                # super_threshold_indices = data > 60
-                # data[super_threshold_indices] = np.nan
-                # fig.clear()
-
-                # img.set_data(data)
-                ax.clear()
-                ax.set_xticks([])
-                ax.set_yticks([])
-
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-                ax.spines['left'].set_visible(False)
-                ax.spines['bottom'].set_visible(False)
-                ax.imshow(data, vmin = vminT, vmax = vmaxT)
-                # print(data)
-                plt.pause(0.0005)
-
-                #
-                # if cv2.waitKey(1) & 0xFF == ord('e'):
-                #     cv2.destroyAllWindows()
-                #     frame = 1
-                #     print('We are done')
-                #     exit(1)
-
-                if cv2.waitKey(1) & keyboard.is_pressed('e'):
-                    cv2.destroyAllWindows()
-                    frame = 1
-                    # print('We are done')
-                    break
-
-        except:
-            pass
-        #     # print('Stop streaming')
-        #     libuvc.uvc_stop_streaming(devh)
-
 ############################################################################
 ################### FUNCTIONS ##############################################
 ############################################################################
-
 
 def zrabber(n_trail, port, low_temp):
 
@@ -826,3 +1063,196 @@ def zrabber(n_trail, port, low_temp):
 
 def read_reply(command):
         return ['Message type:  ' + command.message_type, 'Device address:  ' + str(command.device_address), 'Axis number:  ' + str(command.axis_number), 'Message ID:  ' + str(command.message_id), 'Reply flag:  ' + str(command.reply_flag), 'Device status:  ' + str(command.device_status), 'Warning flag:  ' + str(command.warning_flag), 'Data: ' + str(command.data), 'Checksum:  ' + str(command.checksum)]
+
+############################################################################
+################### TRASH ##################################################
+############################################################################
+
+# def rampCold(self, amount, duration, devices, amplitude):
+#
+#     globals.trial = 'on'
+#     globals.time_limit = duration
+#     globals.shutter = 'open'
+#
+#     start = time.time()
+#
+#     while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit and globals.status == 'active' and globals.temp > 25:
+#         startRamp = time.time()
+#
+#         while startRamp <= 1:
+#
+#             if globals.temp < globals.temp - amplitude:   #negative is up
+#
+#                 devices[2].device.move_rel(-amount)
+#
+#                 end = time.time()
+#                 globals.elapsed = end - start
+#
+#             elif globals.temp > globals.temp + amplitude:
+#
+#                 devices[2].device.move_rel(amount)  #positive is down
+#
+#                 end = time.time()
+#                 globals.elapsed = end - start
+#
+#         low_bound -= 0.3
+#         high_bound -= 0.3
+#
+#
+#
+#     globals.status = 'inactive'
+#     globals.shutter = 'close'
+#
+# def rampColdOpen(self, amount, devices):
+#
+#         globals.trial = 'on'
+#         globals.shutter = 'open'
+#
+#         start = time.time()
+#
+#         sleep(2)
+#
+#         while globals.distance > globals.distance_limit and globals.status == 'active' and globals.temp > 0:
+#
+#             devices[2].device.move_rel(amount)  #positive is down
+#             # print(globals.status)
+#
+#
+#         globals.status = 'inactive'
+#         globals.shutter = 'close'
+#         # print('ramp dead')
+
+# def plotLive(self, vminT, vmaxT):
+#     import matplotlib as mpl
+#     mpl.rc('image', cmap='hot')
+#
+#     global dev
+#     global devh
+#     global tiff_frame
+#
+#     # plt.ion()
+#
+#     fig = plt.figure()
+#     ax = plt.axes()
+#
+#     fig.tight_layout()
+#
+#     dummy = np.zeros([120, 160])
+#
+#     img = ax.imshow(dummy, interpolation='nearest', vmin = vminT, vmax = vmaxT, animated = True)
+#     fig.colorbar(img)
+#
+#     current_cmap = plt.cm.get_cmap()
+#     current_cmap.set_bad(color='black')
+#
+#     try:
+#         while True:
+#             # time.sleep(0.01)
+#             data = q.get(True, 500)
+#             if data is None:
+#                 print('Data is none')
+#                 exit(1)
+#
+#             # We save the data
+#             minimoK = np.min(data)
+#             minimo = (minimoK - 27315) / 100
+#             # print('Minimo: ' + str(minimo))
+#             globals.temp = minimo
+#
+#             data = (data - 27315) / 100
+#
+#             # under_threshold_indices = data < 5
+#             # data[under_threshold_indices] = np.nan
+#             # super_threshold_indices = data > 60
+#             # data[super_threshold_indices] = np.nan
+#             # fig.clear()
+#
+#             # img.set_data(data)
+#             ax.clear()
+#             ax.set_xticks([])
+#             ax.set_yticks([])
+#
+#             ax.spines['top'].set_visible(False)
+#             ax.spines['right'].set_visible(False)
+#             ax.spines['left'].set_visible(False)
+#             ax.spines['bottom'].set_visible(False)
+#             ax.imshow(data, vmin = vminT, vmax = vmaxT)
+#             # print(data)
+#             plt.pause(0.0005)
+#
+#             #
+#             # if cv2.waitKey(1) & 0xFF == ord('e'):
+#             #     cv2.destroyAllWindows()
+#             #     frame = 1
+#             #     print('We are done')
+#             #     exit(1)
+#
+#             if cv2.waitKey(1) & keyboard.is_pressed('e'):
+#                 cv2.destroyAllWindows()
+#                 frame = 1
+#                 # print('We are done')
+#                 break
+#
+#     except:
+#         pass
+#     #     # print('Stop streaming')
+#     #     libuvc.uvc_stop_streaming(devh)
+
+# def rampColdStopFam(self, amount, duration, devices, amplitude):
+#
+#     globals.trial = 'on'
+#     globals.time_limit = duration
+#     globals.shutter = 'open'
+#     globals.status = 'active'
+#     globals.fam = 'solo'
+#
+#     start = time.time()
+#     # First we ramp the temperature
+#
+#     while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit and globals.status == 'active' and globals.temp > 27:
+#         startRamp = time.time()
+#
+#         while startRamp <= 1:
+#
+#             if globals.temp < globals.temp - amplitude:   #negative is up
+#
+#                 devices[2].device.move_rel(-amount)
+#
+#                 end = time.time()
+#                 globals.elapsed = end - start
+#
+#             elif globals.temp > globals.temp + amplitude:
+#
+#                 devices[2].device.move_rel(amount)  #positive is down
+#
+#                 end = time.time()
+#                 globals.elapsed = end - start
+#
+#         low_bound -= 0.3
+#         high_bound -= 0.3
+#
+#     # Second we maintain the temperature
+#     while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit:
+#
+#         if globals.status == 'active':
+#
+#                 if globals.temp < 27 - amplitude:   #negative is up
+#
+#                     devices[2].device.move_rel(-amount)
+#
+#                     end = time.time()
+#                     globals.elapsed = end - start
+#
+#                 elif globals.temp > 27 + amplitude:
+#
+#                     devices[2].device.move_rel(amount)  #positive is down
+#
+#                     end = time.time()
+#                     globals.elapsed = end - start
+#
+#                 elif keyboard.is_pressed('c'):
+#                     globals.fam = 'tgi'
+#
+#         elif globals.status == 'inactive':
+#             globals.shutter = 'close'
+#             break

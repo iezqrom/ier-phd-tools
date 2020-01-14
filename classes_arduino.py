@@ -47,17 +47,43 @@ import re
 
 class ArdUIno(grabPorts):
 
-    def __init__(self, winPort = None, num_ards = 1, n_modem = None):
+    def __init__(self, winPort = None, num_ards = 1, usb_port = None, n_modem = None):
 
         self.ports = grabPorts()
-        self.ports.arduinoPort(winPort, num_ards, n_modem)
-        # print(self.ports.arduino_ports)
+        self.ports.arduinoPort(winPort, num_ards, usb_port, n_modem)
+        print(self.ports)
+        print('Arduino port: ')
+        print(str(self.ports.arduino_ports))
 
         if num_ards == 1:
-            self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
+            try:
+                self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
+            except IndexError:
+                print('I cannot find any arduino boards!')
         elif num_ards > 1:
             self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
             self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 5)
+
+    def readFloat(self, start, finish, globali, event):
+        while True:
+            read = self.arduino.readline()
+            cropp = read[start:finish]
+            # print(read)
+            try:
+                float_cropp = float(cropp)
+                rounded_float_cropp = round(float_cropp, 3)
+
+                globali.set(rounded_float_cropp)
+            except Exception as e:
+                print(e)
+
+            if keyboard.is_pressed('enter'):
+                event[0].set()
+                break
+            elif keyboard.is_pressed('l'):
+                event[0].set()
+                # print('Waiting for Zaber to move')
+                event[1].wait()
 
     def OpenClose(self, wait_close, wait_open, devices = None):
 
@@ -263,3 +289,20 @@ class ArdUIno(grabPorts):
             if keyboard.is_pressed('e'):
 
                 break
+
+################################################################################
+############################# FUNCTION #########################################
+################################################################################
+
+def shakeShutter(ard, times):
+    for i in np.arange(times):
+        globals.shutter = 'open'
+        ard.arduino.write(globals.shutter.encode())
+        print('Open shutter')
+
+        time.sleep(1.2)
+
+        globals.shutter = 'close'
+        ard.arduino.write(globals.shutter.encode())
+        print('Close shutter')
+        time.sleep(1.2)

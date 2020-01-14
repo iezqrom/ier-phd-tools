@@ -11,11 +11,12 @@ class grabPorts(object):
     def __init__(self):
         try:
             self.ports = glob.glob('/dev/tty.*')
-            print('All ports' + self.ports)
         except:
             pass
 
-    def zaberPort(self, who, n_modem = None, winPort = None):
+# [s for s in ports  if "usbmodem14{}{}01".format(1, 2) in s][0]
+
+    def zaberPort(self, who, usb_port = None, n_modem = None, winPort = None):
         if sys.platform.startswith('win'):
             self.zaber_port = winPort
             # self.zaber_port = serial.Serial('COM{}'.format(winPort), baudrate = 115200, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE);
@@ -26,14 +27,14 @@ class grabPorts(object):
                 self.zaber_port = [s for s in self.ports if "serial" in s]
 
             elif who == 'modem':
-                self.zaber_port = [s for s in self.ports if "usbmodem142{}01".format(str(n_modem)) in s]
-                # print(self.zaber_port)
+                self.zaber_port = [s for s in self.ports if "usbmodem14{}{}01".format(usb_port, str(n_modem)) in s]
+
             try:
                 print(self.zaber_port)
             except:
                 print('There are not Zabers connected to the mac machine')
 
-    def arduinoPort(self, winPort = None, num_ards = 1, n_modem = None):
+    def arduinoPort(self, winPort = None, num_ards = 1, usb_port = None, n_modem = None):
         if sys.platform.startswith('win'):
             if num_ards == 1:
                 self.arduino_ports = winPort
@@ -44,7 +45,7 @@ class grabPorts(object):
 
         elif sys.platform.startswith('darwin'):
             if num_ards == 1:
-                self.arduino_ports = [s for s in self.ports  if "usbmodem142{}01".format(n_modem) in s]
+                self.arduino_ports = [s for s in self.ports  if "usbmodem14{}{}01".format(usb_port, n_modem) in s]
 
             elif num_ards > 1:
                 self.arduino_ports = []

@@ -47,6 +47,7 @@ class PYD(object):
 
            self._min_output, self._max_output = output_limits
            self.output_limits = output_limits
+           # self.integral_limits = integral_limits
            self.sample_time = sample_time
 
            # print(self.Kp, self.Ki, self.Kd, self._min_output, self.output_limits, self.sample_time)
@@ -81,6 +82,7 @@ class PYD(object):
            elif dt <= 0:
                raise ValueError("dt has nonpositive value {}. Must be positive.".format(dt))
 
+           # print(dt)
            if self.sample_time is not None and dt < self.sample_time and self._last_output is not None:
                return self._last_output
 
@@ -93,13 +95,17 @@ class PYD(object):
            # compute integral and derivative terms
            self._integral += self.Ki * error * dt
            self._integral = _clamp(self._integral, self.output_limits)  # avoid integral windup
-           # print(self._integral)
 
            self._derivative = - self.Kd * d_input / dt
 
            # compute final output
            output = self._proportional + self._integral + self._derivative
            output = _clamp(output, self.output_limits)
+
+           # print('Integral: ' + str(self._integral))
+           # print('Derivative: ' + str(self._derivative))
+           # print('Proportional: ' + str(self._proportional))
+           # print(output)
 
            # keep track of state
            self._last_output = output

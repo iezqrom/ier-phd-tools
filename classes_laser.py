@@ -68,12 +68,6 @@ try:
     import globals
 except:
     pass
-class Car(object):
-    def __init__(self, wheels, doors):
-        self.wheels = colourwheel(wheel)
-        self. doors = doors
-
-
 
 class Laser(object):
 

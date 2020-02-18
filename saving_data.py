@@ -7,11 +7,11 @@ import numpy as np
 ################################################################
 
 ############ apending to file with all subjects ############
-def apendAll(name_file, subj_n, data):
+def apendAll(file, folder, subj_n, data):
     llaves = data.keys()
     one_key = [*llaves][0]
 
-    of1 = open('../src_analysis/data/{}.csv'.format(name_file), 'a')
+    of1 = open('./{}/{}.csv'.format(folder, file), 'a')
     data_writer = csv.writer(of1)
     if type(data[one_key]) == list:
 
@@ -61,12 +61,12 @@ def apendAll(name_file, subj_n, data):
 
 
 ############# Individual files #############
-def saveIndv(indv_file, subj_n, data):
+def saveIndv(file, folder, data):
 
     llaves = data.keys()
     one_key = [*llaves][0]
 
-    of2 = open('../src_analysis/data/{}.csv'.format(indv_file), 'w')
+    of2 = open('./{}/{}.csv'.format(folder, file), 'w')
     writer_subject = csv.writer(of2)
 
     if type(data[one_key]) == list:
@@ -115,9 +115,9 @@ def saveIndv(indv_file, subj_n, data):
 
 
 ############# Age files #############
-def apendSingle(file, subj_n, data_point):
+def apendSingle(file, folder, subj_n, data_point):
 
-    of3 = open('../src_analysis/data/{}.csv'.format(file), 'a')
+    of3 = open('./{}/{}.csv'.format(folder, file), 'a')
 
     writer_subject = csv.writer(of3)
     writer_subject.writerow([subj_n, data_point])

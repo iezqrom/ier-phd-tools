@@ -39,6 +39,7 @@ try:
 except:
     pass
 
+import struct
 
 def py_frame_callback(frame, userptr):
 
@@ -209,9 +210,7 @@ colorMapType = 0
 
 class TherCam(object):
 
-    def __init__(self):
-        vminT = 20 # input("What minimum temperature would you like for the range?  ")
-        vmaxT = 34 # input("What maximum temperature would you like for the range?  ")
+    def __init__(self, vminT = 29, vmaxT = 35):
 
         self.vminT = int(vminT)
         self.vmaxT = int(vmaxT)
@@ -311,10 +310,16 @@ class TherCam(object):
         finally:
             libuvc.uvc_stop_streaming(devh)
 
+    def refreshShutter(self):
+        global devh
+        set_auto_ffc(devh)
+
     def saveRawData(self, output):
         global dev
         global devh
-        global tiff_frame
+
+        tiff_frameLOCAL = 0
+
         f = h5py.File("./{}.hdf5".format(output), "w")
 
         import matplotlib as mpl
@@ -330,8 +335,8 @@ class TherCam(object):
         img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
 
-        current_cmap = plt.cm.get_cmap()
-        current_cmap.set_bad(color='black')
+        # current_cmap = plt.cm.get_cmap()
+        # current_cmap.set_bad(color='black')
 
         try:
             while True:
@@ -339,19 +344,11 @@ class TherCam(object):
                 if data is None:
                     print('Data is none')
                     exit(1)
-
                 data = (data - 27315) / 100
 
-                f.create_dataset(('image'+str(tiff_frame)), data=data)
-                tiff_frame += 1
+                f.create_dataset(('image'+str(tiff_frameLOCAL)), data=data)
+                tiff_frameLOCAL += 1
 
-                under_threshold_indices = data < 5
-                data[under_threshold_indices] = np.nan
-                super_threshold_indices = data > 60
-                data[super_threshold_indices] = np.nan
-                # fig.clear()
-
-                # img.set_data(data)
                 ax.clear()
                 ax.set_xticks([])
                 ax.set_yticks([])
@@ -360,8 +357,8 @@ class TherCam(object):
                 ax.spines['right'].set_visible(False)
                 ax.spines['left'].set_visible(False)
                 ax.spines['bottom'].set_visible(False)
-                ax.imshow(data, vmin = vminT, vmax = vmaxT)
-                # print(data)
+                ax.imshow(data, vmin = self.vminT, vmax = self.vmaxT)
+
                 plt.pause(0.0005)
 
                 if keyboard.is_pressed('e'):
@@ -406,17 +403,16 @@ class TherCam(object):
             libuvc.uvc_stop_streaming(devh)
 
 
-    def PIDSavePosMeanShuFixROI(self, output, r, cond, duration, event1 = None):
+    def PIDSavePosMeanShuFixROI(self, output, r, cond, duration, dim = 'c', event1 = None):
         global dev
         global devh
-        global tiff_frame
+
+        tiff_frameLOCAL = 1
         import matplotlib as mpl
         f = h5py.File("./{}.hdf5".format(output), "w")
 
+        # print('camera pid on')
         try:
-            timeout = time.time() + duration
-            print('\nROI centre: ')
-            print([globals.centreROI[cond]])
 
             while True:
                 # time.sleep(0.01)
@@ -425,45 +421,68 @@ class TherCam(object):
                     print('Data is none')
                     break
 
-                if globals.shutter == 'open':
+                if globals.stimulus == 1:
+                    # globals.frames['fixation_cross'][1] = 'on'
                     event1.set()
 
                 # We save the data
 
-                dataC = (dataK - 27315) / 100
+                # dataC = (dataK - 27315) / 100
 
                 xs = np.arange(0, 160)
                 ys = np.arange(0, 120)
 
-                indx, indy = globals.centreROI[cond][0], globals.centreROI[cond][1]
+                dataC = (dataK - 27315) / 100
 
+                if dim == 'c':
+                    threshold = (28*100) + 27315
+                    indxT, indyT = np.where(dataK < threshold)
+
+                    dataKT = dataK
+                    dataKT[indxT, indyT] = dataKT[indxT, indyT] + 30000
+                    dataCT = (dataKT - 27315) / 100
+                    peakC = np.min(dataCT)
+                    indxD, indyD = np.where(dataCT == peakC)
+
+                elif dim == 'w':
+                    peakC = np.max(dataC)
+                    indxD, indyD = np.where(dataC == peakC)
+
+
+                indx, indy = globals.centreROI
                 mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
                 roiC = dataC[mask]
                 globals.temp = round(np.mean(roiC), 2)
                 print('Mean: ' + str(round(np.mean(globals.temp), 2)))
 
-                posss = np.repeat(globals.pos_zaber, len(dataC[0]))
+                posss = np.repeat(globals.pid_var, len(dataC[0]))
                 data_p = np.append(dataC, [posss], axis = 0)
 
-                if globals.shutter== 'open':
-                    shutter = np.repeat(1, len(dataC[0]))
-                    data_pp = np.append(data_p, [shutter], axis = 0)
+                stimulus = np.repeat(globals.stimulus, len(dataC[0]))
+                data_pp = np.append(data_p, [stimulus], axis = 0)
 
-                elif globals.shutter == 'close':
-                    shutter = np.repeat(0, len(dataC[0]))
-                    data_pp = np.append(data_p, [shutter], axis = 0)
+                coorF = np.repeat([indx, indy], len(dataC[0])/2)
+                data_ppp = np.append(data_pp, [coorF], axis = 0)
 
-                coor = np.repeat([indx, indy], len(dataC[0])/2)
-                data_ppp = np.append(data_pp, [coor], axis = 0)
+                coorD = np.repeat([indxD[0], indyD[0]], len(dataC[0])/2)
+                data_pppp = np.append(data_ppp, [coorD], axis = 0)
 
-                f.create_dataset(('image'+str(tiff_frame)), data = data_ppp)
-                tiff_frame += 1
+                # coorD = np.repeat([indxD, indyD], len(dataC[0])/2)
+                # data_ppp = np.append(data_pp, [coorD], axis = 0)
 
-                if time.time() > timeout:
+                f.create_dataset(('image'+str(tiff_frameLOCAL)), data = data_pppp)
+                tiff_frameLOCAL += 1
 
+                # if keyboard.is_pressed('e'):
+                #     break
+
+                if time.time() > globals.timeout and globals.stimulus == 1:
+                    print('Time out')
                     break
 
-            print('PID camera loop finished')
+            event1.set()
+            globals.stimulus = 0
+            print('Camera off')
             f.close()
 
         finally:
@@ -473,16 +492,22 @@ class TherCam(object):
 
 ################################### Developing phase
 
-    def saveShutter(self, output):
+
+    def saveShutterCam(self, output, cam):
         global dev
         global devh
-        global tiff_frame
+        tiff_frameLOCAL = 1
         f = h5py.File("./{}.hdf5".format(output), "w")
+        v = h5py.File("./{}_video.hdf5".format(output), "w")
+
+        camera = cv2.VideoCapture(cam)
 
         try:
+            counter = 0
             while True:
                 # time.sleep(0.01)
                 data = q.get(True, 500)
+                success, frame = camera.read()
                 if data is None:
                     print('Data is none')
                     break
@@ -490,28 +515,184 @@ class TherCam(object):
                 # We save the data
                 # print(type(data))
 
-                f.create_dataset(('image'+str(tiff_frame)+'_'+str(globals.shutter_state)), data = data)
-                print(globals.shutter_state)
-                tiff_frame += 1
-                # globals.counter += 1
+                dataC = (data - 27315) / 100
+                peakC = np.min(dataC)
 
-                # We display the thermal image
-                # data = cv2.resize(data[:,:], (640, 480))
-                #
-                # img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
+                globals.indx0, globals.indy0 = np.where(dataC == peakC)
 
-                # cv2.imshow('Lepton Radiometry', img)
+                stimulus = np.repeat(globals.stimulus, len(data[0]))
+                # print(globals.stimulus)
+                data_p = np.append(data, [stimulus], axis = 0)
 
-                if keyboard.is_pressed('e'):  # globals.counter > globals.limit_counter:
+                coorF = np.repeat([globals.indx_saved, globals.indy_saved], len(data[0])/2)
+                data_pp = np.append(data_p, [coorF], axis = 0)
+
+
+                f.create_dataset(('image'+str(tiff_frameLOCAL)), data = data_pp)
+                v.create_dataset(('image'+str(tiff_frameLOCAL)), data = frame)
+                tiff_frameLOCAL += 1
+
+
+                if globals.counter == 3:
+                    print('We are done')
+                    f.close()
+                    v.close()
+                    break
+                # if keyboard.is_pressed('e'):  # globals.counter > globals.limit_counter:
+                #     #Close file in which we are saving the stuff
+                #     print('We are done')
+                #     f.close()
+                #     break
+
+        finally:
+            # print('Stop streaming')
+            libuvc.uvc_stop_streaming(devh)
+
+
+    def saveShutter(self, output):
+        global dev
+        global devh
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+
+        edge = 30
+
+        try:
+            counter = 0
+            while True:
+                # time.sleep(0.01)
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                # Get data
+                subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+                minimoK = np.min(subdataK)
+
+                # We get the min temp and shape to draw the ROI
+                dataC = (dataK - 27315) / 100
+                minimoC = (minimoK - 27315) / 100
+                subdataC = (subdataK - 27315) / 100
+
+                self.data = dataC
+
+                r = 20
+
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
+
+                indx, indy = np.where(subdataC == minimoC)
+                indx, indy = indx + edge, indy + edge
+
+                stimulus = np.repeat(globals.stimulus, len(dataC[0]))
+
+                data_p = np.append(dataC, [stimulus], axis = 0)
+
+                coorF = np.repeat([globals.centreROI[0], globals.centreROI[1]], len(dataC[0])/2)
+                data_pp = np.append(data_p, [coorF], axis = 0)
+
+                momen = time.time()
+
+                elapsed = np.repeat(momen, len(dataC[0]))
+                data_ppp = np.append(data_pp, [elapsed], axis = 0)
+
+                coorD = np.repeat([indx[0], indy[0]], len(dataC[0])/2)
+                data_pppp = np.append(data_ppp, [coorD], axis = 0)
+
+                f.create_dataset(('image'+str(tiff_frameLOCAL)), data = data_pppp)
+                tiff_frameLOCAL += 1
+
+
+                # if globals.counter == 3:
+                #     print('We are done')
+                #     f.close()
+                #     break
+                if keyboard.is_pressed('enter'):  # globals.counter > globals.limit_counter:
                     #Close file in which we are saving the stuff
                     print('We are done')
-                    # globals.counter = globals.limit_counter
                     f.close()
                     break
 
         finally:
             # print('Stop streaming')
             libuvc.uvc_stop_streaming(devh)
+
+    def rtMoF(self, output):
+        global dev
+        global devh
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+
+        edge = 30
+        # print('we are here')
+
+        try:
+            counter = 0
+            while True:
+                # time.sleep(0.01)
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                # Get data
+                subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+                minimoK = np.min(subdataK)
+
+                # We get the min temp and shape to draw the ROI
+                dataC = (dataK - 27315) / 100
+                minimoC = (minimoK - 27315) / 100
+                subdataC = (subdataK - 27315) / 100
+
+                self.data = dataC
+
+                r = 20
+
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
+
+                indx, indy = np.where(subdataC == minimoC)
+                indx, indy = indx + edge, indy + edge
+
+
+                mask = (xs[np.newaxis,:]-globals.centreROI[1])**2 + (ys[:,np.newaxis]-globals.centreROI[0])**2 < r**2
+                roiC = dataC[mask]
+                globals.temp = round(np.mean(roiC), 2)
+
+                stimulus = np.repeat(globals.stimulus, len(dataC[0]))
+
+                data_p = np.append(dataC, [stimulus], axis = 0)
+
+                coorF = np.repeat([globals.centreROI[0], globals.centreROI[1]], len(dataC[0])/2)
+                data_pp = np.append(data_p, [coorF], axis = 0)
+
+                momen = time.time()
+
+                elapsed = np.repeat(momen, len(dataC[0]))
+                data_ppp = np.append(data_pp, [elapsed], axis = 0)
+
+                coorD = np.repeat([indx[0], indy[0]], len(dataC[0])/2)
+                data_pppp = np.append(data_ppp, [coorD], axis = 0)
+
+                f.create_dataset(('image'+str(tiff_frameLOCAL)), data = data_pppp)
+                tiff_frameLOCAL += 1
+
+                print(globals.temp)
+
+                if keyboard.is_pressed('space'):  # globals.counter > globals.limit_counter:
+                    #Close file in which we are saving the stuff
+                    print('We are done')
+                    globals.thres_temp = globals.temp
+                    globals.stimulus = 0
+                    f.close()
+                    break
+
+        finally:
+            # print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            pass
+
 
     def savePosMinShu(self, output, event1 = None):
         global dev
@@ -649,28 +830,47 @@ class TherCam(object):
 
 ################################### Developing phase
 
-    def savePosMeanShuFix(self, output, r, event1 = None):
+    def savePosMeanShuFixCam(self, output, r, cam, event1 = None):
         global dev
         global devh
-        global tiff_frame
+        tiff_frameLOCAl = 1
         import matplotlib as mpl
         f = h5py.File("./{}.hdf5".format(output), "w")
+        v = h5py.File("./{}_video.hdf5".format(output), "w")
+
+        camera = cv2.VideoCapture(cam)
 
         try:
             # start = time.time()
-            print('start')
+            print('Start')
             print(globals.indx_saved, globals.indy_saved)
             while True:
                 # time.sleep(0.01)
                 dataK = q.get(True, 500)
+                success, frame = camera.read()
+                # print(frame)
                 if dataK is None:
                     print('Data is none')
                     break
 
                 # We save the data
-                # minimoK = np.min(dataK)
-                # minimoC = (minimoK - 27315) / 100
+
+                threshold = (28*100) + 27315
+                indxT, indyT = np.where(dataK < threshold)
                 dataC = (dataK - 27315) / 100
+                dataKT = dataK
+
+                dataKT[indxT, indyT] = dataKT[indxT, indyT] + 30000
+
+                minimoK = np.min(dataKT)
+
+                minimoC = (minimoK - 27315) / 100
+
+                globals.temp = minimoC
+
+                dataCT = (dataKT - 27315) / 100
+                indxD, indyD = np.where(dataCT == minimoC)
+                # print([indxD, indyD])
 
                 xs = np.arange(0, 160)
                 ys = np.arange(0, 120)
@@ -680,29 +880,109 @@ class TherCam(object):
                 mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
                 roiC = dataC[mask]
                 globals.temp = round(np.mean(roiC), 2)
-                print('Mean:' + str(round(np.mean(globals.temp), 2)))
+                print('Mean: ' + str(round(np.mean(globals.temp), 2)))
 
-                if globals.shutter_state == 'open':
+                if globals.stimulus == 1:
+                    # print('event set')
 
                     event1.set()
 
                 posss = np.repeat(globals.posZ, len(dataC[0]))
                 data_p = np.append(dataC, [posss], axis = 0)
 
-                if globals.shutter_state == 'open':
-                    shutter = np.repeat(1, len(dataC[0]))
-                    data_pp = np.append(data_p, [shutter], axis = 0)
+                shutter = np.repeat(globals.stimulus, len(dataC[0]))
+                data_pp = np.append(data_p, [shutter], axis = 0)
 
-                elif globals.shutter_state == 'close':
-                    shutter = np.repeat(0, len(dataC[0]))
-                    data_pp = np.append(data_p, [shutter], axis = 0)
+                coorF = np.repeat([indx, indy], len(dataC[0])/2)
+                data_ppp = np.append(data_pp, [coorF], axis = 0)
+
+                coorD = np.repeat([indxD[0], indyD[0]], len(dataC[0])/2)
+                data_pppp = np.append(data_ppp, [coorD], axis = 0)
+
+                f.create_dataset(('image'+str(tiff_frameLOCAl)), data = data_pppp)
+                v.create_dataset(('image'+str(tiff_frameLOCAl)), data = frame)
+                tiff_frameLOCAl += 1
+
+                if keyboard.is_pressed('e'):
+                    #Close file in which we are saving the stuff
+                    print('We are done')
+
+                    f.close()
+                    v.close()
+                    break
+
+        finally:
+            print('Stop streaming')
+            libuvc.uvc_stop_streaming(devh)
 
 
-                coor = np.repeat([indx, indy], len(dataC[0])/2)
-                data_ppp = np.append(data_pp, [coor], axis = 0)
 
-                f.create_dataset(('image'+str(tiff_frame)), data = data_ppp)
-                tiff_frame += 1
+    def savePosMeanShuFix(self, output, r, event1 = None):
+        global dev
+        global devh
+        tiff_frameLOCAl = 1
+        import matplotlib as mpl
+        f = h5py.File("./{}.hdf5".format(output), "w")
+
+        edge = 30
+
+        try:
+            # start = time.time()
+            print('Start')
+            print(globals.indx_saved, globals.indy_saved)
+            while True:
+                # time.sleep(0.01)
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                # We save the data
+
+                # Get data
+                subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+                minimoK = np.min(subdataK)
+
+                # We get the min temp and shape to draw the ROI
+                dataC = (dataK - 27315) / 100
+                minimoC = (minimoK - 27315) / 100
+                subdataC = (subdataK - 27315) / 100
+
+                self.data = dataC
+
+                r = 20
+
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
+
+                indxD, indyD = np.where(subdataC == minimoC)
+                indxD, indyD = indxD + edge, indyD + edge
+
+                indx, indy = globals.indx_saved, globals.indy_saved
+
+                mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
+                roiC = dataC[mask]
+
+                globals.temp = round(np.mean(roiC), 2)
+                print('Mean: ' + str(round(np.mean(globals.temp), 2)))
+
+                if globals.stimulus == 1:
+                    event1.set()
+
+                posss = np.repeat(globals.posZ, len(dataC[0]))
+                data_p = np.append(dataC, [posss], axis = 0)
+
+                shutter = np.repeat(globals.stimulus, len(dataC[0]))
+                data_pp = np.append(data_p, [shutter], axis = 0)
+
+                coorF = np.repeat([indx, indy], len(dataC[0])/2)
+                data_ppp = np.append(data_pp, [coorF], axis = 0)
+
+                coorD = np.repeat([indxD[0], indyD[0]], len(dataC[0])/2)
+                data_pppp = np.append(data_ppp, [coorD], axis = 0)
+
+                f.create_dataset(('image'+str(tiff_frameLOCAl)), data = data_pppp)
+                tiff_frameLOCAl += 1
 
                 if keyboard.is_pressed('e'):
                     #Close file in which we are saving the stuff
@@ -724,7 +1004,6 @@ class TherCam(object):
         global devh
         global tiff_frame
 
-        # plt.ion()
 
         fig = plt.figure()
         ax = plt.axes()
@@ -736,9 +1015,6 @@ class TherCam(object):
         img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
 
-        current_cmap = plt.cm.get_cmap()
-        current_cmap.set_bad(color='black')
-
         try:
             while True:
                 # time.sleep(0.01)
@@ -747,21 +1023,9 @@ class TherCam(object):
                     print('Data is none')
                     exit(1)
 
-                # We save the data
-                minimoK = np.min(data)
-                minimo = (minimoK - 27315) / 100
-                # print('Minimo: ' + str(minimo))
-                globals.temp = minimo
 
                 data = (data - 27315) / 100
 
-                # under_threshold_indices = data < 5
-                # data[under_threshold_indices] = np.nan
-                # super_threshold_indices = data > 60
-                # data[super_threshold_indices] = np.nan
-                # fig.clear()
-
-                # img.set_data(data)
                 ax.clear()
                 ax.set_xticks([])
                 ax.set_yticks([])
@@ -771,30 +1035,25 @@ class TherCam(object):
                 ax.spines['left'].set_visible(False)
                 ax.spines['bottom'].set_visible(False)
                 ax.imshow(data, vmin = self.vminT, vmax = self.vmaxT)
-                # print(data)
+
                 plt.pause(0.0005)
 
-                #
-                # if cv2.waitKey(1) & 0xFF == ord('e'):
-                #     cv2.destroyAllWindows()
-                #     frame = 1
-                #     print('We are done')
-                #     exit(1)
 
-                if cv2.waitKey(1) & keyboard.is_pressed('e'):
+                if keyboard.is_pressed('e'):
                     cv2.destroyAllWindows()
                     frame = 1
-                    # print('We are done')
+                    print('We are done')
                     break
 
-        except:
-            pass
-        #     # print('Stop streaming')
-        #     libuvc.uvc_stop_streaming(devh)
+        except Exception as e:
+            print(e)
+            libuvc.uvc_stop_streaming(devh)
 
     def outputData(self):
         import matplotlib as mpl
         mpl.rc('image', cmap='hot')
+
+        edge = 30
 
         try:
             # print('in camera thread')
@@ -804,38 +1063,46 @@ class TherCam(object):
                 exit(1)
 
             # Get data
+            subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+            minimoK = np.min(subdataK)
 
-            dataC = (dataK - 27315) / 100
-            self.data = dataC
+            # threshold = (28*100) + 27315
+            # indxT, indyT = np.where(dataK < threshold)
+            # dataK[indxT, indyT] = dataK[indxT, indyT] + 30000
 
             # We get the min temp and shape to draw the ROI
-            minimoK = np.min(dataK)
+            dataC = (dataK - 27315) / 100
             minimoC = (minimoK - 27315) / 100
+            subdataC = (subdataK - 27315) / 100
+
+            self.data = dataC
 
             r = 20
 
             xs = np.arange(0, 160)
             ys = np.arange(0, 120)
 
-            indx, indy = np.where(dataC == minimoC)
+            indx, indy = np.where(subdataC == minimoC)
+            indx, indy = indx + edge, indy + edge
 
             mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
             roiC = dataC[mask]
-            mean = round(np.mean(roiC), 2)
+            self.mean = round(np.mean(roiC), 2)
 
             self.circles = []
 
             for a, j in zip(indx, indy):
-                cirD = plt.Circle((j, a), r, color='r', fill = False)
+                cirD = plt.Circle((j, a), r, color='b', fill = False)
                 self.circles.append(cirD)
 
             globals.indx0, globals.indy0  = indx[0], indy[0]
+            print([indx0, indy0])
 
         except:
             pass
 
 
-    def plotLiveROI(self):
+    def plotLiveROI(self, c_w = 'c', cut = 30, r = 20):
         import matplotlib as mpl
         mpl.rc('image', cmap='hot')
 
@@ -864,22 +1131,38 @@ class TherCam(object):
                     exit(1)
 
                 # We get the min temp and draw a circle
-                minimoK = np.min(dataK)
-                minimoC = (minimoK - 27315) / 100
+                if c_w == 'c':
+                    threshold = (cut*100) + 27315
+                    # print(threshold)
+                    indxT, indyT = np.where(dataK < threshold)
+                    dataK[indxT, indyT] = dataK[indxT, indyT] + 30000
 
-                globals.temp = minimoC
+                    minimoK = np.min(dataK)
+
+                elif c_w == 'w':
+                    threshold = (threshold*100) + 27315
+                    indxT, indyT = np.where(dataK > threshold)
+                    dataK[indxT, indyT] = dataK[indxT, indyT] - 30000
+
+                    minimoK = np.max(dataK)
+
                 dataC = (dataK - 27315) / 100
 
-                r = 20
+                r = r
 
                 xs = np.arange(0, 160)
                 ys = np.arange(0, 120)
+
+                minimoC = (minimoK - 27315) / 100
+
+                globals.temp = minimoC
 
                 indx, indy = np.where(dataC == minimoC)
 
                 mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
                 roiC = dataC[mask]
                 mean = round(np.mean(roiC), 2)
+                # print(mean)
 
                 circles = []
 
@@ -899,17 +1182,109 @@ class TherCam(object):
                 ax.spines['bottom'].set_visible(False)
                 ax.imshow(dataC, vmin = self.vminT, vmax = self.vmaxT)
                 ax.add_artist(circles[0])
-                # print(data)
+                # print(globals.temp)
                 plt.pause(0.0005)
 
                 if cv2.waitKey(1) & keyboard.is_pressed('e'):
                     cv2.destroyAllWindows()
                     frame = 1
-                    # print('We are done')
+                    print('We are done')
                     break
+
         except Exception as e:
             print(e)
             # pass
+
+
+    def plotLiveROINE(self, c_w = 'c', r = 20):
+        import matplotlib as mpl
+        mpl.rc('image', cmap='hot')
+
+        global dev
+        global devh
+        global tiff_frame
+
+        fig = plt.figure()
+        ax = plt.axes()
+
+        fig.tight_layout()
+
+        dummy = np.zeros([120, 160])
+
+        img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
+        fig.colorbar(img)
+
+        while True:
+            try:
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    exit(1)
+
+                # We get the min temp and draw a circle
+                edge = 30
+                if c_w == 'c':
+                    # threshold = (cut*100) + 27315
+                    # print(threshold)
+                    # indxT, indyT = np.where(dataK < threshold)
+                    # dataK[indxT, indyT] = dataK[indxT, indyT] + 30000
+                    subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+                    minimoK = np.min(subdataK)
+
+                elif c_w == 'w':
+                    # threshold = (threshold*100) + 27315
+                    # indxT, indyT = np.where(dataK > threshold)
+                    # dataK[indxT, indyT] = dataK[indxT, indyT] - 30000
+                    subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+                    minimoK = np.max(subdataK)
+
+                dataC = (dataK - 27315) / 100
+                minimoC = (minimoK - 27315) / 100
+                subdataC = (subdataK - 27315)/100
+
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
+
+                globals.temp = minimoC
+
+                indx, indy = np.where(subdataC == minimoC)
+                indx, indy = indx + edge, indy + edge
+
+                mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
+                roiC = dataC[mask]
+                mean = round(np.mean(roiC), 2)
+                # print(mean)
+
+                circles = []
+
+                for a, j in zip(indx, indy):
+                    cirD = plt.Circle((j, a), r, color='b', fill = False)
+                    circles.append(cirD)
+
+                globals.indx0, globals.indy0  = indx[0], indy[0]
+
+                ax.clear()
+                ax.set_xticks([])
+                ax.set_yticks([])
+
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                ax.spines['left'].set_visible(False)
+                ax.spines['bottom'].set_visible(False)
+                ax.imshow(dataC, vmin = self.vminT, vmax = self.vmaxT)
+                ax.add_artist(circles[0])
+                # print(globals.temp)
+                plt.pause(0.0005)
+
+                if cv2.waitKey(1) & keyboard.is_pressed('e'):
+                    cv2.destroyAllWindows()
+                    frame = 1
+                    print('We are done')
+                    break
+
+            except Exception as e:
+                print(e)
+                print('error')
 
     def LivePlotKernel(self, event1):
 
@@ -1152,370 +1527,6 @@ class TherCam(object):
             libuvc.uvc_stop_streaming(devh)
 
 
-frame = 1
-
-class ReAnRaw(object):
-
-    def __init__(self, input):
-        self.read = h5py.File('{}.hdf5'.format(input), 'r')
-
-    def play(self, solo = 'Y'):
-        #This method plays the rawdata as a video
-        global frame
-        for i in np.arange(len(self.read.keys())):
-            # print(frame)
-            if solo == 'Y':
-                data = self.read['image'+str(frame)][:]
-                data = data[0:120]
-                print(data)
-            else:
-                try:
-                    data = self.read['image'+str(frame)+'_open'][:]
-                except KeyError:
-                    data = self.read['image'+str(frame)+'_close'][:]
-
-            # data = cv2.resize(data[:,:], (480, 640))
-            img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
-            # rgbImage = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            cv2.imshow('Playing video', img)
-
-            frame += 1
-            time.sleep(0.1)
-
-            if cv2.waitKey(9) & keyboard.is_pressed('e') & frame > len(self.read.keys()):
-                cv2.destroyAllWindows()
-                frame = 1
-                exit(1)
-        frame = 1
-
-    def playPlot(self, solo = 'Y'):
-        #This method plays the rawdata as a video
-        global frame
-
-        fig = plt.figure()
-        ax = plt.axes()
-
-        fig.tight_layout()
-
-        dummy = np.zeros([120, 160])
-
-        img = ax.imshow(dummy, interpolation='nearest', vmin = 5, vmax = 40, animated = True)
-        fig.colorbar(img)
-
-        current_cmap = plt.cm.get_cmap()
-        current_cmap.set_bad(color='black')
-
-        for i in np.arange(len(self.read.keys())):
-            # print(frame)
-            if solo == 'Y':
-                data = self.read['image'+str(frame)][:]
-                data = data[0:120]
-                # print(data)
-            else:
-                try:
-                    data = self.read['image'+str(frame)+'_open'][:]
-                except KeyError:
-                    data = self.read['image'+str(frame)+'_close'][:]
-
-            # data = cv2.resize(data[:,:], (480, 640))
-            ax.clear()
-            ax.set_xticks([])
-            ax.set_yticks([])
-
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-            ax.spines['left'].set_visible(False)
-            ax.spines['bottom'].set_visible(False)
-            ax.imshow(data)
-            # print(data)
-            plt.pause(0.0005)
-
-            frame += 1
-            time.sleep(0.13)
-
-            if cv2.waitKey(9) & keyboard.is_pressed('e') & frame > len(self.read.keys()):
-                cv2.destroyAllWindows()
-                frame = 1
-                exit(1)
-        frame = 1
-
-    def playSaveVideo(self, output, solo = 'Y'):
-        #This method plays the raw data as a video and saves it as an avi. you need to specify the name of the output (.avi) file
-        global frame
-        frame_width = 640
-        frame_height = 480
-
-        fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-        writer = cv2.VideoWriter('./video_data/videos/{}.avi'.format(output), fourcc, 9, (frame_width, frame_height), True)
-
-
-        for i in np.arange(len(self.read.keys())):
-            # print(frame)
-            if solo == 'Y':
-                data = self.read['image'+str(frame)][:]
-            else:
-                try:
-                    data = self.read['image'+str(frame)+'_open'][:]
-                except KeyError:
-                    data = self.read['image'+str(frame)+'_close'][:]
-
-
-            data = cv2.resize(data[:,:], (640, 480))
-            img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
-            # rgbImage = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-
-            writer.write(img)
-            cv2.imshow('Playing video', img)
-
-            frame += 1
-
-
-            if cv2.waitKey(1) & keyboard.is_pressed('e') & frame > len(self.read.keys()):
-                writer.release()
-                cv2.destroyAllWindows()
-                frame = 1
-                exit(1)
-        frame = 1
-
-    def catchThres(self, thresh, solo = 'Y'):
-        global frame
-        self.mean_temps = []
-        self.areas = []
-        self.shutterOnOff = []
-        self.thresholdChoise = thresh
-
-        for i in np.arange(len(self.read.keys())):
-
-            if solo == 'Y':
-                raw_dum = self.read['image'+str(frame)][:]
-            else:
-                try:
-                    raw_dum = self.read['image'+str(frame)+'_open'][:]
-                    OnOff = 1
-                    # ONE 1 is open
-                except KeyError:
-                    raw_dum = self.read['image'+str(frame)+'_close'][:]
-                    OnOff = 0
-                    #ZERO 0 is close
-
-            threshold = CToRaw(thresh)
-
-            super_threshold_indices = raw_dum > threshold
-            meaning = raw_dum[raw_dum < threshold]
-            raw_dum[super_threshold_indices] = 0
-
-            area = np.count_nonzero(raw_dum)
-            temp = np.mean(meaning)
-            temp = rawToC(temp)
-
-            self.areas.append(area)
-            self.mean_temps.append(temp)
-            self.shutterOnOff.append(OnOff)
-
-            # data = cv2.resize(raw_dum[:,:], (640, 480))
-            # img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
-            # rgbImage = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-            #
-            # cv2.putText(rgbImage, 'A: {}'.format(area), (5, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0))
-            # cv2.putText(rgbImage, 'T: {}'.format(temp), (5, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0))
-            #
-            # cv2.imshow('Playing video', rgbImage)
-            # cv2.waitKey(1)
-
-            frame += 1
-        frame = 1
-
-    def overThres(self, thresh, solo = 'Y'):
-        global frame
-        self.mean_temps = []
-        self.areas = []
-
-        for i in np.arange(len(self.read.keys())):
-            if solo == 'Y':
-                raw_dum = self.read['image'+str(frame)][:]
-                original = self.read['image'+str(frame)][:]
-            else:
-                try:
-                    raw_dum = self.read['image'+str(frame)+'_open'][:]
-                    original = self.read['image'+str(frame)+'_open'][:]
-                    OnOff = 1
-                    # ONE 1 is open
-                except KeyError:
-                    raw_dum = self.read['image'+str(frame)+'_close'][:]
-                    original = self.read['image'+str(frame)+'_close'][:]
-                    OnOff = 0
-                    #ZERO 0 is close
-
-            threshold = CToRaw(thresh)
-
-            super_threshold_indices = raw_dum > threshold
-            print(threshold)
-            meaning = raw_dum[raw_dum < threshold]
-            # print(meaning)
-            raw_dum[super_threshold_indices] = 0
-
-            try:
-                area = np.count_nonzero(raw_dum)
-            except:
-                area = 0
-
-            try :
-                temp = np.mean(meaning)
-                temp = rawToC(temp)
-            except RuntimeWarning:
-                temp = 0
-
-            self.areas.append(area)
-            self.mean_temps.append(temp)
-
-            raw_dum[np.nonzero(raw_dum)] = 255
-            raw_dum = raw_to_8bit(raw_dum)
-
-            original = cv2.LUT(raw_to_8bit(original), generate_colour_map())
-            # Image_thres = cv2.cvtColor(raw_dum, cv2.COLOR_GRAY2RGB)
-
-            # Image_thres = raw_dum #cv2.cvtColor(Image_thres, cv2.COLOR_RGB2HSV)
-            # print(np.nonzero(raw_dum))
-            cv2.putText(original, 'A: {}'.format(area), (100, 5), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0))
-            cv2.putText(original, 'T: {}'.format(temp), (100, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0))
-
-            # cv2.imshow('Playing video', cv2.resize(  | Image_thres, (640, 480), interpolation = cv2.INTER_CUBIC)))
-            cv2.imshow('Playing video',  cv2.resize(raw_dum | original, (640, 480), interpolation = cv2.INTER_CUBIC))
-            cv2.waitKey(1)
-
-            frame += 1
-
-        frame = 1
-
-    def overThresSave(self, thresh, output, solo = 'Y'):
-        global frame
-        self.mean_temps = []
-        self.areas = []
-        frame_width = 640
-        frame_height = 480
-
-        fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-        writer = cv2.VideoWriter('./video_data/videos/{}.avi'.format(output), fourcc, 9, (frame_width, frame_height), True)
-
-        for i in np.arange(len(self.read.keys())):
-            if solo == 'Y':
-                raw_dum = self.read['image'+str(frame)][:]
-                original = self.read['image'+str(frame)][:]
-            else:
-                try:
-                    raw_dum = self.read['image'+str(frame)+'_open'][:]
-                    original = self.read['image'+str(frame)+'_open'][:]
-                    OnOff = 1
-                    # ONE 1 is open
-                except KeyError:
-                    raw_dum = self.read['image'+str(frame)+'_close'][:]
-                    original = self.read['image'+str(frame)+'_close'][:]
-                    OnOff = 0
-                    #ZERO 0 is close
-
-            threshold = CToRaw(thresh)
-
-            super_threshold_indices = raw_dum > threshold
-            print(threshold)
-            meaning = raw_dum[raw_dum < threshold]
-            # print(meaning)
-            raw_dum[super_threshold_indices] = 0
-
-            try:
-                area = np.count_nonzero(raw_dum)
-            except:
-                area = 0
-
-            try :
-                temp = np.mean(meaning)
-                temp = rawToC(temp)
-            except RuntimeWarning:
-                temp = 0
-
-            self.areas.append(area)
-            self.mean_temps.append(temp)
-
-            raw_dum[np.nonzero(raw_dum)] = 255
-            raw_dum = raw_to_8bit(raw_dum)
-
-            original = cv2.LUT(raw_to_8bit(original), generate_colour_map())
-            # Image_thres = cv2.cvtColor(raw_dum, cv2.COLOR_GRAY2RGB)
-
-            # Image_thres = raw_dum #cv2.cvtColor(Image_thres, cv2.COLOR_RGB2HSV)
-            # print(np.nonzero(raw_dum))
-            cv2.putText(original, 'A: {}'.format(area), (100, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0))
-            cv2.putText(original, 'T: {}'.format(temp), (100, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0))
-
-            writer.write(cv2.resize(raw_dum | original, (640, 480), interpolation = cv2.INTER_CUBIC))
-            cv2.imshow('Playing video',  cv2.resize(raw_dum | original, (640, 480), interpolation = cv2.INTER_CUBIC))
-
-            if cv2.waitKey(1) & 0xFF == ord('q') & frame > len(self.read.keys):
-                writer.release()
-                cv2.destroyAllWindows()
-                frame = 1
-                exit(1)
-
-            frame += 1
-
-        frame = 1
-
-
-    def plotShuArea(self, output):
-        fig, ax = plt.subplots(figsize = (20, 10))
-        plt.plot(np.arange(len(self.areas)), self.areas, color = 'r')
-
-        ax.set_title('Total pixels below threshold: {} degree Celsius'.format(self.thresholdChoise))
-        ax.set_ylabel('Number of pixels')
-        ax.set_xlabel('Frames')
-
-
-        ax2 = ax.twinx()
-        lns_alc = ax2.plot(np.arange(len(self.areas)), self.shutterOnOff, color='k')
-        ax2.set_ylim([0, 1.1])
-        ax2.set_ylabel('Shutter state')
-
-        ax2.yaxis.set_ticks(np.arange(0, 1, 0.9999))
-
-        labels = [item.get_text() for item in ax2.get_yticklabels()]
-        labels[0] = 'close'
-        labels[1] = 'open'
-
-        ax2.set_yticklabels(labels)
-
-
-        ax.spines['top'].set_visible(False)
-        ax2.spines['top'].set_visible(False)
-
-        plt.savefig('./video_data/figures/{}.svg'.format(output), transparent = True, bbox_inches='tight')
-
-    def plotShuTemp(self, output, minY, max):
-        fig, ax = plt.subplots(figsize = (20, 10))
-        plt.plot(np.arange(len(self.mean_temps)), self.mean_temps, color = 'b')
-
-        ax.set_title('Mean temperature of pixels below threshold: {} degree Celsius'.format(self.thresholdChoise))
-        ax.set_ylabel('Temperature (degree Celsius)')
-        ax.set_xlabel('Frames')
-        ax.set_ylim([minY, maxY])
-
-
-        ax2 = ax.twinx()
-        lns_alc = ax2.plot(np.arange(len(self.mean_temps)), self.shutterOnOff, color='k')
-        ax2.set_ylim([0, 1.1])
-        ax2.set_ylabel('Shutter state')
-
-        ax2.yaxis.set_ticks(np.arange(0, 1, 0.9999))
-
-        labels = [item.get_text() for item in ax2.get_yticklabels()]
-        labels[0] = 'close'
-        labels[1] = 'open'
-
-        ax2.set_yticklabels(labels)
-
-
-        ax.spines['top'].set_visible(False)
-        ax2.spines['top'].set_visible(False)
-
-        plt.savefig('./video_data/figures/{}.svg'.format(output), transparent = True, bbox_inches='tight')
 
 
 

@@ -224,9 +224,9 @@ explicitCmdToOpenVal = 1
 desiredFfcTempDeltaVal = 0
 imminentDelayVal = 150
 
-sysShutterManual = lep_sys_shutter_mode(0, 0, 1, 0, 0, 1800000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
-sysShutterAuto = lep_sys_shutter_mode(1, 0, 1, 0, 0, 1800000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
-sysShutterExternal = lep_sys_shutter_mode(2, 0, 1, 0, 0, 180000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
+sysShutterManual = lep_sys_shutter_mode(0, 0, 1, 0, 0, 18000000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
+sysShutterAuto = lep_sys_shutter_mode(1, 0, 1, 0, 0, 18000000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
+sysShutterExternal = lep_sys_shutter_mode(2, 0, 1, 0, 0, 1800000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
 
 def call_extension_unit(devh, unit, control, data, size):
   return libuvc.uvc_get_ctrl(devh, unit, control, data, size, 0x81)

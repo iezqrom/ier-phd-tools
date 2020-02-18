@@ -48,6 +48,7 @@ import curses
 import math
 
 from pyd import PYD
+import struct
 
 def homingZabers(zabers):
     for kzabers, vzabers in zabers.items():
@@ -125,8 +126,8 @@ class Zaber(grabPorts):
     def manualCon(self, devices, amount, arduino = None):
 
         if arduino != None:
-            shutter = 'close'
-            arduino.arduino.write(shutter.encode())
+            stimulus = 0
+            arduino.arduino.write(struct.pack('>B', stimulus))
 
         # self.spotsPosX = {'C1': [], 'C2': [], 'NonC': []}
         # self.spotsPosY = {'C1': [], 'C2': [], 'NonC': []}
@@ -143,7 +144,7 @@ class Zaber(grabPorts):
             stdscr = curses.initscr()
             stdscr.keypad(1)
 
-            stdscr.addstr(0,0,'\n Move COLTHER. \n Device 1 (x): left and right arrows \n Device 2 (y): up and down arrows \n Device 3 (z): "u" (up) and "d" (down) \n Press "o" to open the shutter \n Press "c" to close the shutter \n Press "a" to choose how many steps to move \n Press "e" to terminate')
+            stdscr.addstr(0,0,'\n Move COLTHER. \n Device 1 (x): left and right arrows \n Device 2 (y): up and down arrows \n Device 3 (z): "u" (up) and "d" (down) \n Press "o" to open the shutter \n Press "c" to close the shutter \n Press "a" to choose how many steps to move \n Press "e" to terminate \n Press "s" to get Zaber coordiantes \n Press "p" tp get ROI centre"s coordinates')
             stdscr.refresh()
 
             key = ''
@@ -225,14 +226,15 @@ class Zaber(grabPorts):
                         i.device.home()
 
                 elif key == ord('o'): # Open Arduino shutter
-                    globals.shutter_state = 'open'
-                    arduino.arduino.write(globals.shutter_state.encode())
+                    globals.stimulus = 1
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
 
                 elif key == ord('c'): # Close Arduino shutter
-                    globals.shutter_state = 'close'
-                    arduino.arduino.write(globals.shutter_state.encode())
+                    globals.stimulus = 0
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+
                 elif key == ord('p'):
-                    u= globals.indx0
+                    globals.indx_saved = globals.indx0
                     globals.indy_saved = globals.indy0
 
                 else:
@@ -242,17 +244,21 @@ class Zaber(grabPorts):
         finally:
 
             if arduino != None:
-                globals.shutter_state = 'close'
-                arduino.arduino.write(globals.shutter_state.encode())
+                globals.stimulus = 0
+                arduino.arduino.write(struct.pack('>B', globals.stimulus))
 
             stdscr.refresh()
             curses.endwin()
 
+
     def manualConGUIsingle(self, devices, arduino = None):
 
         if arduino != None:
-            globals.shutter = 'close'
-            arduino.arduino.write(globals.shutter.encode())
+            stimulus = 0
+            arduino.arduino.write(struct.pack('>B', stimulus))
+
+        # self.spotsPosX = {'C1': [], 'C2': [], 'NonC': []}
+        # self.spotsPosY = {'C1': [], 'C2': [], 'NonC': []}
 
         try:
             device = devices[globals.current_device]
@@ -260,7 +266,6 @@ class Zaber(grabPorts):
             while True:
 
                 #### Y axis
-
                 if keyboard.is_pressed('up'):
                     try:
                         device[2].move_rel(globals.amount)
@@ -302,62 +307,14 @@ class Zaber(grabPorts):
 
                 ### TERMINATE
                 elif keyboard.is_pressed('enter'):
-                    for i in device:
-                        try:
-                            i.device.home()
-                        except:
-                            i.home()
+                    homingZabers(devices)
                     break
 
-                ### ZABER STEPS
-
-                elif keyboard.is_pressed('a'):
-                    pass
-
-                #### GET POSITION ZABER
-
-                elif keyboard.is_pressed('s'):
-
-                    try:
-                        posX = device[0].send("/get pos")
-
-                    except:
-                        posX = device[0].device.send("/get pos")
-                    globals.posX = int(posX.data)
-
-                    try:
-                        posY = device[1].send("/get pos")
-                    except:
-                        posY = device[1].device.send("/get pos")
-                    globals.posY = int(posY.data)
-
-                    try:
-                        posZ = device[2].send("/get pos")
-                    except:
-                        posZ = device[2].device.send("/get pos")
-                    globals.posZ = int(posZ.data)
-
                 # Press letter h and Zaber will home, first z axis, then y and finally x
+                # Control
+
                 elif keyboard.is_pressed('h'):
-                    for i in device:
-                        try:
-                            i.home()
-                        except:
-                            i.device.home()
-
-                elif keyboard.is_pressed('o'): # Open Arduino shutter
-                    if arduino != None:
-                        globals.shutter_state = 'open'
-                        arduino.arduino.write(globals.shutter_state.encode())
-
-                elif keyboard.is_pressed('c'): # Close Arduino shutter
-                    if arduino != None:
-                        globals.shutter_state = 'close'
-                        arduino.arduino.write(globals.shutter_state.encode())
-
-                # elif keyboard.is_pressed('p'):
-                #     globals.indx_saved = globals.indx0
-                #     globals.indy_saved = globals.indy0
+                    homingZabers(devices)
 
                 else:
                     continue
@@ -368,36 +325,25 @@ class Zaber(grabPorts):
                 globals.shutter_state = 'close'
                 arduino.arduino.write(globals.shutter_state.encode())
 
-    def manualConGUIdouble(self, devices, event, arduino = None):
 
-        """
-        Controls:               # letter 't' for EXPERIMENTAL
-                                # letter 'n' for CONTROL
-
-                                # letter 'h' to home all zabers
-
-                                # press 'enter' to terminate
-
-                                # press arrow 'up' to move x axis forward
-                                # press arrow 'down' to move x axis backwards
-                                # press arrow 'left' to move y axis forward
-                                # press arrow 'right' to move y axis backwards
-                                # letter 'd' to move Z axis down
-                                # letter 'u' to move Z axis up
-
-                                # letter 'q' to save CONTROL spot position
-                                # letter 'w' to save EXPERIMENTAL spot position
-        """
+    def manualCon2(self, devices, amount, arduino = None):
 
         if arduino != None:
-            globals.shutter = 'close'
-            arduino.arduino.write(globals.shutter.encode())
-            # print('make sure shutter is closed')
+            stimulus = 0
+            arduino.arduino.write(struct.pack('>B', stimulus))
+
+        # self.spotsPosX = {'C1': [], 'C2': [], 'NonC': []}
+        # self.spotsPosY = {'C1': [], 'C2': [], 'NonC': []}
+
+        def my_raw_input(stdscr, r, c, prompt_string):
+            curses.echo()
+            stdscr.addstr(r, c, prompt_string)
+            stdscr.refresh()
+            input = stdscr.getstr(r + 1, c, 20)
+            return input
 
         try:
-            # Default zaber is camera
             device = devices[globals.current_device]
-            # print(device)
 
             while True:
                 event[0].wait()
@@ -672,14 +618,14 @@ class Zaber(grabPorts):
                     homingZabers(devices)
 
                 elif keyboard.is_pressed('o'): # Open Arduino shutter
-                    globals.shutter = 'open'
-                    arduino.arduino.write(globals.shutter.encode())
-                    time.sleep(2)
+                    globals.stimulus = 1
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    # time.sleep(2)
 
                 elif keyboard.is_pressed('c'): # Close Arduino shutter
-                    globals.shutter = 'close'
-                    arduino.arduino.write(globals.shutter.encode())
-                    time.sleep(2)
+                    globals.stimulus = 0
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    # time.sleep(2)
 
                 elif keyboard.is_pressed('p'):
                         globals.centreROI['control'] = [globals.indx0, globals.indy0]
@@ -729,17 +675,15 @@ class Zaber(grabPorts):
         previous_temp = globals.temp
 
         if arduino != None:
-            shutter = 'open'
-            arduino.arduino.write(shutter.encode())
-            time.sleep(1.2)
-            globals.shutter = 'open'
-            print('Shutter '+ globals.shutter)
+            globals.stimulus = 1
+            arduino.arduino.write(struct.pack('>B', globals.stimulus))
+            print('Shutter '+ globals.stimulus)
 
         counter = 0
 
         try:
             while True:
-                if globals.shutter == 'open':
+                if globals.stimulus == 1:
                     counter += 1
 
                     event1.wait()
@@ -756,7 +700,7 @@ class Zaber(grabPorts):
                         Ki = -100
                         Kd = -800
                         output_limits = (-3000, 3000)
-                        range = 0.3
+
 
                         # we initialise PID object
                         PID = PYD(Kp, Ki, Kd, set_point, output_limits)
@@ -770,9 +714,8 @@ class Zaber(grabPorts):
                     previous_temp = globals.temp
                     globals.pos_zaber = pos
 
-                elif globals.shutter == 'close':
-                    # print('we are here actually')
-                    # time.sleep(0.01)
+                elif globals.stimulus == 0:
+
                     continue
 
                 previous_temp = globals.temp

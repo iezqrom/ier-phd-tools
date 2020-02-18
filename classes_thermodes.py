@@ -86,6 +86,7 @@ class Thermode(object):
 
         # We stack the data
         self.temp_volt = np.stack((self.range_temp, self.range_volt))
+        # print(self.temp_volt)
         # self.temp_volt = self.temp_volt.T
 
 
@@ -93,6 +94,9 @@ class Thermode(object):
     def ramp(self, start_temp, target_temp):
          self.start_temp = start_temp
          self.target_temp = target_temp
+
+         # print(self.temp_volt[0])
+         # print(target_temp)
 
          self.nearest_temp_start = find_nearest(self.temp_volt[0], start_temp)
          self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
@@ -103,14 +107,12 @@ class Thermode(object):
          self.volt_ref_start = self.temp_volt[1,  self.indx_start]
          self.volt_ref_target = self.temp_volt[1, self.indx_target]
 
-         # print(self.volt_ref_start)
-
          if start_temp > target_temp:
-             self.volt = np.arange(self.volt_ref_start, self.volt_ref_target, - self.volt_ref_target/1000)
+            self.volt = np.arange(self.volt_ref_start, self.volt_ref_target, - self.volt_ref_target/1000)
 
          elif target_temp > start_temp:
             self.volt = np.arange(self.volt_ref_start, self.volt_ref_target, self.volt_ref_target/1000)
-
+            # print(self.volt)
     ## This is the most IMPORTANT method it is the way you write data to the box (e.g. a ramp)
     ## to the NI DAQ box and read from the boxes
 
@@ -136,7 +138,7 @@ class Thermode(object):
                 # counter += 1
                 self.ao_task.write(self.volt)
             except:
-                print('We are trying')
+                # print('We are trying')
                 continue
             else:
                 break
@@ -186,112 +188,6 @@ class Thermode(object):
 
             elif key == ord('q'):
                 break
-
-class AttentionScreen:
-
-    def __init__(self, message, data, repeats):
-
-        self.win = Tk()
-        # self.win.title("Python GUI")
-
-        time.sleep(0.0001)
-
-        self.win.attributes('-fullscreen', True)
-        label = Label(self.win, text="{}".format(message), bg = 'black', fg = 'white',
-            font = "none 50 bold", anchor=CENTER)
-
-        buttonT = Button(self.win, text=' ', bg = 'black', width = 1, command = self.thermode_screen(data),
-            anchor=CENTER, highlightthickness = 0.01, borderwidth = 0.01)
-
-        self.win.after(repeats * 10000, lambda: self.win.destroy())
-
-        buttonT.grid(column = 1, row = 0)
-        # buttonD.grid(column = 2, row = 0)
-        label.grid(column=0, row=0)
-
-        self.win.configure(background = 'black')
-        self.win.columnconfigure(0, weight=1)
-        self.win.rowconfigure(0, weight=1)
-
-        # self.win.bind('<space>', lambda e: self.win.destroy())
-
-        self.win.mainloop()
-
-
-    def thermode_screen(self, data):
-
-        thermodS = gethermodes()
-
-        thermodS.InputChannels(data[0])
-        thermodS.OutputChannels(data[1])
-
-        therm_screen = threading.Thread(target = thermodS.run, args = [data])
-
-        winsound.PlaySound('beep.wav', winsound.SND_ASYNC)
-        therm_screen.start()
-
-
-class InputScreen:
-
-    def __init__(self, message, data):
-
-        self.win = Tk()
-
-        self.win.attributes('-fullscreen', True)
-
-        def testVal(ans, acttyp):
-
-            if acttyp == '1': #insert
-                if ans != 'y' and ans != 'n':
-                    return False
-            return True
-
-
-        label = Label(self.win, text="{}".format(message), bg = 'black', fg = 'white',
-            font = "none 30 bold", anchor = CENTER)
-
-        label2 = Label(self.win, text="{}".format('\n\n Click on the box, type your answer \n and press enter'), bg = 'black', fg = 'white',
-            font = "none 15 bold", anchor = CENTER)
-
-
-        entry = Entry(self.win, validate = "key")
-        entry['validatecommand'] = (entry.register(testVal),'%P','%d')
-
-
-        label.grid(column = 0, row = 0)
-        entry.grid(column = 1, row = 0)
-        label2.grid(column = 2, row = 0)
-
-        self.win.configure(background = 'black')
-        self.win.columnconfigure(0)
-        self.win.rowconfigure(0, weight=1)
-
-        def enterEndTherm(event):
-
-            globals.text_state += 1
-            self.input = entry.get()
-            self.win.destroy()
-
-        self.win.bind('<Return>', enterEndTherm)
-        self.win.mainloop()
-
-
-    def thermode_screen(self, data):
-
-        while True:
-
-            trio = gethermodes()
-            trio.InputChannels(data[0])
-            trio.OutputChannels(data[1])
-
-            therm_trio = threading.Thread(target = trio.run, args = [data])
-            print('we almost started this')
-            therm_trio.start()
-
-            if globals.text_state == 1:
-                break
-            else:
-                continue
 
 
 class Gethermodes(object):
@@ -680,13 +576,6 @@ class Target(Thermode, Gethermodes):
 
 
 
-
-
-def find_nearest(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
-
 def audio_trig(duration, fs = 500, volume = 0.9, f = 4400):
     duration = duration * 1000
     while globals.total == 0:
@@ -704,5 +593,7 @@ def audio_trig(duration, fs = 500, volume = 0.9, f = 4400):
 
 def find_nearest(array, value):
     array = np.asarray(array)
+    print(array)
+    print(value)
     idx = (np.abs(array - value)).argmin()
     return array[idx]

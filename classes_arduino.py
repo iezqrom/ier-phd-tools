@@ -43,6 +43,7 @@ import numpy as np
 import pandas as pd
 import curses
 import re
+import struct
 
 
 class ArdUIno(grabPorts):
@@ -98,196 +99,69 @@ class ArdUIno(grabPorts):
 
                 time.sleep(wait_close*1/10)
 
-                shutter = 'open'
+                globals.stimulus = 1
+                self.arduino.write(struct.pack('>B', globals.stimulus))
 
-                self.arduino.write(shutter.encode())
-
-                # time.sleep(0.9)
-                temp_shutter = str(self.arduino.readline())
-                # print(temp_shutter)
-                globals.shutter_state = temp_shutter[temp_shutter.find("'")+1:temp_shutter.find(str("\\"))]
-                print(globals.shutter_state)
-                # sleep(0.0001)
 
                 time.sleep(wait_open)
 
-                shutter = 'close'
+                globals.stimulus = 0
+                self.arduino.write(struct.pack('>B', globals.stimulus))
 
-                self.arduino.write(shutter.encode())
-
-                # time.sleep(0.9)
-                temp_shutter = str(self.arduino.readline())
-                # print(temp_shutter)
-                globals.shutter_state = temp_shutter[temp_shutter.find("'")+1:temp_shutter.find(str("\\"))]
-                print(globals.shutter_state)
-                # sleep(0.0001)
 
                 time.sleep(wait_close*9/10)
 
+                globals.counter +=1
+
+                if globals.counter == 3:
+                    globals.stimulus = 0
+                    self.arduino.write(struct.pack('>B', globals.stimulus))
+                    break
+                # if keyboard.is_pressed('e'):
+                #
+                #     globals.stimulus = 0
+                #     self.arduino.write(struct.pack('>B', globals.stimulus))
+                #     break
+
+            except KeyboardInterrupt:
+                sys.exit(1)
+
+    def controlShu(self):
+
+        while True:
+
+            try:
+
+                if keyboard.is_pressed('c'):
+                    globals.stimulus = 0
+                    self.arduino.write(struct.pack('>B', globals.stimulus))
+
+                if keyboard.is_pressed('o'):
+                    globals.stimulus = 1
+                    self.arduino.write(struct.pack('>B', globals.stimulus))
 
                 if keyboard.is_pressed('e'):
 
-                    globals.shutter_state = 'close'
-                    print(globals.shutter_state)
-
-                    self.arduino.write(globals.shutter_state.encode())
-
+                    globals.stimulus = 0
+                    self.arduino.write(struct.pack('>B', globals.stimulus))
                     break
 
             except KeyboardInterrupt:
                 sys.exit(1)
 
-    def ardRun(self, save = 'N', subjN = None, trial_counter = None):
-        # import time
-        self.arduino.flushInput()
-        counter = 0
+    def OpenCloseMoF(self):
 
-        temp_array = []
-        threshold = []
-        time_array = []
+        time.sleep(1)
 
-        while globals.distance > globals.distance_limit and globals.trial == 'on':
-            if globals.status == 'active':
-
-                if counter == 0:
-
-                    # print('we are here')
-
-                    self.arduino.flushInput()
-
-                    shutter = 'open'
-
-                    sleep(2)
-
-                    self.arduino.write(shutter.encode())
-                    winsound.PlaySound('beep.wav', winsound.SND_ASYNC)
-                    counter += 1
-
-
-                else:
-
-                    sleep(0.0001)
-                    data = self.arduino.readline()
-                    # print('still readin arduino')
-                    sleep(0.0001)
-
-
-                    try:
-                        data = str(data)
-                        data = data[2:9]
-                        # print(data)
-                        var, value = data.split("_")
-                        # print("var: " + var)
-                        # print("value: " + value)
-
-                        if var == 't':
-                            # print('This is MAI temp: ' + value)
-                            value_t = float(value)
-                            globals.temp = value_t
-                            time = time.time()
-
-                            temp_array.append(globals.temp)
-                            threshold.append(globals.thres)
-                            time_array.append(time)
-
-
-                        elif var == 'd':
-                            # print('This is MAI distance: ' + value)
-                            value_d = float(value)
-                            globals.distance = value_d
-
-                    except:
-                        continue
-
-                if globals.status == 'inactive':
-                    # sleep(2)
-                    # print('killing')
-                    shutter = globals.shutter
-                    print(shutter)
-                    self.arduino.write(shutter.encode())
-
-                    if save == 'Y':
-                        dataFile = open('./data/subj_{}/trial_{}.csv'.format(subjN, trial_counter), 'a')
-                        data_writer = csv.writer(dataFile)
-
-                        for i in np.arange(len(temp_array)):
-                            data_writer.writerow(temp_array[i], threshold[i], time_array[i])
-                        dataFile.close()
-
-                    break
-
-
-            elif globals.status == 'inactive':
-                shutter = globals.shutter
-                self.arduino.write(shutter.encode())
-                # print('ard')
-                continue
-
-        globals.shutter = 'close'
-        shutter = globals.shutter
-        self.arduino.write(shutter.encode())
-        # print(globals.temp)
-        # print(globals.distance)
-        print('Arduino dead')
-
-    def AllIn(self):
-
-        ports = grabPorts()
-        ports.arduinoPort()
-        arduino = serial.Serial(ports.arduino_port, 9600, timeout = 5)
-
-        time.sleep(0.01)
-        arduino.flush()
-
-        state = 'open'
-        arduino.write(state)
-        time.sleep(0.001)
-
-        while globals.status == None and globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit:
-            data = arduino.readline()
-            time.sleep(0.0001)
-            # print(globals.status)
-            # print(globals.distance)
-            # print(globals.elapsed)
-
-            try:
-                data = str(data)
-                data = data[2:9]
-                # print(data)
-                var, value = data.split("_")
-                # print("var: " + var)
-                # print("value: " + value)
-
-                if var == 't':
-                    # print('This is MAI temp: ' + value)
-                    value_t = float(value)
-                    globals.temp = value_t
-
-
-                elif var == 'd':
-                    # print('This is MAI distance: ' + value)
-                    value_d = float(value)
-                    globals.distance = value_d
-
-            except:
-                continue
-
-        state = 'close'
-        arduino.write(state)
-        time.sleep(0.001)
-
-    def writeString(self):
+        globals.stimulus = 1
+        self.arduino.write(struct.pack('>B', globals.stimulus))
+        start = time.time()
 
         while True:
-
-            written = self.arduino.write(globals.meanStr.encode())
-            # print(written)
-
-            read = self.arduino.readline()
-            print(read)
-
-            if keyboard.is_pressed('e'):
-
+            time.sleep(0.001)
+            if globals.stimulus == 0:
+                globals.rt = time.time() - start
+                self.arduino.write(struct.pack('>B', globals.stimulus))
                 break
 
 ################################################################################
@@ -296,13 +170,172 @@ class ArdUIno(grabPorts):
 
 def shakeShutter(ard, times):
     for i in np.arange(times):
-        globals.shutter = 'open'
-        ard.arduino.write(globals.shutter.encode())
+        globals.stimulus = 1
+        ard.arduino.write(struct.pack('>B', globals.stimulus))
+        # read = ard.arduino.readline()
+        # print(read)
         print('Open shutter')
 
-        time.sleep(1.2)
+        time.sleep(0.3)
 
-        globals.shutter = 'close'
-        ard.arduino.write(globals.shutter.encode())
+        globals.stimulus = 0
+        ard.arduino.write(struct.pack('>B', globals.stimulus))
+        # read = ard.arduino.readline()
+        # print(read)
         print('Close shutter')
-        time.sleep(1.2)
+        time.sleep(0.3)
+
+
+################ Developing Trash
+# def ardRun(self, save = 'N', subjN = None, trial_counter = None):
+#     # import time
+#     self.arduino.flushInput()
+#     counter = 0
+#
+#     temp_array = []
+#     threshold = []
+#     time_array = []
+#
+#     while globals.distance > globals.distance_limit and globals.trial == 'on':
+#         if globals.status == 'active':
+#
+#             if counter == 0:
+#
+#                 # print('we are here')
+#
+#                 self.arduino.flushInput()
+#
+#                 shutter = 'open'
+#
+#                 sleep(2)
+#
+#                 self.arduino.write(shutter.encode())
+#                 winsound.PlaySound('beep.wav', winsound.SND_ASYNC)
+#                 counter += 1
+#
+#
+#             else:
+#
+#                 sleep(0.0001)
+#                 data = self.arduino.readline()
+#                 # print('still readin arduino')
+#                 sleep(0.0001)
+#
+#
+#                 try:
+#                     data = str(data)
+#                     data = data[2:9]
+#                     # print(data)
+#                     var, value = data.split("_")
+#                     # print("var: " + var)
+#                     # print("value: " + value)
+#
+#                     if var == 't':
+#                         # print('This is MAI temp: ' + value)
+#                         value_t = float(value)
+#                         globals.temp = value_t
+#                         time = time.time()
+#
+#                         temp_array.append(globals.temp)
+#                         threshold.append(globals.thres)
+#                         time_array.append(time)
+#
+#
+#                     elif var == 'd':
+#                         # print('This is MAI distance: ' + value)
+#                         value_d = float(value)
+#                         globals.distance = value_d
+#
+#                 except:
+#                     continue
+#
+#             if globals.status == 'inactive':
+#                 # sleep(2)
+#                 # print('killing')
+#                 shutter = globals.shutter
+#                 print(shutter)
+#                 self.arduino.write(shutter.encode())
+#
+#                 if save == 'Y':
+#                     dataFile = open('./data/subj_{}/trial_{}.csv'.format(subjN, trial_counter), 'a')
+#                     data_writer = csv.writer(dataFile)
+#
+#                     for i in np.arange(len(temp_array)):
+#                         data_writer.writerow(temp_array[i], threshold[i], time_array[i])
+#                     dataFile.close()
+#
+#                 break
+#
+#
+#         elif globals.status == 'inactive':
+#             shutter = globals.shutter
+#             self.arduino.write(shutter.encode())
+#             # print('ard')
+#             continue
+#
+#     globals.shutter = 'close'
+#     shutter = globals.shutter
+#     self.arduino.write(shutter.encode())
+#     # print(globals.temp)
+#     # print(globals.distance)
+#     print('Arduino dead')
+#
+# def AllIn(self):
+#
+#     ports = grabPorts()
+#     ports.arduinoPort()
+#     arduino = serial.Serial(ports.arduino_port, 9600, timeout = 5)
+#
+#     time.sleep(0.01)
+#     arduino.flush()
+#
+#     state = 'open'
+#     arduino.write(state)
+#     time.sleep(0.001)
+#
+#     while globals.status == None and globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit:
+#         data = arduino.readline()
+#         time.sleep(0.0001)
+#         # print(globals.status)
+#         # print(globals.distance)
+#         # print(globals.elapsed)
+#
+#         try:
+#             data = str(data)
+#             data = data[2:9]
+#             # print(data)
+#             var, value = data.split("_")
+#             # print("var: " + var)
+#             # print("value: " + value)
+#
+#             if var == 't':
+#                 # print('This is MAI temp: ' + value)
+#                 value_t = float(value)
+#                 globals.temp = value_t
+#
+#
+#             elif var == 'd':
+#                 # print('This is MAI distance: ' + value)
+#                 value_d = float(value)
+#                 globals.distance = value_d
+#
+#         except:
+#             continue
+#
+#     state = 'close'
+#     arduino.write(state)
+#     time.sleep(0.001)
+#
+# def writeString(self):
+#
+#     while True:
+#
+#         written = self.arduino.write(globals.meanStr.encode())
+#         # print(written)
+#
+#         read = self.arduino.readline()
+#         print(read)
+#
+#         if keyboard.is_pressed('e'):
+#
+#             break

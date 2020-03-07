@@ -65,6 +65,8 @@ class ArdUIno(grabPorts):
             self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
             self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 5)
 
+        self.arduino.flushInput()
+
     def readFloat(self, start, finish, globali, event):
         while True:
             read = self.arduino.readline()
@@ -126,7 +128,7 @@ class ArdUIno(grabPorts):
             except KeyboardInterrupt:
                 sys.exit(1)
 
-    def controlShu(self):
+    def controlShu(self, devices):
 
         while True:
 
@@ -140,17 +142,31 @@ class ArdUIno(grabPorts):
                     globals.stimulus = 1
                     self.arduino.write(struct.pack('>B', globals.stimulus))
 
+                if keyboard.is_pressed('u'):
+                    devices['colther'][0].device.move_rel(-20000)
+
+                if keyboard.is_pressed('d'):
+                    devices['colther'][0].device.move_rel(20000)
+
                 if keyboard.is_pressed('e'):
 
                     globals.stimulus = 0
                     self.arduino.write(struct.pack('>B', globals.stimulus))
                     break
 
+                try:
+                    pos = devices['colther'][0].device.send("/get pos")
+                    globals.pos = int(pos.data)
+                except:
+                    pass
             except KeyboardInterrupt:
                 sys.exit(1)
 
-    def OpenCloseMoF(self):
+    def OpenCloseMoF(self, event):
 
+        if event != None:
+            event.wait()
+            
         time.sleep(1)
 
         globals.stimulus = 1

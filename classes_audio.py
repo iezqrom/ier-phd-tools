@@ -7,7 +7,7 @@ except:
     import simpleaudio as sa
 
 import numpy as np
-
+import time
 
 class Sound(object):
     def __init__(self, freq, duration):
@@ -30,5 +30,8 @@ class Sound(object):
     def play(self, event = None):
         if event != None:
             event.wait()
+            time.sleep(1)
         # Start playback
         self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
+
+        

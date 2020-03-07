@@ -124,6 +124,69 @@ def aniThermalGraphsSimFnDROI(data, vminT, vmaxT, path, name_file, start, fROI, 
     print('Animation generation is done!')
 
 
+def aniThermalGraphsSimFnDROITextPos(data, vminT, vmaxT, path, name_file, start, fROI, dROI, r = 20, title = '  '):
+    '''
+       It generates an animation of thermal image saved as h5py.
+       The plot is 2-D. It shows the fixed and the dynamic ROI
+
+    '''
+    Writer = animation.writers['ffmpeg']
+    writer = Writer(fps = 8.7, metadata=dict(artist='Me'), bitrate=1800)
+
+    def animate(i, data, plot):
+
+        try:
+
+            raw_dum = data['image'+str(i + start)][0:120]
+            
+            f_roi = data['image'+str(i + start)][fROI]
+            d_roi = data['image'+str(i + start)][dROI]
+
+            cirD = plt.Circle((d_roi[-1], d_roi[1]), r, color='b', fill = False)
+            cirF = plt.Circle((f_roi[-1], f_roi[1]), r, color='g', fill = False)
+
+            # First subplot: 3D RAW
+            ax1.clear()
+            ax1.imshow(raw_dum, cmap='hot', vmin = vminT, vmax = vmaxT)
+            ax1.text(140, 110, data['image'+str(i + start)][124][0])
+        
+            ax1.set_title('{}'.format(title))
+            ax1.add_artist(cirD)
+            ax1.add_artist(cirF)
+
+            print('In process...')
+
+        except Exception as e:
+            print(e)
+    ################ Plot figure
+    fig = plt.figure(figsize = (20, 10))
+
+    #######################Axes
+    ax1 = fig.add_subplot(111)
+
+    x = np.arange(0,120,1)
+    y = np.arange(0,160,1)
+
+    xs, ys = np.meshgrid(x, y)
+    zs = (xs*0 + 15) + (ys*0 + 15)
+
+
+    ######################Plots
+    ## First subplot: 
+    plot1 = ax1.imshow(zs, cmap='hot', vmin = vminT, vmax = vmaxT)
+    cbar = fig.colorbar(plot1, ax = ax1)
+    cbar.set_label('($^\circ$C)')
+
+    #Animation & save
+    ani = animation.FuncAnimation(fig, animate, frames = len(data.keys()), fargs = (data, plot1), interval=1000/8.7)
+
+    ani.save('./{}/{}.mp4'.format(path, name_file), writer = writer)
+    print('Animation generation is done!')
+
+
+
+
+
 # Simple 3-D
 def aniThermal3d(data, vminT, vmaxT, path, name_file, start, title = '  '):
     x = np.arange(0,160,1)

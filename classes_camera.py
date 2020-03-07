@@ -589,8 +589,13 @@ class TherCam(object):
 
                 data_p = np.append(dataC, [stimulus], axis = 0)
 
-                coorF = np.repeat([globals.centreROI[0], globals.centreROI[1]], len(dataC[0])/2)
+                coorF = np.repeat([globals.centreROI['control'][0], globals.centreROI['control'][1]], len(dataC[0])/2)
                 data_pp = np.append(data_p, [coorF], axis = 0)
+
+                mask = (xs[np.newaxis,:]-globals.centreROI['control'][1])**2 + (ys[:,np.newaxis]-globals.centreROI['control'][0])**2 < r**2
+                roiC = dataC[mask]
+                temp = round(np.mean(roiC), 2)
+                print('Mean: ' + str(round(np.mean(temp), 2)))
 
                 momen = time.time()
 
@@ -608,7 +613,7 @@ class TherCam(object):
                 #     print('We are done')
                 #     f.close()
                 #     break
-                if keyboard.is_pressed('enter'):  # globals.counter > globals.limit_counter:
+                if keyboard.is_pressed('e'):  # globals.counter > globals.limit_counter:
                     #Close file in which we are saving the stuff
                     print('We are done')
                     f.close()
@@ -617,6 +622,77 @@ class TherCam(object):
         finally:
             # print('Stop streaming')
             libuvc.uvc_stop_streaming(devh)
+
+    def saveShutterPos(self, output):
+        global dev
+        global devh
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+
+        edge = 30
+
+        time_shutter = time.time()
+
+        try:
+            while True:
+                # time.sleep(0.01)
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                # Get data
+                subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+                minimoK = np.min(subdataK)
+
+                # We get the min temp and shape to draw the ROI
+                dataC = (dataK - 27315) / 100
+                minimoC = (minimoK - 27315) / 100
+                subdataC = (subdataK - 27315) / 100
+
+                self.data = dataC
+
+                r = 20
+
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
+
+                indx, indy = np.where(subdataC == minimoC)
+                indx, indy = indx + edge, indy + edge
+
+                mask = (xs[np.newaxis,:] - globals.centreROI[1])**2 + (ys[:,np.newaxis] - globals.centreROI[0])**2 < r**2
+                roiC = dataC[mask]
+                temp = round(np.mean(roiC), 2)
+                print('Mean: ' + str(round(np.mean(temp), 2)))
+
+                momen = time.time()
+
+                f.create_dataset(('image'+str(tiff_frameLOCAL)), data = dataC)
+                f.create_dataset(('pos'+str(tiff_frameLOCAL)), data = [globals.pos])
+                f.create_dataset(('stimulus'+str(tiff_frameLOCAL)), data = [globals.stimulus])
+                f.create_dataset(('fixed_coor'+str(tiff_frameLOCAL)), data = [globals.centreROI[0], globals.centreROI[1]])
+                f.create_dataset(('dynamic_coor'+str(tiff_frameLOCAL)), data = [indx[0], indy[0]])
+                f.create_dataset(('time'+str(tiff_frameLOCAL)), data = [momen])
+
+                tiff_frameLOCAL += 1
+
+                time_loop = time.time()
+                time_elapsed = time_loop - time_shutter
+
+                if time_elapsed > 20:
+                    set_auto_ffc(devh)
+                    time_shutter = time.time()
+
+                if keyboard.is_pressed('e'):  # globals.counter > globals.limit_counter:
+                    #Close file in which we are saving the stuff
+                    print('We are done')
+                    f.close()
+                    break
+
+        finally:
+            # print('Stop streaming')
+            libuvc.uvc_stop_streaming(devh)
+
 
     def rtMoF(self, output):
         global dev
@@ -655,27 +731,18 @@ class TherCam(object):
                 indx, indy = np.where(subdataC == minimoC)
                 indx, indy = indx + edge, indy + edge
 
-
                 mask = (xs[np.newaxis,:]-globals.centreROI[1])**2 + (ys[:,np.newaxis]-globals.centreROI[0])**2 < r**2
                 roiC = dataC[mask]
                 globals.temp = round(np.mean(roiC), 2)
 
-                stimulus = np.repeat(globals.stimulus, len(dataC[0]))
-
-                data_p = np.append(dataC, [stimulus], axis = 0)
-
-                coorF = np.repeat([globals.centreROI[0], globals.centreROI[1]], len(dataC[0])/2)
-                data_pp = np.append(data_p, [coorF], axis = 0)
-
                 momen = time.time()
 
-                elapsed = np.repeat(momen, len(dataC[0]))
-                data_ppp = np.append(data_pp, [elapsed], axis = 0)
+                f.create_dataset(('image'+str(tiff_frameLOCAL)), data = dataC)
+                f.create_dataset(('stimulus'+str(tiff_frameLOCAL)), data = [globals.stimulus])
+                f.create_dataset(('fixed_coor'+str(tiff_frameLOCAL)), data = [globals.centreROI[0], globals.centreROI[1]])
+                f.create_dataset(('dynamic_coor'+str(tiff_frameLOCAL)), data = [indx[0], indy[0]])
+                f.create_dataset(('time'+str(tiff_frameLOCAL)), data = [momen])
 
-                coorD = np.repeat([indx[0], indy[0]], len(dataC[0])/2)
-                data_pppp = np.append(data_ppp, [coorD], axis = 0)
-
-                f.create_dataset(('image'+str(tiff_frameLOCAL)), data = data_pppp)
                 tiff_frameLOCAL += 1
 
                 print(globals.temp)
@@ -916,7 +983,6 @@ class TherCam(object):
             libuvc.uvc_stop_streaming(devh)
 
 
-
     def savePosMeanShuFix(self, output, r, event1 = None):
         global dev
         global devh
@@ -982,6 +1048,78 @@ class TherCam(object):
                 data_pppp = np.append(data_ppp, [coorD], axis = 0)
 
                 f.create_dataset(('image'+str(tiff_frameLOCAl)), data = data_pppp)
+                tiff_frameLOCAl += 1
+
+                if keyboard.is_pressed('e'):
+                    #Close file in which we are saving the stuff
+                    print('We are done')
+
+                    f.close()
+                    break
+
+        finally:
+            print('Stop streaming')
+            libuvc.uvc_stop_streaming(devh)
+
+    def savePosMeanfixShuGains(self, output, r, event1 = None):
+        global dev
+        global devh
+        tiff_frameLOCAl = 1
+        import matplotlib as mpl
+        f = h5py.File("./{}.hdf5".format(output), "w")
+
+        edge = 30
+
+        try:
+            print('Start')
+            print(globals.centreROI)
+            while True:
+                # time.sleep(0.01)
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                # We save the data
+
+                # Get data
+                subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+                minimoK = np.min(subdataK)
+
+                # We get the min temp and shape to draw the ROI
+                dataC = (dataK - 27315) / 100
+                minimoC = (minimoK - 27315) / 100
+                subdataC = (subdataK - 27315) / 100
+
+                self.data = dataC
+
+                r = 20
+
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
+
+                indxD, indyD = np.where(subdataC == minimoC)
+                indxD, indyD = indxD + edge, indyD + edge
+
+                indx, indy = globals.centreROI
+
+                mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
+                roiC = dataC[mask]
+
+                globals.temp = round(np.mean(roiC), 2)
+                print('Mean: ' + str(round(np.mean(globals.temp), 2)))
+
+                if globals.stimulus == 1:
+                    event1.set()
+                    
+                f.create_dataset(('image'+str(tiff_frameLOCAl)), data = dataC)
+                f.create_dataset(('pos'+str(tiff_frameLOCAl)), data = [globals.posZ])
+                f.create_dataset(('stimulus'+str(tiff_frameLOCAl)), data = [globals.stimulus])
+                f.create_dataset(('fixed_coor'+str(tiff_frameLOCAl)), data = [indx, indy])
+                f.create_dataset(('dynamic_coor'+str(tiff_frameLOCAl)), data = [indxD[0], indyD[0]])
+                f.create_dataset(('gains'+str(tiff_frameLOCAl)), data = [globals.Kp, globals.Ki, globals.Kd])
+                f.create_dataset(('gain_outputs'+str(tiff_frameLOCAl)), data = [globals.proportional, globals.integral, globals.derivative])
+
                 tiff_frameLOCAl += 1
 
                 if keyboard.is_pressed('e'):
@@ -1204,7 +1342,7 @@ class TherCam(object):
         global devh
         global tiff_frame
 
-        fig = plt.figure()
+        fig = plt.figure(1)
         ax = plt.axes()
 
         fig.tight_layout()
@@ -1213,6 +1351,8 @@ class TherCam(object):
 
         img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
+
+        timer_shutter = time.time()
 
         while True:
             try:
@@ -1238,6 +1378,7 @@ class TherCam(object):
                     subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
                     minimoK = np.max(subdataK)
 
+            
                 dataC = (dataK - 27315) / 100
                 minimoC = (minimoK - 27315) / 100
                 subdataC = (subdataK - 27315)/100
@@ -1253,7 +1394,7 @@ class TherCam(object):
                 mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
                 roiC = dataC[mask]
                 mean = round(np.mean(roiC), 2)
-                # print(mean)
+                print (mean)
 
                 circles = []
 
@@ -1276,15 +1417,23 @@ class TherCam(object):
                 # print(globals.temp)
                 plt.pause(0.0005)
 
+                time_loop = time.time()
+                time_elapsed = time_loop - timer_shutter
+
+                if time_elapsed > 20:
+                    set_auto_ffc(devh)
+                    timer_shutter = time.time()
+                    # print('Camera refreshed')
+
                 if cv2.waitKey(1) & keyboard.is_pressed('e'):
                     cv2.destroyAllWindows()
                     frame = 1
                     print('We are done')
+                    plt.close(1)
                     break
 
             except Exception as e:
                 print(e)
-                print('error')
 
     def LivePlotKernel(self, event1):
 

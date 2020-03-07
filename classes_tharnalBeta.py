@@ -6,86 +6,255 @@ import os
 ############ Class
 #########################################################################
 
-import matplotlib.pyplot as plt
-import os
-import re
-from func_anim import *
-import numpy as np
-import h5py
-import re
-import numpy as np
-
-### Notes
-# look up table (LUT): open shutter and see to create a forward model
-# LUT = [220000, 210000, 200000, 190000, 170000, 140000, 120000, 100000, 80000, 40000]
-# bandcut filter
 
 class ReAnRaw(object):
     ''' Grab h5py file. Don't include format in string'''
     def __init__(self, input):
         
         self.read = h5py.File('{}.hdf5'.format(input), 'r')
-        
-        self.parameters = []
 
-        for i in self.read.keys():
-            self.parameters.append(re.split('(\d+)', i)[0])
-        
-        self.parameters = list(set(self.parameters))
-
-        self.data = {}
-
-        for p in self.parameters:
-            self.data[p] = []
-
-        print('These are the parameters measured in this thermal video')
-        print(self.parameters)
-
-    def datatoDic(self):
-
-        len_to = len(self.read.keys())
-        len_pa = len(self.parameters)
-        len_subto =  len(self.read.keys())/len(self.parameters)
-
-        for i in np.arange(len_pa):
-            for j in np.arange(len_subto):
-                cu_pa = self.parameters[i]
-                frame_da = self.read['{}'.format(cu_pa) + str(int(j+1))][:]
-                self.data[cu_pa].append(frame_da)
-            # self.data[condname][self.parameters[i]].append(trial_data[i])
-
-    def extractOpenClose(self, name):
-        shus = np.asarray(self.data[name])
-        self.open = np.where(shus[:-1] != shus[1:])[0]
-
-
-    def extractMeansF(self, name_image = 'image', name_coorF = 'fixed_coor', r = 20):
+    def getParaMoF(self, r = 20):
 
         self.min_pixel = []
         self.means = []
         self.surround = []
- 
-        for i in np.arange(len(self.data[name_image])):
+        self.peak_pos = []
+        self.shus = []
+        self.shutterOnOff = []
 
-            minimoC = np.min(self.data[name_image][i])
+        self.indxDD = []
+        self.indyDD = []
+
+        r = r
+        frame = 1
+
+        for i in np.arange(len(self.read.keys())):
+
+            dataAll = self.read['image'+str(frame)][:]
+            frame +=1
+            dataC = dataAll[0:120]
+
+            shutter = dataAll[120]
+            OnOff = shutter[0]
+
+            minimoC = np.min(dataC)
 
             xs = np.arange(0, 160)
             ys = np.arange(0, 120)
 
-            mask = (xs[np.newaxis,:] - self.data[name_coorF][i][1])**2 + (ys[:,np.newaxis] - self.data[name_coorF][i][0])**2 < r**2
+            self.indx = dataAll[121][0]
+            self.indy = dataAll[121][-1]
 
-            roiC = self.data[name_image][i][mask]
+            self.indxD = dataAll[123][0]
+            self.indyD = dataAll[123][-1]
+            self.indxDD.append(self.indxD)
+            self.indyDD.append(self.indyD)
+
+            mask = (xs[np.newaxis,:] - self.indy)**2 + (ys[:,np.newaxis] - self.indx)**2 < r**2
+
+            roiC = dataC[mask]
             mean = round(np.mean(roiC), 2)
 
             unmask = np.invert(mask)
-            unroiC = self.data[name_image][i][unmask]
+            unroiC = dataC[unmask]
             meanSU = round(np.mean(unroiC), 2)
 
             self.means.append(mean)
             self.min_pixel.append(minimoC)
+            self.shutterOnOff.append(OnOff)
             self.surround.append(meanSU)
 
- 
+        shus = np.asarray(self.shutterOnOff)
+        self.open = np.where(shus[:-1] != shus[1:])[0]
+
+    def getParaTempPos(self, r = 20):
+
+        self.min_pixel = []
+        self.means = []
+        self.surround = []
+        self.peak_pos = []
+        self.shus = []
+        self.pos = []
+        self.shutterOnOff = []
+        self.time = []
+
+        self.indxDD = []
+        self.indyDD = []
+
+        zero_time = self.read['image1'][122][0]
+
+        r = r
+        frame = 1
+
+        for i in np.arange(len(self.read.keys())):
+
+            dataAll = self.read['image'+str(frame)][:]
+            frame +=1
+            dataC = dataAll[0:120]
+
+            shutter = dataAll[120]
+            OnOff = shutter[0]
+
+            now_time = dataAll[122][0] - zero_time
+
+            minimoC = np.min(dataC)
+
+            xs = np.arange(0, 160)
+            ys = np.arange(0, 120)
+
+            self.indx = dataAll[121][0]
+            self.indy = dataAll[121][-1]
+
+            self.indxD = dataAll[123][0]
+            self.indyD = dataAll[123][-1]
+            self.indxDD.append(self.indxD)
+            self.indyDD.append(self.indyD)
+
+            posI = dataAll[124][0]
+
+            mask = (xs[np.newaxis,:] - self.indy)**2 + (ys[:,np.newaxis] - self.indx)**2 < r**2
+
+            roiC = dataC[mask]
+            mean = round(np.mean(roiC), 2)
+
+            unmask = np.invert(mask)
+            unroiC = dataC[unmask]
+            meanSU = round(np.mean(unroiC), 2)
+
+            self.means.append(mean)
+            self.min_pixel.append(minimoC)
+            self.shutterOnOff.append(OnOff)
+            self.surround.append(meanSU)
+            self.pos.append(posI)
+            self.time.append(now_time)
+
+        shus = np.asarray(self.shutterOnOff)
+        self.open = np.where(shus[:-1] != shus[1:])[0]
+
+
+class ReAnRaw(object):
+    ''' Grab h5py file. Don't include format in string'''
+    def __init__(self, input):
+        
+        self.read = h5py.File('{}.hdf5'.format(input), 'r')
+
+    def getParaMoF(self, r = 20):
+
+        self.min_pixel = []
+        self.means = []
+        self.surround = []
+        self.peak_pos = []
+        self.shus = []
+        self.shutterOnOff = []
+
+        self.indxDD = []
+        self.indyDD = []
+
+        r = r
+        frame = 1
+
+        for i in np.arange(len(self.read.keys())):
+
+            dataAll = self.read['image'+str(frame)][:]
+            frame +=1
+            dataC = dataAll[0:120]
+
+            shutter = dataAll[120]
+            OnOff = shutter[0]
+
+            minimoC = np.min(dataC)
+
+            xs = np.arange(0, 160)
+            ys = np.arange(0, 120)
+
+            self.indx = dataAll[121][0]
+            self.indy = dataAll[121][-1]
+
+            self.indxD = dataAll[123][0]
+            self.indyD = dataAll[123][-1]
+            self.indxDD.append(self.indxD)
+            self.indyDD.append(self.indyD)
+
+            mask = (xs[np.newaxis,:] - self.indy)**2 + (ys[:,np.newaxis] - self.indx)**2 < r**2
+
+            roiC = dataC[mask]
+            mean = round(np.mean(roiC), 2)
+
+            unmask = np.invert(mask)
+            unroiC = dataC[unmask]
+            meanSU = round(np.mean(unroiC), 2)
+
+            self.means.append(mean)
+            self.min_pixel.append(minimoC)
+            self.shutterOnOff.append(OnOff)
+            self.surround.append(meanSU)
+
+        shus = np.asarray(self.shutterOnOff)
+        self.open = np.where(shus[:-1] != shus[1:])[0]
+
+    def getParaTempPos(self, r = 20):
+
+        self.min_pixel = []
+        self.means = []
+        self.surround = []
+        self.peak_pos = []
+        self.shus = []
+        self.pos = []
+        self.shutterOnOff = []
+        self.time = []
+
+        self.indxDD = []
+        self.indyDD = []
+
+        zero_time = self.read['image1'][122][0]
+
+        r = r
+        frame = 1
+
+        for i in np.arange(len(self.read.keys())):
+
+            dataAll = self.read['image'+str(frame)][:]
+            frame +=1
+            dataC = dataAll[0:120]
+
+            shutter = dataAll[120]
+            OnOff = shutter[0]
+
+            now_time = dataAll[122][0] - zero_time
+
+            minimoC = np.min(dataC)
+
+            xs = np.arange(0, 160)
+            ys = np.arange(0, 120)
+
+            self.indx = dataAll[121][0]
+            self.indy = dataAll[121][-1]
+
+            self.indxD = dataAll[123][0]
+            self.indyD = dataAll[123][-1]
+            self.indxDD.append(self.indxD)
+            self.indyDD.append(self.indyD)
+
+            posI = dataAll[124][0]
+
+            mask = (xs[np.newaxis,:] - self.indy)**2 + (ys[:,np.newaxis] - self.indx)**2 < r**2
+
+            roiC = dataC[mask]
+            mean = round(np.mean(roiC), 2)
+
+            unmask = np.invert(mask)
+            unroiC = dataC[unmask]
+            meanSU = round(np.mean(unroiC), 2)
+
+            self.means.append(mean)
+            self.min_pixel.append(minimoC)
+            self.shutterOnOff.append(OnOff)
+            self.surround.append(meanSU)
+            self.pos.append(posI)
+            self.time.append(now_time)
+
+        shus = np.asarray(self.shutterOnOff)
+        self.open = np.where(shus[:-1] != shus[1:])[0]
 
 
 

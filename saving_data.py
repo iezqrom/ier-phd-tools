@@ -62,6 +62,11 @@ def apendAll(file, folder, subj_n, data):
 
 ############# Individual files #############
 def saveIndv(file, folder, data):
+    """
+    Example data:
+
+
+    """
 
     llaves = data.keys()
     one_key = [*llaves][0]
@@ -89,8 +94,8 @@ def saveIndv(file, folder, data):
         rait = []
         for k, v in data.items():
             rait.append(k)
-            empy = ''
-            for i in np.arange((len(v) -1)):
+            empy = k
+            for i in np.arange((len(v) - 1)):
                 rait.append(empy)
         writer_subject.writerow(rait)
 

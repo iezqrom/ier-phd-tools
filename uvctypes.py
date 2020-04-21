@@ -13,7 +13,7 @@ try:
     libuvc = cdll.LoadLibrary("libuvc")
 except OSError:
   print("Error: could not find libuvc!")
-  sys.exit(1)
+  # sys.exit(1)
 
 class uvc_context(Structure):
   _fields_ = [("usb_ctx", c_void_p),

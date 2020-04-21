@@ -44,7 +44,7 @@ import pandas as pd
 import curses
 import re
 import struct
-
+from scipy import signal
 
 class ArdUIno(grabPorts):
 
@@ -67,26 +67,28 @@ class ArdUIno(grabPorts):
 
         self.arduino.flushInput()
 
-    def readFloat(self, start, finish, globali, event):
+    def readData(self, dataParser = float, event = None):
         while True:
-            read = self.arduino.readline()
-            cropp = read[start:finish]
-            # print(read)
             try:
-                float_cropp = float(cropp)
-                rounded_float_cropp = round(float_cropp, 3)
-
-                globali.set(rounded_float_cropp)
+                read = self.arduino.readline()
+                read_float = dataParser(read)
+                print('Data_ard: ' + str(read_float))
+                if read_float > 400:
+                    globals.data = globals.data
+                else:
+                    globals.data = read_float
             except Exception as e:
                 print(e)
+                globals.data = globals.data
+            
+            if event != None:
+                event.set()
+                # print('EVENT')
 
-            if keyboard.is_pressed('enter'):
-                event[0].set()
+            if keyboard.is_pressed('e'):
                 break
-            elif keyboard.is_pressed('l'):
-                event[0].set()
-                # print('Waiting for Zaber to move')
-                event[1].wait()
+        
+        print('Reading done')
 
     def OpenClose(self, wait_close, wait_open, devices = None):
 
@@ -180,6 +182,26 @@ class ArdUIno(grabPorts):
                 self.arduino.write(struct.pack('>B', globals.stimulus))
                 break
 
+    def readFloat(self, start, finish, globali, event):
+        while True:
+            read = self.arduino.readline()
+            cropp = read[start:finish]
+            # print(read)
+            try:
+                float_cropp = float(cropp)
+                rounded_float_cropp = round(float_cropp, 3)
+
+                globali.set(rounded_float_cropp)
+            except Exception as e:
+                print(e)
+
+            if keyboard.is_pressed('enter'):
+                event[0].set()
+                break
+            elif keyboard.is_pressed('l'):
+                event[0].set()
+                # print('Waiting for Zaber to move')
+                event[1].wait()
 ################################################################################
 ############################# FUNCTION #########################################
 ################################################################################
@@ -192,15 +214,21 @@ def shakeShutter(ard, times):
         # print(read)
         print('Open shutter')
 
-        time.sleep(0.3)
+        time.sleep(0.5)
 
         globals.stimulus = 0
         ard.arduino.write(struct.pack('>B', globals.stimulus))
         # read = ard.arduino.readline()
         # print(read)
         print('Close shutter')
-        time.sleep(0.3)
+        time.sleep(0.5)
 
+Fs = 20; # sampling freq
+Fc = 2; # cutoff
+[b, a] = signal.butter(2, Fc/(Fs/2))
+
+def smoother(datapoint):
+    d_cen_round_filtered = b[0] * data2[-1] + b[1] * data2[-2] + b[2] * data2[-3] - a[1] * df2[-1] - a[2] * df2[-2]
 
 ################ Developing Trash
 # def ardRun(self, save = 'N', subjN = None, trial_counter = None):

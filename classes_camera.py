@@ -689,9 +689,10 @@ class TherCam(object):
                     f.close()
                     break
 
-        finally:
+        except:
             # print('Stop streaming')
-            libuvc.uvc_stop_streaming(devh)
+            # libuvc.uvc_stop_streaming(devh)
+            pass
 
 
     def rtMoF(self, output):
@@ -731,7 +732,7 @@ class TherCam(object):
                 indx, indy = np.where(subdataC == minimoC)
                 indx, indy = indx + edge, indy + edge
 
-                mask = (xs[np.newaxis,:]-globals.centreROI[1])**2 + (ys[:,np.newaxis]-globals.centreROI[0])**2 < r**2
+                mask = (xs[np.newaxis,:]- globals.centreROI[1])**2 + (ys[:,np.newaxis]-globals.centreROI[0])**2 < r**2
                 roiC = dataC[mask]
                 globals.temp = round(np.mean(roiC), 2)
 
@@ -745,7 +746,7 @@ class TherCam(object):
 
                 tiff_frameLOCAL += 1
 
-                print(globals.temp)
+                # print(globals.temp)
 
                 if keyboard.is_pressed('space'):  # globals.counter > globals.limit_counter:
                     #Close file in which we are saving the stuff

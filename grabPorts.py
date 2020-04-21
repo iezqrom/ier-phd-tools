@@ -30,7 +30,7 @@ class grabPorts(object):
                 self.zaber_port = [s for s in self.ports if "usbmodem14{}{}01".format(usb_port, str(n_modem)) in s]
 
             try:
-                print(self.zaber_port)
+                pass
             except:
                 print('There are not Zabers connected to the mac machine')
 

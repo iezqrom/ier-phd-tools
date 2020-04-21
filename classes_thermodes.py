@@ -12,10 +12,6 @@ import sys
 import curses
 import csv
 
-from tkinter import *
-from tkinter import filedialog as tkfd
-
-
 # Maths
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,8 +31,10 @@ from numpy import (isscalar, r_, log, around, unique, asarray,
                    pi, exp, ravel, count_nonzero, sin, cos, arctan2, hypot)
 import pandas as pd
 
-
-import matlab.engine as me
+try:
+    import matlab.engine as me
+except:
+    pass
 
     # print('No module Matlab')
 ## NIDAQMX
@@ -70,7 +68,7 @@ class Thermode(object):
 
     # We first initialise the object by mapping temperatures onto the voltages given by the manual of the thermodes.
     # This manual can be found in office 207a as of December 2019
-    def __init__(self, lower = 17, upper = 51):
+    def __init__(self, lower = 0, upper = 51):
         ## We need to map the temperatures with the Voltages ##
         self.range_temp = np.arange(lower, upper, self.steps_range)
         self.range_temp = self.range_temp.round(decimals=1)
@@ -87,16 +85,52 @@ class Thermode(object):
         # We stack the data
         self.temp_volt = np.stack((self.range_temp, self.range_volt))
         # print(self.temp_volt)
-        # self.temp_volt = self.temp_volt.T
 
+    def readTemp(self, Ai, samples = 100, rate = globals.rate_NI, dev = globals.dev):
+
+        self.ai_task = NT.Task()
+        self.ai_task.ai_channels.add_ai_voltage_chan(physical_channel = '/{}/{}'.format(dev, Ai))
+        self.ai_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan =  samples, sample_mode= NC.AcquisitionType.FINITE)
+
+        self.ai_task.wait_until_done(timeout = 50)
+
+        self.ai_task.start()
+        self.currentTdata = self.ai_task.read(number_of_samples_per_channel = samples)
+
+        self.ai_task.close()
+
+        # print("Array data")
+        # print(self.currentTdata)
+
+        self.meancurrentTdata = np.mean(np.asarray(self.currentTdata))
+
+        self.nearest_volt = find_nearest(self.temp_volt[1], self.meancurrentTdata)
+
+        self.indx_currT = np.where(self.temp_volt[1] == self.nearest_volt)
+
+        self.temp_current = self.temp_volt[0,  self.indx_currT]
+        self.temp_current = self.temp_current[0][0]
+        self.volt_current = self.nearest_volt
 
     ## This method creates a ramp to reach temperature X from temperature Y ##
-    def ramp(self, start_temp, target_temp):
-         self.start_temp = start_temp
+    def rampCurrTarget(self, target_temp):
          self.target_temp = target_temp
 
-         # print(self.temp_volt[0])
-         # print(target_temp)
+         self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
+
+         self.indx_target = np.where(self.temp_volt[0] == self.nearest_temp_target)
+
+         self.volt_ref_target = self.temp_volt[1, self.indx_target]
+
+         if self.temp_current > target_temp:
+            self.volt = np.arange(self.volt_current, self.volt_ref_target, - self.volt_ref_target/1000)
+
+         elif target_temp > self.temp_current:
+            self.volt = np.arange(self.volt_current, self.volt_ref_target, self.volt_ref_target/1000)
+
+    def rampStartTarget(self, start_temp, target_temp):
+         self.start_temp = start_temp
+         self.target_temp = target_temp
 
          self.nearest_temp_start = find_nearest(self.temp_volt[0], start_temp)
          self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
@@ -116,27 +150,32 @@ class Thermode(object):
     ## This is the most IMPORTANT method it is the way you write data to the box (e.g. a ramp)
     ## to the NI DAQ box and read from the boxes
 
-    def IO_thermode(self, Ai, Ao, rate = globals.rate_NI, dev = globals.dev):
+    def IO_thermode(self, Ai, Ao, rate = globals.rate_NI, dev = globals.dev, voltI = None): #Ai ai8 // Ao ao0
+        
+        if voltI == None:
+            volt = self.volt
+        else:
+            volt = voltI
+
+        print('Length voltage')
+        print(len(volt))
 
         self.ai_task = NT.Task()
         self.ai_task.ai_channels.add_ai_voltage_chan(physical_channel = '/{}/{}'.format(dev, Ai))
-        self.ai_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(self.volt), sample_mode= NC.AcquisitionType.FINITE)
+        self.ai_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(volt), sample_mode= NC.AcquisitionType.FINITE)
 
         # configuring ao task: writing data
 
         self.ao_task = NT.Task()
         self.ao_task.ao_channels.add_ao_voltage_chan('/{}/{}'.format(dev, Ao))
-        self.ao_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(self.volt), sample_mode = NC.AcquisitionType.FINITE,
-        source = 'ai/SampleClock') # samps_per_chan = 1000
+        self.ao_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(volt), sample_mode = NC.AcquisitionType.FINITE,
+        source = 'ai/SampleClock')
 
         self.start_TT = datetime.now()
 
-        # print('VOLTAGE: ' + str(self.volt))
-        # counter = 0
         while True:
             try:
-                # counter += 1
-                self.ao_task.write(self.volt)
+                self.ao_task.write(volt)
             except:
                 # print('We are trying')
                 continue
@@ -155,6 +194,7 @@ class Thermode(object):
         self.ao_task.close()
 
         self.end_TT = datetime.now() - self.start_TT
+        print(self.end_TT)
         self.rate = rate
         # print('Counter:  ' + str(counter))
 
@@ -574,26 +614,11 @@ class Target(Thermode, Gethermodes):
 
         # print('We are completely done')
 
-
-
-def audio_trig(duration, fs = 500, volume = 0.9, f = 4400):
-    duration = duration * 1000
-    while globals.total == 0:
-        time.sleep(1)
-        # print('\n waiting \n')
-        #print(globals.total)
-    else:
-        if globals.total == 1:
-            try:
-                # print('sound')
-                winsound.Beep(fs, duration)
-            except:
-                print("Stimulus")
-                audio.audio(duration, fs, volume, f)
+######################## FUNCTIONS
 
 def find_nearest(array, value):
     array = np.asarray(array)
-    print(array)
-    print(value)
+    # print(array)
+    # print(value)
     idx = (np.abs(array - value)).argmin()
     return array[idx]

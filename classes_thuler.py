@@ -18,7 +18,7 @@ class Thuler(object):
     
     def plot_ruler(self, n_image, low_b, high_b):
         """
-        This method plots the heatmap of the ruler
+            This method plots the heatmap of the ruler
         """
         self.low_b = low_b
         self.high_b = high_b
@@ -37,58 +37,76 @@ class Thuler(object):
         plt.colorbar()
 
     def pixelCount(self):
-        hor_row_pixels = []
-        ver_column_pixels = []
+        """
+            Here we count how many pixels between the given thermal ranges are in each row and column
+        """
+        hor_y_pixels = []
+        ver_x_pixels = []
 
         for i in self.img:
             hori = np.count_nonzero(i)
-            hor_row_pixels.append(hori)
+            hor_y_pixels.append(hori)
 
         for j in self.img.T:
             veri = np.count_nonzero(j)
-            ver_column_pixels.append(veri)
+            ver_x_pixels.append(veri)
 
-        self.ar_hor_row_pixels = np.asarray(hor_row_pixels, dtype = 'float')
-        self.ar_ver_column_pixels = np.asarray(ver_column_pixels, dtype = 'float')
+        self.hor_y_pixels_raw = np.asarray(hor_y_pixels, dtype = 'float')
+        self.ver_x_pixels_raw = np.asarray(ver_x_pixels, dtype = 'float')
+
+        self.ar_hor_y_pixels = self.hor_y_pixels_raw.copy() 
+        self.ar_ver_x_pixels = self.ver_x_pixels_raw.copy() 
 
     def interpolation(self, hor_threshold, ver_threshold):
-        self.ar_hor_row_pixels[self.ar_hor_row_pixels > hor_threshold] = np.nan
-        self.ar_ver_column_pixels[self.ar_ver_column_pixels > ver_threshold] = np.nan
+        """
+            Here we threshold rows and columns to remove arms of the ruler. 
+            Then we extrapolate to obtain two straight 2D rulers (horizontal and vertical)
+        """
+        self.ar_hor_y_pixels[self.ar_hor_y_pixels > hor_threshold] = np.nan
+        self.ar_ver_x_pixels[self.ar_ver_x_pixels > ver_threshold] = np.nan
 
-        self.hor_non_nan = self.ar_hor_row_pixels[np.logical_not(np.isnan(self.ar_hor_row_pixels))]
-        self.ver_non_nan = self.ar_ver_column_pixels[np.logical_not(np.isnan(self.ar_ver_column_pixels))]
+        # THIS SECTION IS NOT DONE
+        y_nans, Yx = nan_helper(self.ar_hor_y_pixels)
+        x_nans, Xx = nan_helper(self.ar_ver_x_pixels)
 
-        self.coef_hor = np.polyfit(np.arange(len(self.hor_non_nan)), self.hor_non_nan,1)
-        self.fn_hor = np.poly1d(self.coef_hor)
+        self.ar_hor_y_pixels[y_nans] = np.interp(Yx(y_nans), Yx(~y_nans), self.ar_hor_y_pixels[~y_nans])
+        self.ar_ver_x_pixels[x_nans] = np.interp(Xx(x_nans), Xx(~x_nans), self.ar_ver_x_pixels[~x_nans])
 
-        self.coef_ver = np.polyfit(np.arange(len(self.ver_non_nan)), self.ver_non_nan,1)
-        self.fn_ver = np.poly1d(self.coef_ver)
+        coef_Y = np.polyfit(np.arange(len(self.ar_hor_y_pixels)), self.ar_hor_y_pixels,1)
+        self.fn_hor_y = np.poly1d(coef_Y)
+
+        coef_X = np.polyfit(np.arange(len(self.ar_ver_x_pixels)), self.ar_ver_x_pixels,1)
+        self.fn_ver_x = np.poly1d(coef_X)
+
         # poly1d_fn is now a function which takes in x and returns an estimate for y
-
-        self.fitted_hor_pixels = self.fn_hor(np.arange(len(self.ar_hor_row_pixels)))
-        self.fitted_ver_pixels = self.fn_ver(np.arange(len(self.ar_ver_column_pixels)))
+        self.fitted_hor_pixels_y = self.fn_hor_y(np.arange(len(self.ar_hor_y_pixels)))
+        self.fitted_ver_pixels_x = self.fn_ver_x(np.arange(len(self.ar_ver_x_pixels)))
 
     def calibrate(self, mm = 4):
         """
         We calculate the width and length of each pixel and we create a grid
         """
-        self.h_colum = mm/np.asarray(self.fitted_hor_pixels)
-        self.v_colum = mm/np.asarray(self.fitted_ver_pixels)
+        self.h_colum_y = mm/np.asarray(self.fitted_hor_pixels_y)
+        self.v_colum_x = mm/np.asarray(self.fitted_ver_pixels_x)
 
-        self.x_hor_count = np.tile(self.h_colum, (len(self.v_colum),1))
-        self.y_ver_count = np.tile(self.v_colum, (len(self.h_colum),1))
+        self.y_hor_count = np.tile(self.h_colum_y, (len(self.v_colum_x),1))
+        self.x_ver_count = np.tile(self.v_colum_x, (len(self.h_colum_y),1))
 
-    def measure(self, roi):
+    def measure(self, r, inds):
         """
-        We measure the size of the 
+        We measure the size of each pixel in the ROI  
         """
-        self.masked_hor_count = np.where(roi.T == False, 0, self.x_hor_count)
-        self.masked_ver_count = np.where(roi == False, 0, self.y_ver_count)
+        indx, indy = inds
+        xs = np.arange(0, 160)
+        ys = np.arange(0, 120)
+        roi = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
 
-        self.spot_widths = np.sum(self.masked_hor_count, axis = 1)
-        self.spot_heights = np.sum(self.masked_ver_count, axis = 1)
+        self.masked_hor_count_y = np.where(roi.T == False, 0, self.y_hor_count)
+        self.masked_ver_count_x = np.where(roi == False, 0, self.x_ver_count)
+
+        self.spot_heights = np.sum(self.masked_hor_count_y, axis = 1)
+        self.spot_widths = np.sum(self.masked_ver_count_x, axis = 1)
     
-
 
 def nan_helper(y):
     """Helper to handle indices and logical indices of NaNs.

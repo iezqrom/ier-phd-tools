@@ -4,25 +4,18 @@
 from datetime import datetime
 import threading
 import time
-from multiprocessing import pool
-from multiprocessing.pool import ThreadPool
+import keyboard
+
 import warnings
 import itertools
 import sys
-import curses
-import csv
+
 
 # Maths
 import matplotlib.pyplot as plt
 import numpy as np
 import math
 import random
-import scipy as sci
-from scipy import stats
-import sklearn as skl
-import scipy.stats as st
-
-import statsmodels as sm
 
 # import matplotlib
 from numpy import (isscalar, r_, log, around, unique, asarray,
@@ -36,7 +29,6 @@ try:
 except:
     pass
 
-    # print('No module Matlab')
 ## NIDAQMX
 import nidaqmx.system.watchdog as nsw
 import nidaqmx.stream_writers as nsw
@@ -61,14 +53,16 @@ except:
     pass
 
 
-# This class is to use a single thermode, useful for simple scripts
-
 class Thermode(object):
+
     steps_range = 0.1
 
     # We first initialise the object by mapping temperatures onto the voltages given by the manual of the thermodes.
     # This manual can be found in office 207a as of December 2019
     def __init__(self, lower = 0, upper = 51):
+        """
+            This class is to use a single thermode through a NIDAQ box
+        """
         ## We need to map the temperatures with the Voltages ##
         self.range_temp = np.arange(lower, upper, self.steps_range)
         self.range_temp = self.range_temp.round(decimals=1)
@@ -84,10 +78,12 @@ class Thermode(object):
 
         # We stack the data
         self.temp_volt = np.stack((self.range_temp, self.range_volt))
-        # print(self.temp_volt)
 
     def readTemp(self, Ai, samples = 100, rate = globals.rate_NI, dev = globals.dev):
-
+        """
+            Method of Zaber (object) to obtain the current temperature.
+            Important created attributes: self.temp_current (current temperature) & self.volt_current (voltage equivalent of current temperature).
+        """
         self.ai_task = NT.Task()
         self.ai_task.ai_channels.add_ai_voltage_chan(physical_channel = '/{}/{}'.format(dev, Ai))
         self.ai_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan =  samples, sample_mode= NC.AcquisitionType.FINITE)
@@ -99,11 +95,7 @@ class Thermode(object):
 
         self.ai_task.close()
 
-        # print("Array data")
-        # print(self.currentTdata)
-
         self.meancurrentTdata = np.mean(np.asarray(self.currentTdata))
-
         self.nearest_volt = find_nearest(self.temp_volt[1], self.meancurrentTdata)
 
         self.indx_currT = np.where(self.temp_volt[1] == self.nearest_volt)
@@ -112,63 +104,83 @@ class Thermode(object):
         self.temp_current = self.temp_current[0][0]
         self.volt_current = self.nearest_volt
 
-    ## This method creates a ramp to reach temperature X from temperature Y ##
     def rampCurrTarget(self, target_temp):
-         self.target_temp = target_temp
+        """
+            Method of Zaber (object) to create a ramp to reach temperature X from the current temperature.
+            Important created attributes: self.volt (voltage to write with IO_thermode).
+        """
+        self.target_temp = target_temp
 
-         self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
+        self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
 
-         self.indx_target = np.where(self.temp_volt[0] == self.nearest_temp_target)
+        self.indx_target = np.where(self.temp_volt[0] == self.nearest_temp_target)
 
-         self.volt_ref_target = self.temp_volt[1, self.indx_target]
+        self.volt_ref_target = self.temp_volt[1, self.indx_target]
 
-         if self.temp_current > target_temp:
+        print(self.volt_ref_target)
+
+        if self.temp_current > target_temp:
             self.volt = np.arange(self.volt_current, self.volt_ref_target, - self.volt_ref_target/1000)
 
-         elif target_temp > self.temp_current:
+        elif target_temp > self.temp_current:
             self.volt = np.arange(self.volt_current, self.volt_ref_target, self.volt_ref_target/1000)
-
+        # print(self.volt)
     def rampStartTarget(self, start_temp, target_temp):
-         self.start_temp = start_temp
-         self.target_temp = target_temp
+        """
+            Method of Zaber (object) to create a ramp to reach temperature X from temperature Y.
+            Important created attributes: self.volt (voltage to write with IO_thermode).
+        """
+        self.start_temp = start_temp
+        self.target_temp = target_temp
 
-         self.nearest_temp_start = find_nearest(self.temp_volt[0], start_temp)
-         self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
+        self.nearest_temp_start = find_nearest(self.temp_volt[0], start_temp)
+        self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
 
-         self.indx_start = np.where(self.temp_volt[0] == self.nearest_temp_start)
-         self.indx_target = np.where(self.temp_volt[0] == self.nearest_temp_target)
+        self.indx_start = np.where(self.temp_volt[0] == self.nearest_temp_start)
+        self.indx_target = np.where(self.temp_volt[0] == self.nearest_temp_target)
 
-         self.volt_ref_start = self.temp_volt[1,  self.indx_start]
-         self.volt_ref_target = self.temp_volt[1, self.indx_target]
+        self.volt_ref_start = self.temp_volt[1,  self.indx_start]
+        self.volt_ref_target = self.temp_volt[1, self.indx_target]
 
-         if start_temp > target_temp:
+        if start_temp > target_temp:
             self.volt = np.arange(self.volt_ref_start, self.volt_ref_target, - self.volt_ref_target/1000)
 
-         elif target_temp > start_temp:
+        elif target_temp > start_temp:
             self.volt = np.arange(self.volt_ref_start, self.volt_ref_target, self.volt_ref_target/1000)
-            # print(self.volt)
-    ## This is the most IMPORTANT method it is the way you write data to the box (e.g. a ramp)
-    ## to the NI DAQ box and read from the boxes
 
     def IO_thermode(self, Ai, Ao, rate = globals.rate_NI, dev = globals.dev, voltI = None): #Ai ai8 // Ao ao0
-        
-        if voltI == None:
-            volt = self.volt
-        else:
+        """
+            Method of Zaber (object) to write voltage to and read data (voltage) from thermode.
+            The attribute self.volt is written if one (voltI) is not given.
+
+            Important attributes created: self.data (data read from thermode) & self.end_TT (time to write and execute volt)
+        """
+        try:
+            if voltI == None:
+                volt = self.volt
+        except:
             volt = voltI
 
-        print('Length voltage')
-        print(len(volt))
+        # print(volt)
+
+        try:
+            len_volt = len(volt)
+        except:
+            volt = [volt, volt]
+            len_volt = len(volt)
+            raise('Voltage output has to be an array of minimum 2 values')
+
+        print('Length voltage: {}'.format(len_volt))
 
         self.ai_task = NT.Task()
         self.ai_task.ai_channels.add_ai_voltage_chan(physical_channel = '/{}/{}'.format(dev, Ai))
-        self.ai_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(volt), sample_mode= NC.AcquisitionType.FINITE)
+        self.ai_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len_volt, sample_mode= NC.AcquisitionType.FINITE)
 
         # configuring ao task: writing data
 
         self.ao_task = NT.Task()
         self.ao_task.ao_channels.add_ao_voltage_chan('/{}/{}'.format(dev, Ao))
-        self.ao_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(volt), sample_mode = NC.AcquisitionType.FINITE,
+        self.ao_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len_volt, sample_mode = NC.AcquisitionType.FINITE,
         source = 'ai/SampleClock')
 
         self.start_TT = datetime.now()
@@ -177,56 +189,116 @@ class Thermode(object):
             try:
                 self.ao_task.write(volt)
             except:
-                # print('We are trying')
+                print('We are trying')
                 continue
             else:
                 break
-             # run the task
+
+        # run the task
         self.ao_task.start()
         self.ai_task.start()
 
         self.ao_task.wait_until_done(timeout = 50)
         self.ai_task.wait_until_done(timeout = 50)
 
-        self.data = self.ai_task.read(number_of_samples_per_channel = len(self.volt))
+        self.data = self.ai_task.read(number_of_samples_per_channel = len_volt)
 
         self.ai_task.close()
         self.ao_task.close()
 
         self.end_TT = datetime.now() - self.start_TT
-        print(self.end_TT)
+        # print('Time taken: {}'.format(self.end_TT))
         self.rate = rate
-        # print('Counter:  ' + str(counter))
 
-    ##### This method is in working progress. The aim is to develop a matching paradigm ####
+    def method_of_limits(self, Ai, Ao, direction, rate = globals.rate_NI, temp_rate = 0.2 , amount = 1, dev = globals.dev):
+        """
+            Method of Zaber (object) to find thresholds with method of limits strategy.
+
+            rate: rate at each the NIDAQ box will read the voltage signal (self.volt)
+            Ia: input pin
+            Io: output pin
+            direction: 'up' (warm threshold) or 'down' (cold threshold)
+            amount:
+
+            Import attributes created: self.final_temp (threshold)
+        """
+
+        if direction == 'up':
+            self.rampCurrTarget(42)
+        elif direction == 'down':
+            self.rampCurrTarget(17)
+        else:
+            raise NameError("Value direction can only be 'up' or 'down'")
+
+        try:
+            len_volt = len(self.volt)
+        except:
+            volt = [self.volt, self.volt]
+            len_volt = len(volt)
+            raise('Voltage output has to be an array of minimum 2 values')
+
+
+        def ramp_loop(volt, len_volt, dev, Ao, rate):
+            self.ao_task = NT.Task()
+            self.ao_task.ao_channels.add_ao_voltage_chan('/{}/{}'.format(dev, Ao))
+            self.ao_task.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len_volt, sample_mode = NC.AcquisitionType.FINITE)
+
+            self.start_TT = datetime.now()
+
+            while True:
+                try:
+                    self.ao_task.write(volt)
+                except:
+                    continue
+                else:
+                    break
+
+            # run the task
+            self.ao_task.start()
+
+            while True:
+                print('looping')
+                if keyboard.is_pressed('space'):
+                    self.ao_task.close()
+                    self.readTemp(Ai)
+                    print(self.temp_current)
+                    print('we are here')
+                    break
+            # self.ao_task.wait_until_done(timeout = 50)
+
+
+        # ramp_loop()
+
+        # stop_ramp_thread = threading.Thread(target=stop_ramp, daemon = True)
+        # stop_ramp_thread.start()
+
+        ramp_loop(self.volt, len_volt, dev, Ao, rate)
+        # stop_ramp_thread.start()
+
+        # ramp_thread.join()
+        # stop_ramp_thread.join()
+
+    ##### Working progress
     def adjust_single(self, rate, Ia, Io, start_temp, target_temp):
+        """
+            Method of Zaber (object)
+            This method is in working progress. The aim is to develop a matching paradigm
+        """
 
         self.ramp(start_temp, target_temp)
-
         self.IO_thermode(rate, Ia, Io)
 
-        stdscr = curses.initscr()
-        stdscr.keypad(1)
-
-        stdscr.addstr(0,0,"\n Use arrows up and down to adjust the temperature of the thermode")
-        stdscr.refresh()
-
-        key = ''
         while True:
 
-            key = stdscr.getch()
-
-            stdscr.refresh()
-
-            if key == curses.KEY_UP:
+            if keyboard.is_pressed('up'):
                 self.volt = self.data + 0.0000992
                 self.IO_thermode(rate, Ia, Io)
 
-            elif key == curses.KEY_DOWN:
+            elif keyboard.is_pressed('up'):
                 self.volt = self.data + 0.0000992
                 self.IO_thermode(rate, Ia, Io)
 
-            elif key == ord('q'):
+            elif keyboard.is_pressed('e'):
                 break
 
 

@@ -23,6 +23,7 @@ import numpy as np
 class ReAnRaw(object):
     ''' Grab h5py file. Don't include format in string'''
     def __init__(self, input):
+        "We get the data from the h5py files, then we find the parameters used."
         
         self.read = h5py.File('{}.hdf5'.format(input), 'r')
         
@@ -42,22 +43,21 @@ class ReAnRaw(object):
         print(self.parameters)
 
     def datatoDic(self):
+        "Transform videos data into a dictionary"
 
         len_to = len(self.read.keys())
         len_pa = len(self.parameters)
-        len_subto =  len(self.read.keys())/len(self.parameters)
+        self.len_subto =  len(self.read.keys())/len(self.parameters)
 
         for i in np.arange(len_pa):
-            for j in np.arange(len_subto):
+            for j in np.arange(self.len_subto):
                 cu_pa = self.parameters[i]
                 frame_da = self.read['{}'.format(cu_pa) + str(int(j+1))][:]
                 self.data[cu_pa].append(frame_da)
-            # self.data[condname][self.parameters[i]].append(trial_data[i])
 
     def extractOpenClose(self, name):
         shus = np.asarray(self.data[name])
         self.open = np.where(shus[:-1] != shus[1:])[0]
-
 
     def extractMeansF(self, name_image = 'image', name_coorF = 'fixed_coor', r = 20):
 

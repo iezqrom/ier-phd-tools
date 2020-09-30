@@ -4,6 +4,7 @@ import platform
 import gc
 import sys
 
+
 try:
   if platform.system() == 'Darwin':
     libuvc = cdll.LoadLibrary("libuvc.dylib")
@@ -222,16 +223,22 @@ class lep_sys_shutter_mode(Structure):
 
 explicitCmdToOpenVal = 1
 desiredFfcTempDeltaVal = 0
-imminentDelayVal = 150
+imminentDelayVal = 150 # If the camera temperature has changed by more than a specified value (default of 1.5 Celsius degrees) since the last FFC
 
 sysShutterManual = lep_sys_shutter_mode(0, 0, 1, 0, 0, 18000000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
-sysShutterAuto = lep_sys_shutter_mode(1, 0, 1, 0, 0, 18000000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
-sysShutterExternal = lep_sys_shutter_mode(2, 0, 1, 0, 0, 1800000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
+sysShutterAuto = lep_sys_shutter_mode(1, 0, 1, 0, 0, 180000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
+sysShutterExternal = lep_sys_shutter_mode(2, 0, 1, 0, 0, 180000, explicitCmdToOpenVal, desiredFfcTempDeltaVal, imminentDelayVal)
 
 def call_extension_unit(devh, unit, control, data, size):
+  """ 
+    Function to fetch data from System Control (Sys Ctrl) Module in Lepton
+  """
   return libuvc.uvc_get_ctrl(devh, unit, control, data, size, 0x81)
 
 def set_extension_unit(devh, unit, control, data, size):
+  """ 
+    Function to fetch data from System Control (Sys Ctrl) Module in Lepton
+  """
   return libuvc.uvc_set_ctrl(devh, unit, control, data, size, 0x81)
 
 PT_USB_VID = 0x1e4e
@@ -280,6 +287,9 @@ VS_FMT_GUID_RGB565 = create_string_buffer(
 libuvc.uvc_get_format_descs.restype = POINTER(uvc_format_desc)
 
 def print_device_info(devh):
+  """
+    Function to print FLIR information: the version, the serial number and the part number
+  """
   vers = lep_oem_sw_version()
   call_extension_unit(devh, OEM_UNIT_ID, 9, byref(vers), 8)
   print("Version gpp: {0}.{1}.{2} dsp: {3}.{4}.{5}".format(
@@ -320,24 +330,32 @@ def uvc_get_frame_formats_by_guid(devh, vs_fmt_guid):
   return []
 
 def set_manual_ffc(devh):
+    """
+      Not recommended to call this
+    """
     sizeData = 32
-    shutter_mode = (c_uint16)(0)
+    # shutter_mode = (c_uint16)(0)
     getSDK = 0x3D
     controlID = (getSDK >> 2) + 1 #formula from Kurt Kiefer
     print('controlID: ' + str(controlID))
     set_extension_unit(devh, SYS_UNIT_ID, controlID, byref(sysShutterManual), sizeData) #set_extension_unit(devh, unit, control, data, size)
+    # print('MANUAL')
+    # print((c_uint16)(0))
 
 def set_auto_ffc(devh):
     sizeData = 32
-    shutter_mode = (c_uint16)(1)
+    # shutter_mode = (c_uint16)(1)
     getSDK = 0x3D
     controlID = (getSDK >> 2) + 1 #formula from Kurt Kiefer
     print('controlID: ' + str(controlID))
     set_extension_unit(devh, SYS_UNIT_ID, controlID, byref(sysShutterAuto), sizeData)
+    print('AUTO')
+    # print((c_uint16)(1))
 
 def set_external_ffc(devh):
+
     sizeData = 32
-    shutter_mode = (c_uint16)(2) #2 = external
+    # shutter_mode = (c_uint16)(2) #2 = external
     getSDK = 0x3D
     controlID = (getSDK >> 2) + 1 #formula from Kurt Kiefer
     print('controlID: ' + str(controlID))

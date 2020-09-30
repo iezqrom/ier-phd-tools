@@ -4,6 +4,8 @@
 from datetime import datetime
 import time
 from time import sleep
+import logging
+
 #System
 try:
     import sys
@@ -17,6 +19,10 @@ except:
 
 try:
     import termios
+except:
+    pass
+try:
+    import os
 except:
     pass
 
@@ -84,6 +90,8 @@ y_vals_inter = intercept + slope * zebers_inter + (33 - ends[-1])
 ############################ CLASS 
 ################################################################################################################
 ################################################################################################################
+# logging.basicConfig(filename='./zaber_positions.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
+
 class Zaber(grabPorts):
 
     def __init__(self, n_device, who, usb_port = None, n_modem = None, winPort = None, port = None):
@@ -123,141 +131,16 @@ class Zaber(grabPorts):
                 print('\n Only r, l and e are valid answers')
                 continue
 
-    def manualCon(self, devices, amount, arduino = None):
-
-        if arduino != None:
-            stimulus = 0
-            arduino.arduino.write(struct.pack('>B', stimulus))
-
-        # self.spotsPosX = {'C1': [], 'C2': [], 'NonC': []}
-        # self.spotsPosY = {'C1': [], 'C2': [], 'NonC': []}
-
-        def my_raw_input(stdscr, r, c, prompt_string):
-            curses.echo()
-            stdscr.addstr(r, c, prompt_string)
-            stdscr.refresh()
-            input = stdscr.getstr(r + 1, c, 20)
-            return input
-
+    def manualCon1(self, devices):
+        """
+            Method for Object Zaber to move 3 axes in ONE zaber with keyboard presses.
+            Like a game!
+        """
         try:
 
-            stdscr = curses.initscr()
-            stdscr.keypad(1)
-
-            stdscr.addstr(0,0,'\n Move COLTHER. \n Device 1 (x): left and right arrows \n Device 2 (y): up and down arrows \n Device 3 (z): "u" (up) and "d" (down) \n Press "o" to open the shutter \n Press "c" to close the shutter \n Press "a" to choose how many steps to move \n Press "e" to terminate \n Press "s" to get Zaber coordiantes \n Press "p" tp get ROI centre"s coordinates')
-            stdscr.refresh()
-
-            key = ''
-            while True:
-
-                try:
-                    stdscr.move(23, 0)
-                    stdscr.clrtoeol()
-
-                except Exception as e:
-                    stdscr.refresh()
-                    curses.endwin()
-                    # print(e)
-
-
-                stdscr.addstr(19,0, 'Minimum temperature: {}'.format(globals.temp))
-
-                stdscr.move(19, 59)
-                stdscr.clrtoeol()
-
-                key = stdscr.getch()
-                stdscr.refresh()
-
-                if key == curses.KEY_UP:
-                    devices[1].device.move_rel(amount)
-                    # print(curses.KEY_UP)
-                elif key == curses.KEY_DOWN:
-                    devices[1].device.move_rel(0 - amount)
-
-                elif key == ord('e'): ### TERMINATE
-                    for i in reversed(devices):
-                        i.device.home()
-                    break
-
-                elif key == ord('a'): ### ZABER STEPS
-                    while True:
-                        amount = my_raw_input(stdscr, 10, 50, "\n How much would you like to move?").decode("utf-8")
-                        try:
-                            amount = int(amount)
-                            stdscr.move(10 + 1, 0)
-                            # stdscr.refresh()
-                            stdscr.clrtoeol()
-                            break
-                        except:
-                            stdscr.addstr(14, 0, 'Only integers are valid numbers')
-
-
-                elif key == curses.KEY_LEFT:
-                    devices[0].device.move_rel(0 - amount)
-                elif key == curses.KEY_RIGHT:
-                    devices[0].device.move_rel(amount)
-
-                elif key == curses.KEY_LEFT:
-                    devices[0].device.move_rel(0 - amount)
-                elif key == curses.KEY_RIGHT:
-                    devices[0].device.move_rel(amount)
-
-                elif key == ord('d'):
-                    devices[2].device.move_rel(amount)
-                    # print('d')
-                elif key == ord('u'):
-                    devices[2].device.move_rel(0 - amount)
-
-                elif key == ord('s'): #### GET POSITION ZABER
-
-                    posX = devices[0].device.send("/get pos")
-                    globals.posX = int(posX.data)
-
-                    posY = devices[1].device.send("/get pos")
-                    globals.posY = int(posY.data)
-
-                    posZ = devices[2].device.send("/get pos")
-                    globals.posZ = int(posZ.data)
-
-                    stdscr.addstr(15,0, 'X: {} // Y: {} // Z: {}'.format(globals.posX, globals.posY, globals.posZ))
-
-                elif key == ord('h'): # Press letter h and Zaber will home, first z axis, then y and finally x
-                    for i in reversed(devices):
-                        i.device.home()
-
-                elif key == ord('o'): # Open Arduino shutter
-                    globals.stimulus = 1
-                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
-
-                elif key == ord('c'): # Close Arduino shutter
-                    globals.stimulus = 0
-                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
-
-                elif key == ord('p'):
-                    globals.indx_saved = globals.indx0
-                    globals.indy_saved = globals.indy0
-
-                else:
-                    continue
-
-
-        finally:
-
-            if arduino != None:
-                globals.stimulus = 0
-                arduino.arduino.write(struct.pack('>B', globals.stimulus))
-
-            stdscr.refresh()
-            curses.endwin()
-
-
-    def manualCon1(self, devices, arduino = None):
-
-        try:
             device = devices[globals.current_device]
 
             while True:
-
                 #### Y axis
                 if keyboard.is_pressed('up'):
                     try:
@@ -329,14 +212,19 @@ class Zaber(grabPorts):
                     globals.positions[globals.current_device][1] = int(posY.data)
                     globals.positions[globals.current_device][2] = int(posZ.data)
 
+                    # logging.info(globals.positions)
+
                 else:
                     continue
 
         except Exception as e: 
             print(e)
 
-    def manualCon2(self, devices, amount, arduino = None):
-
+    def manualCon2(self, devices, arduino = None):
+        """
+            Method for Object Zabers to move the three axes of TWO zabers with keyboard presses.
+            Like a game!
+        """
         if arduino != None:
             stimulus = 0
             arduino.arduino.write(struct.pack('>B', stimulus))
@@ -391,12 +279,17 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('p'):
                     globals.centreROI = [globals.indx0, globals.indy0]
-                    print(globals.centreROI)
+                    # print(globals.centreROI)
 
                 ### TERMINATE
                 elif keyboard.is_pressed('e'):
-                    homingZabers(devices)
-                    break
+                    vars = [globals.centreROI, globals.positions]
+                    if all(v is not None for v in vars):
+                        homingZabers(devices)
+                        break
+                    else:
+                        print('You are missing something...')
+                        print(globals.centreROI, globals.positions)
 
 
                 #### GET POSITION 
@@ -422,7 +315,7 @@ class Zaber(grabPorts):
                     globals.positions[globals.current_device][1] = int(posY.data)
                     globals.positions[globals.current_device][2] = int(posZ.data)
 
-                    # print(globals.positions)
+                    print(globals.positions)
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
                 # Control
@@ -460,6 +353,12 @@ class Zaber(grabPorts):
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
     def manualCon3(self, devices, amount, arduino = None):
+        """
+            Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
+            The coordinates of two positions can be saved with 'z' and 'x'
+            This method was created and it is specific to the experiment in which we measure cold 
+            thresholds with and without touch
+        """
 
         try:
             device = devices[globals.current_device]
@@ -716,7 +615,6 @@ class Zaber(grabPorts):
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
-
     def manualConGUIthree(self, devices, arduino = None):
 
         """
@@ -903,47 +801,55 @@ class Zaber(grabPorts):
                 globals.shutter_state = 'close'
                 arduino.arduino.write(globals.shutter_state.encode())
 
-    def ROIPID(self, device, set_point, event1, radio, arduino = None):
+    def ROIPID(self, device, set_point, event1, arduino = None, radio = 20.):
+
+        """
+            Method function to perform PID on a pre-selected ROI. 
+            It synchronises with the camera, so it needs an event.
+            Globals: pid_out, stimulus, temp, pos_zaber
+        """
+
+        ## PID parameters
+        Kp = -1500
+        Ki = -100
+        Kd = -800
+        output_limits = (-3000, 3000)
+
+        # we initialise PID object
+        PID = PYD(Kp=Kp, Ki=Ki, Kd=Kd, setpoint=set_point, output_limits=output_limits)
+        print('PID initialised')
+        print(PID.__dict__)
+
+        pos = device[0].device.send("/get pos")
+        globals.pos_zaber = int(pos.data)
 
         if arduino != None:
             globals.stimulus = 1
             arduino.arduino.write(struct.pack('>B', globals.stimulus))
-            print('Shutter '+ globals.stimulus)
-
-        counter = 0
+            print('Shutter '+ str(globals.stimulus))
 
         try:
             while True:
                 if globals.stimulus == 1:
-                    counter += 1
-
                     event1.wait()
+                    # print(globals.stimulus)
+                    print('In while loop, stimulus')
+                    print(globals.temp)
 
-                    if counter == 1:
+                    while globals.temp > (set_point + 0.4):
+                        # print('waiting to start close-loop')
+                        # print(type(set_point))
+                        time.sleep(0.0001)
 
-                        while globals.temp > (set_point + 0.4):
-                            # print('waiting to start close-loop')
-                            # print(type(set_point))
-                            time.sleep(0.0001)
+                    PID.run(globals.temp)
+                    globals.pid_out = PID.output
+                    print('PID out')
+                    print(globals.pid_out)
 
-                        ## PID parameters
-                        Kp = -1500
-                        Ki = -100
-                        Kd = -800
-                        output_limits = (-3000, 3000)
-
-
-                        # we initialise PID object
-                        PID = PYD(Kp, Ki, Kd, set_point, output_limits)
-
-
-                    zaber_pos = PID(globals.temp)
-
-                    device[0].device.move_rel(int(zaber_pos))
+                    device[0].device.move_rel(int(globals.pid_out))
                     pos = device[0].device.send("/get pos")
-                    pos = int(pos.data)
+                    globals.pos_zaber = int(pos.data)
                     previous_temp = globals.temp
-                    globals.pos_zaber = pos
 
                 elif globals.stimulus == 0:
 
@@ -951,6 +857,11 @@ class Zaber(grabPorts):
 
                 event1.clear()
 
+        except Exception as e: 
+            print(e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
 
         except KeyboardInterrupt:
             sys.exit(0)
@@ -1063,6 +974,139 @@ class Zaber(grabPorts):
             if keyboard.is_pressed('e'):
                 saveIndv(file, folder, dataTS)
                 break
+
+    def manualCon(self, devices, amount, arduino = None):
+        """
+            Very early method to control three axes of one zaber while displying instructions and
+            other info on screen. It uses the curses library
+        """
+
+        if arduino != None:
+            stimulus = 0
+            arduino.arduino.write(struct.pack('>B', stimulus))
+
+        # self.spotsPosX = {'C1': [], 'C2': [], 'NonC': []}
+        # self.spotsPosY = {'C1': [], 'C2': [], 'NonC': []}
+
+        def my_raw_input(stdscr, r, c, prompt_string):
+            curses.echo()
+            stdscr.addstr(r, c, prompt_string)
+            stdscr.refresh()
+            input = stdscr.getstr(r + 1, c, 20)
+            return input
+
+        try:
+
+            stdscr = curses.initscr()
+            stdscr.keypad(1)
+
+            stdscr.addstr(0,0,'\n Move COLTHER. \n Device 1 (x): left and right arrows \n Device 2 (y): up and down arrows \n Device 3 (z): "u" (up) and "d" (down) \n Press "o" to open the shutter \n Press "c" to close the shutter \n Press "a" to choose how many steps to move \n Press "e" to terminate \n Press "s" to get Zaber coordiantes \n Press "p" tp get ROI centre"s coordinates')
+            stdscr.refresh()
+
+            key = ''
+            while True:
+
+                try:
+                    stdscr.move(23, 0)
+                    stdscr.clrtoeol()
+
+                except Exception as e:
+                    stdscr.refresh()
+                    curses.endwin()
+                    # print(e)
+
+
+                stdscr.addstr(19,0, 'Minimum temperature: {}'.format(globals.temp))
+
+                stdscr.move(19, 59)
+                stdscr.clrtoeol()
+
+                key = stdscr.getch()
+                stdscr.refresh()
+
+                if key == curses.KEY_UP:
+                    devices[1].device.move_rel(amount)
+                    # print(curses.KEY_UP)
+                elif key == curses.KEY_DOWN:
+                    devices[1].device.move_rel(0 - amount)
+
+                elif key == ord('e'): ### TERMINATE
+                    for i in reversed(devices):
+                        i.device.home()
+                    break
+
+                elif key == ord('a'): ### ZABER STEPS
+                    while True:
+                        amount = my_raw_input(stdscr, 10, 50, "\n How much would you like to move?").decode("utf-8")
+                        try:
+                            amount = int(amount)
+                            stdscr.move(10 + 1, 0)
+                            # stdscr.refresh()
+                            stdscr.clrtoeol()
+                            break
+                        except:
+                            stdscr.addstr(14, 0, 'Only integers are valid numbers')
+
+
+                elif key == curses.KEY_LEFT:
+                    devices[0].device.move_rel(0 - amount)
+                elif key == curses.KEY_RIGHT:
+                    devices[0].device.move_rel(amount)
+
+                elif key == curses.KEY_LEFT:
+                    devices[0].device.move_rel(0 - amount)
+                elif key == curses.KEY_RIGHT:
+                    devices[0].device.move_rel(amount)
+
+                elif key == ord('d'):
+                    devices[2].device.move_rel(amount)
+                    # print('d')
+                elif key == ord('u'):
+                    devices[2].device.move_rel(0 - amount)
+
+                elif key == ord('s'): #### GET POSITION ZABER
+
+                    posX = devices[0].device.send("/get pos")
+                    globals.posX = int(posX.data)
+
+                    posY = devices[1].device.send("/get pos")
+                    globals.posY = int(posY.data)
+
+                    posZ = devices[2].device.send("/get pos")
+                    globals.posZ = int(posZ.data)
+
+                    stdscr.addstr(15,0, 'X: {} // Y: {} // Z: {}'.format(globals.posX, globals.posY, globals.posZ))
+
+                elif key == ord('h'): # Press letter h and Zaber will home, first z axis, then y and finally x
+                    for i in reversed(devices):
+                        i.device.home()
+
+                elif key == ord('o'): # Open Arduino shutter
+                    globals.stimulus = 1
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+
+                elif key == ord('c'): # Close Arduino shutter
+                    globals.stimulus = 0
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+
+                elif key == ord('p'):
+                    globals.indx_saved = globals.indx0
+                    globals.indy_saved = globals.indy0
+
+                else:
+                    continue
+
+
+        finally:
+
+            if arduino != None:
+                globals.stimulus = 0
+                arduino.arduino.write(struct.pack('>B', globals.stimulus))
+
+            stdscr.refresh()
+            curses.endwin()
+
+
 
 ######################## Developing phase
     def maintainColdMinPeak(self, amount, devices, set_point, range, event1, arduino = None):
@@ -1341,10 +1385,12 @@ class Zaber(grabPorts):
 ################################################################################################################
 
 def homingZabers(zabers, speed = 153600):
+    """
+        This function is to home all zabers in a Zaber object
+    """
     speed = str(speed)
-    # print(zabers)
     for kzabers, vzabers in zabers.items():
-        for d in reversed(vzabers):
+        for d in vzabers:
             # print(d)
             try:
                 d.device.send('/set maxspeed {}'.format(speed))
@@ -1353,8 +1399,11 @@ def homingZabers(zabers, speed = 153600):
                 d.send('/set maxspeed {}'.format(speed))
                 d.home()
                 
-def movetostartZabers(zabers, zaber, cond):
-    poses = globals.positions[zaber][cond]
+def movetostartZabers(zabers, zaber, cond = None):
+    if cond == None:
+        poses = globals.positions[zaber]
+    else:
+        poses = globals.positions[zaber][cond]
 
     if zaber == 'non_tactile':
         zaber = 'tactile'
@@ -1438,13 +1487,16 @@ def set_up_big_three():
 
 
 def set_up_one_zaber(name_dev, who = 'serial', usb_port = None, n_modem = None, winPort = None):
-
+    """
+        Name_dev: string name for your zaber, without spaces
+        This function is for setting up ONE zaber set-up with 3 linear stage actuators
+    """
     ### Zabers
     if who == 'serial':
         zaber1 = Zaber(1, who, usb_port, n_modem, winPort = winPort)
         zaber2 = Zaber(2, port = zaber1, who = who, winPort = winPort)
         zaber3 = Zaber(3, port = zaber1, who = who, winPort = winPort)
-        # print('serial')
+        
     elif who == 'modem':
         zaber12 = Zaber(1, who, usb_port, n_modem)
         

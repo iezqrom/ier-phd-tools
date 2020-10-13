@@ -91,8 +91,8 @@ class PYD(object):
             # compute integral and derivative terms
             if self.Ki != None:
                     self.integral += self.Ki * self.error * dt
-                    print('integral')
-                    print(self.integral)
+                    # print('integral')
+                    # print(self.integral)
                     self.integral = clamp(self.integral, self.output_limits)  # avoid integral windup
             else:
                     self.integral = 0

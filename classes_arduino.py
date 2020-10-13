@@ -30,6 +30,11 @@ try:
 except:
     pass
 
+try:
+    import os
+except:
+    pass
+
 # My stuff
 try:
     import globals
@@ -202,6 +207,8 @@ class ArdUIno(grabPorts):
                 event[0].set()
                 # print('Waiting for Zaber to move')
                 event[1].wait()
+
+
 ################################################################################
 ############################# FUNCTION #########################################
 ################################################################################

@@ -52,8 +52,14 @@ class ReAnRaw(object):
         for i in np.arange(len_pa):
             for j in np.arange(self.len_subto):
                 cu_pa = self.parameters[i]
-                frame_da = self.read['{}'.format(cu_pa) + str(int(j+1))][:]
-                self.data[cu_pa].append(frame_da)
+                cu_na_f = '{}'.format(cu_pa) + str(int(j+1))
+                try:
+                    frame_da = self.read[cu_na_f][:]
+                    self.data[cu_pa].append(frame_da)
+                except:
+                    frame_da = float('NaN')
+                    self.data[cu_pa].append(frame_da)
+
 
     def extractOpenClose(self, name):
         shus = np.asarray(self.data[name])

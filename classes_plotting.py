@@ -44,6 +44,13 @@ from functools import wraps
 ############################################################################################################
 
 def framesToseconds(axis, steps, x):
+    """
+        Function to convert the x axis from frames to seconds:
+        Parameters
+            - Axis: name of the axis from the figure you want to change the x axis
+            - Steps: 
+            - x: the independent variable (x)
+    """
     steps = steps
     #
     seconds = np.arange(0, round(len(x)/8.7*1, 2), round(10/8.7) * steps)

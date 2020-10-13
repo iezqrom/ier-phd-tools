@@ -1,5 +1,8 @@
 import csv
 import numpy as np
+import os
+import time
+from datetime import date
 
 
 ##################################################################
@@ -128,6 +131,109 @@ def apendSingle(file, folder, subj_n, data_point):
     writer_subject.writerow([subj_n, data_point])
 
     of3.close()
+
+#################################################################
+########## Pipeline to check & create folder architecture #######
+#################################################################
+
+def tbORtesting(testing):
+    """
+        Function to check whether we are testing with a participant or troubleshooting the experiment
+    """
+    if testing in ('y', 'n'):
+        if testing == 'n':
+            print('You are troubleshooting')
+        else:
+            print('We are testing a participant')
+    else:
+        raise Exception("Variable 'testing' can only take values 'y' or 'n'.")
+
+def checkORcreate(path):
+    """
+        Function to check whether a folder exists.
+        If it does NOT exist, it is created
+    """
+    print(path)
+    folder_name = os.path.split(path)[1]
+    if not os.path.isdir(path):
+        print(f"\nFolder '{folder_name}' does NOT exist, creating it for you...\n")
+        os.mkdir(path) 
+    else:
+        print(f"\nFolder '{folder_name}' exists, ready to continue...\n")
+    return path
+
+def depthToSrc():
+    """
+        Function to check how deep we are with respect to src_testing
+    """
+    path = os.path.abspath(os.getcwd())
+    print(f"Current working directory: {path}")
+    backwardsUnit = '../'
+    backwards = '../'
+    while True:
+        splitted = os.path.split(path)
+        if splitted[1] == 'src_testing':
+            break
+        elif splitted[0] == '/':
+            raise Exception("Can't find folder 'src_testing' in folder tree")
+        else:
+            backwards = backwards + backwardsUnit
+            path = splitted[0]
+
+    return backwards
+
+def folderAnalysis(backs):
+    """
+        Function to check whether the folder src_analysis exists.
+        If the folder doesn't exist it is created automatically
+    """
+    path = f"./{backs}src_analysis"
+    
+    path_anal = checkORcreate(path)
+
+    return path_anal
+
+def folderTesting(path, testing):
+    """
+        Function to check whether the folder to save the data today exists.
+        If the folder does't exist it is created automatically
+    """
+    if testing == 'y':
+        head_folder_name = 'test'
+    
+    elif testing == 'n':
+        head_folder_name = 'tb'
+
+    todaydate = date.today().strftime("%d%m%Y")
+    folder_name = head_folder_name + "_" + todaydate
+    path = path + "/" + folder_name
+
+    path = checkORcreate(path)
+  
+    return path
+
+def folderDataFigs(path):
+    path_figure = path + "/" + 'figures'
+    path_figure = checkORcreate(path_figure)
+
+    path_data = path + "/" + 'data'
+    path_data = checkORcreate(path_data)
+
+    return [path_figure, path_data]
+
+
+def folderChreation(testing = 'n'):
+    """
+        Function of functions to check whether we have all the folder architecture in place.
+    """
+    tbORtesting(testing)
+    steps_back = depthToSrc()
+    path_anal = folderAnalysis(steps_back)
+    path_day = folderTesting(path_anal, testing)
+    path_figs, path_data = folderDataFigs(path_day)
+
+    return [path_figs, path_data]
+
 
 
 ###### OLD TRASH

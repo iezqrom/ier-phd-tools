@@ -93,6 +93,9 @@ y_vals_inter = intercept + slope * zebers_inter + (33 - ends[-1])
 # logging.basicConfig(filename='./zaber_positions.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 class Zaber(grabPorts):
+    """
+        Zaber class developed by Ivan Ezquerra-Romano at the Action & Body lab (2018-2020)
+    """
 
     def __init__(self, n_device, who, usb_port = None, n_modem = None, winPort = None, port = None):
         self.ports = grabPorts()
@@ -110,7 +113,7 @@ class Zaber(grabPorts):
             self.port = port
             self.device = zs.AsciiDevice(port.port, n_device)
         
-        print(self.device)
+        # print(self.device)
 
     def move(self, amount):
         reply = self.device.move_rel(amount)
@@ -220,18 +223,22 @@ class Zaber(grabPorts):
         except Exception as e: 
             print(e)
 
-    def manualCon2(self, devices, arduino = None):
+    def manualCon2(self, devices, arduino = None, home='y', rules = globals.rules):
         """
             Method for Object Zabers to move the three axes of TWO zabers with keyboard presses.
             Like a game!
         """
+
+        if home not in ('y', 'n'):
+            print("Invalid value for 'home', only 'y' and 'n' are valid values")
+            print("'y' selected by default")
+            home = 'y'
+
+        print('Zaber game activated')
+
         if arduino != None:
             stimulus = 0
             arduino.arduino.write(struct.pack('>B', stimulus))
-
-        # self.spotsPosX = {'C1': [], 'C2': [], 'NonC': []}
-        # self.spotsPosY = {'C1': [], 'C2': [], 'NonC': []}
-
 
         try:
             device = devices[globals.current_device]
@@ -240,51 +247,55 @@ class Zaber(grabPorts):
                 #### Y axis
                 if keyboard.is_pressed('up'):
                     try:
-                        device[2].move_rel(globals.amount)
+                        device['y'].move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
                     except:
-                        device[2].device.move_rel(globals.amount)
+                        device['y'].device.move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
 
                 elif keyboard.is_pressed('down'):
                     try:
-                        device[2].move_rel(0 - globals.amount)
+                        device['y'].move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
                     except:
-                        device[2].device.move_rel(0 - globals.amount)
+                        device['y'].device.move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
 
                 #### X axis
 
                 elif keyboard.is_pressed('left'):
                     try:
-                        device[1].move_rel(0 - globals.amount)
+                        device['x'].move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
                     except:
-                        device[1].device.move_rel(0 - globals.amount)
+                        device['x'].device.move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
 
                 elif keyboard.is_pressed('right'):
                     try:
-                        device[1].move_rel(globals.amount)
+                        device['x'].move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
                     except:
-                        device[1].device.move_rel(globals.amount)
+                        device['x'].device.move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
 
                 ### Z axis
                 elif keyboard.is_pressed('d'):
                     try:
-                        device[0].move_rel(globals.amount)
+                        device['z'].move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
                     except:
-                        device[0].device.move_rel(globals.amount)
+                        device['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
 
                 elif keyboard.is_pressed('u'):
                     try:
-                        device[0].move_rel(0 - globals.amount)
+                        device['z'].move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
                     except:
-                        device[0].device.move_rel(0 - globals.amount)
+                        device['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
 
                 elif keyboard.is_pressed('p'):
                     globals.centreROI = [globals.indx0, globals.indy0]
-                    # print(globals.centreROI)
+                    print(f'Centre of ROI is: {globals.centreROI}')
 
                 ### TERMINATE
                 elif keyboard.is_pressed('e'):
                     vars = [globals.centreROI, globals.positions]
-                    if all(v is not None for v in vars):
+                    if all(v is not None for v in vars) and home =='n':
+                        print('Terminating Zaber game \n')
+                        break
+
+                    elif all(v is not None for v in vars) and home =='y':
                         homingZabers(devices)
                         break
                     else:
@@ -296,24 +307,24 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('z'):
                     try:
-                        posX = device[0].send("/get pos")
+                        posX = device['x'].send("/get pos")
 
                     except:
-                        posX = device[0].device.send("/get pos")
+                        posX = device['x'].device.send("/get pos")
 
                     try:
-                        posY = device[1].send("/get pos")
+                        posY = device['y'].send("/get pos")
                     except:
-                        posY = device[1].device.send("/get pos")
+                        posY = device['y'].device.send("/get pos")
 
                     try:
-                        posZ = device[2].send("/get pos")
+                        posZ = device['z'].send("/get pos")
                     except:
-                        posZ = device[2].device.send("/get pos")
+                        posZ = device['z'].device.send("/get pos")
 
-                    globals.positions[globals.current_device][0] = int(posX.data)
-                    globals.positions[globals.current_device][1] = int(posY.data)
-                    globals.positions[globals.current_device][2] = int(posZ.data)
+                    globals.positions[globals.current_device]['x'] = int(posX.data)
+                    globals.positions[globals.current_device]['y'] = int(posY.data)
+                    globals.positions[globals.current_device]['z'] = int(posZ.data)
 
                     print(globals.positions)
 
@@ -818,7 +829,6 @@ class Zaber(grabPorts):
         # we initialise PID object
         PID = PYD(Kp=Kp, Ki=Ki, Kd=Kd, setpoint=set_point, output_limits=output_limits)
         print('PID initialised')
-        print(PID.__dict__)
 
         pos = device[0].device.send("/get pos")
         globals.pos_zaber = int(pos.data)
@@ -826,14 +836,14 @@ class Zaber(grabPorts):
         if arduino != None:
             globals.stimulus = 1
             arduino.arduino.write(struct.pack('>B', globals.stimulus))
-            print('Shutter '+ str(globals.stimulus))
+            # print('Shutter '+ str(globals.stimulus))
 
         try:
             while True:
                 if globals.stimulus == 1:
                     event1.wait()
                     # print(globals.stimulus)
-                    print('In while loop, stimulus')
+                    # print('In while loop, stimulus')
                     print(globals.temp)
 
                     while globals.temp > (set_point + 0.4):
@@ -843,8 +853,6 @@ class Zaber(grabPorts):
 
                     PID.run(globals.temp)
                     globals.pid_out = PID.output
-                    print('PID out')
-                    print(globals.pid_out)
 
                     device[0].device.move_rel(int(globals.pid_out))
                     pos = device[0].device.send("/get pos")
@@ -852,10 +860,12 @@ class Zaber(grabPorts):
                     previous_temp = globals.temp
 
                 elif globals.stimulus == 0:
-
-                    continue
+                    print('Close shutter')
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    break
 
                 event1.clear()
+                # print('event cleared')
 
         except Exception as e: 
             print(e)
@@ -865,6 +875,11 @@ class Zaber(grabPorts):
 
         except KeyboardInterrupt:
             sys.exit(0)
+
+        finally:
+            print('Stop PID')
+            pass
+
 
     def ROIPIDSyringe(self, device, set_point, event1, radio, arduino = None):
 
@@ -1384,37 +1399,139 @@ class Zaber(grabPorts):
 ################################################################################################################
 ################################################################################################################
 
-def homingZabers(zabers, speed = 153600):
+def manualorder(haxes):
+    """
+        Function to manually choose the order for homing and moving multiple Zabers
+    """
+    print(f'There are {len(haxes.keys())} set of zabers, their names are: ')
+    list_keys = list(haxes.keys())
+
+    for i, k in enumerate(list_keys):
+        print(k + ' ({})'.format(i))
+
+    pos_zabs = tuple(str(i) for i in range(0, len(list_keys)))
+    # print(pos_zabs)
+
+    nhaxes = {}
+    temp_zabers = []
+
+    for i in np.arange((len(list_keys))):
+        temp_axes = []
+        # Select the zaber
+        if i == 0:
+            while True:
+                chosen = input("Which Zaber set should we move first?\n")
+                if chosen in temp_zabers:
+                    print(f'\n{chosen.upper()} has been selected already\n')
+                
+                elif chosen in pos_zabs:
+                    break
+                else:
+                    print(f'Only {pos_zabs} are valid answers \n')
+                    continue
+        else:
+            if len(list_keys) > 2:
+                while True:
+                    chosen = input("Which Zaber set should we move next?   ")
+                    if chosen in temp_zabers:
+                        print(f'{chosen} has been selected already \n')
+                    
+                    elif chosen in pos_zabs:
+                        break
+                    else:
+                        print(f'Only {pos_zabs} are valid answers\n')
+                        continue
+            else:
+                set_diff_za = set(list_keys) - set(temp_zabers)
+                diff_za = list(set_diff_za)
+                chosen = list_keys.index(diff_za[0])
+                print(f"\n{list_keys[int(chosen)].upper()} was selected\n")
+                # temp_zabers.append(chosen)
+
+        temp_zabers.append(list_keys[int(chosen)])
+
+        # Select 1st the axes
+        while True:
+            firstaxis = input("Which axis should move first? \n You probably want to choose then one that is above the rest, so they don't crash each other\n")
+            if firstaxis in ('x', 'y', 'z'):
+                if firstaxis == 'x' and list_keys[int(chosen)] == 'colther':
+                    print("It is probably not a good idea to move the x axis of colther first\n ")
+                    continue
+                else:
+                    break
+            else:
+                print(f"Only 'x', 'y' & 'z' are valid answers\n ")
+                continue
+
+        temp_axes.append(firstaxis)
+        # Select 2nd the axes
+        while True:
+            secondaxis = input("Which axis should move next?    ")
+            
+            if firstaxis == secondaxis:
+                print(f'{secondaxis} has already been selected \n')
+                continue
+            
+            elif secondaxis in ('x', 'y', 'z'):
+                break
+
+            else:
+                print(f"Only 'x', 'y' & 'z' are valid answers \n")
+                continue
+        
+        temp_axes.append(secondaxis)
+
+        set_diff = set(haxes[list_keys[int(chosen)]]) - set(temp_axes)
+        diff = list(set_diff)
+        temp_axes.append(diff[0])
+        
+        # put into haxes dictionary
+        nhaxes[list_keys[int(chosen)]] = temp_axes
+    
+    return nhaxes
+
+def revDirection(zaber, axis, rule, number):
+    """
+        Function to get the negative value of a number depending on zaber rules
+    """
+    if not rule[zaber][axis]:
+        number = -number
+
+    return number
+
+def homingZabers(zabers, axes = None, speed = 153600):
     """
         This function is to home all zabers in a Zaber object
     """
+    if axes == None:
+        axes = {}
+        for kzabers, vzabers in zabers.items():
+            axes[kzabers] = ['x', 'y', 'z']
+        print('\n Homing to default axes order [x, y, z] \n')
+
     speed = str(speed)
-    for kzabers, vzabers in zabers.items():
-        for d in vzabers:
-            # print(d)
+    # print(axes)
+    for kaxes, vaxes in axes.items():
+        for d in vaxes:
+            print(f'\n Homing {d} axis of {kaxes}\n')
             try:
-                d.device.send('/set maxspeed {}'.format(speed))
-                d.device.home()  
+                zabers[kaxes][d].device.send('/set maxspeed {}'.format(speed))
+                zabers[kaxes][d].device.home()  
             except:
-                d.send('/set maxspeed {}'.format(speed))
-                d.home()
-                
-def movetostartZabers(zabers, zaber, cond = None):
-    if cond == None:
-        poses = globals.positions[zaber]
-    else:
-        poses = globals.positions[zaber][cond]
+                zabers[kaxes][d].send('/set maxspeed {}'.format(speed))
+                zabers[kaxes][d].home()
 
-    if zaber == 'non_tactile':
-        zaber = 'tactile'
 
-    for d, p in zip(reversed(zabers[zaber]), poses):
-        # print(d)
-        # print(p)
+def movetostartZabers(zabers, zaber, axes, pos = globals.positions, cond = None):
+    # print(pos)
+
+    for d in axes:
+        print(f'\n Moving axis {d} of {zaber} to {pos[d]}')
         try:
-            d.device.move_abs(p)
+            zabers[zaber][d].device.move_abs(pos[d])
         except:
-            d.move_abs(p)
+            zabers[zaber][d].move_abs(pos[d])
+        time.sleep(0.1)
 
 def sineWave(set_point, amplitude, freq, phase = 0, repeats = 1):
 
@@ -1486,9 +1603,10 @@ def set_up_big_three():
     return zabers
 
 
-def set_up_one_zaber(name_dev, who = 'serial', usb_port = None, n_modem = None, winPort = None):
+def set_up_one_zaber(name_dev, axes, who = 'serial', usb_port = None, n_modem = None, winPort = None):
     """
-        Name_dev: string name for your zaber, without spaces
+        name_dev: string name for your zaber, without spaces
+        axes: name and order of axes
         This function is for setting up ONE zaber set-up with 3 linear stage actuators
     """
     ### Zabers
@@ -1504,7 +1622,7 @@ def set_up_one_zaber(name_dev, who = 'serial', usb_port = None, n_modem = None, 
         zaber2 = zaber12.device.axis(2)
         zaber3 = Zaber(2, port = zaber12, who = who, usb_port = usb_port, n_modem = n_modem)
 
-    zabers = {'{}'.format(name_dev): [zaber3, zaber2, zaber1]}
+    zabers = {'{}'.format(name_dev): {f'{axes[0]}': zaber1, f'{axes[1]}': zaber2, f'{axes[2]}': zaber3} }
 
     return zabers
 
@@ -1702,3 +1820,5 @@ def set_up_one_zaber(name_dev, who = 'serial', usb_port = None, n_modem = None, 
 #         elif globals.status == 'inactive':
 #             globals.shutter = 'close'
 #             break
+
+# %%

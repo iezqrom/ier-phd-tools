@@ -3,22 +3,104 @@ import numpy as np
 import os
 import time
 from datetime import date
+from classes_tharnal import natural_keys
+import pandas as pd
+import subprocess
+import re
 
+
+##################################################################
+###################### Storing data ##############################
+################################################################
+def buildDict(*keys):
+    """
+        Build dictionary to store data during experiment
+    """
+    data = {}
+    list_llaves = list([*keys])
+    print(list_llaves)
+    for i in np.arange(len(list_llaves)):
+        data[list_llaves[i]] = []
+
+    return data
+
+def appendDataDict(data, tempdata):
+    """
+        Append data to dictionary
+    """
+    keys = data.keys()
+    
+    for i, k in enumerate(keys):
+        data[k].append(tempdata[i])
+
+    return data
 
 ##################################################################
 ###################### Saving data ##############################
 ################################################################
 
+def tempSaving(path, temp_file_name = 'temp_data'):
+    """
+        Function to initiliase temporary file to store data in case the 
+        script fails
+    """
+    temp_file = open(f'{path}/{temp_file_name}.csv', 'a')
+    temp_data_writer = csv.writer(temp_file)
+    header_temp = ['Trial', 'Response']
+    temp_data_writer.writerow(header_temp)
+    return [temp_data_writer, temp_file, temp_file_name]
+
+def findTempFiles(path):
+    """
+        Function to find temporary files in folder
+    """
+    pattern = 'temp_.*\.csv$'
+    patternc = re.compile(pattern)
+    names = []
+
+    for filename in os.listdir(f"{path}"):
+        if patternc.match(filename):
+            name, form = filename.split('.')
+            names.append(name)
+            # print(name)
+        else:
+            continue
+
+    return names
+
+def changeNameTempFile(path):
+    """
+        Function to change the name of the temporary files with current date and time.
+        This functions should be placed in the except sections. It is triggered when the script fails
+    """
+    names = findTempFiles(path)
+    t = time.localtime()
+    time_now = time.strftime("%H_%M_%S", t)
+    todaydate = date.today().strftime("%d%m%Y")
+    for i, n in enumerate(names):
+        # print(n)
+        temp_file_name = n.split("temp_", 1)[1]
+        os.rename(f"{path}/{n}.csv", f"./{path}/{temp_file_name}_failed_script_{todaydate}_{time_now}.csv") 
+
+
 ############ apending to file with all subjects ############
-def apendAll(file, folder, subj_n, data):
+def apendAll(folder, subj_n, data, file = 'data_all'):
+    """
+        Function to append participant's data to a csv file with the
+        data with all the participants for an experiment.
+        Data structure should be a dictionary. It can handle two levels of keys.
+    """
     llaves = data.keys()
     one_key = [*llaves][0]
+    subj_n = int(subj_n)
 
-    of1 = open('./{}/{}.csv'.format(folder, file), 'a')
+    of1 = open(f'{folder}/{file}.csv', 'a')
     data_writer = csv.writer(of1)
     if type(data[one_key]) == list:
 
         if subj_n == 1:
+            # print(subj_n)
+            # print(llaves)
             data_writer.writerow(llaves)
 
         for i in np.arange(len(data[[*llaves][0]])):
@@ -61,20 +143,21 @@ def apendAll(file, folder, subj_n, data):
 
     of1.close()
 
+    print(f'\nData saved to CSV with all participants\n')
+
 
 
 ############# Individual files #############
 def saveIndv(file, folder, data):
     """
-    Example data:
-
-
+        Function to save data of a participant to an individual file.
+        Data structure should be a dictionary with one level of keys.
     """
 
     llaves = data.keys()
     one_key = [*llaves][0]
 
-    of2 = open('./{}/{}.csv'.format(folder, file), 'w')
+    of2 = open('{}/{}.csv'.format(folder, file), 'w')
     writer_subject = csv.writer(of2)
 
     if type(data[one_key]) == list:
@@ -121,16 +204,83 @@ def saveIndv(file, folder, data):
 
     of2.close()
 
+    print(f'\nData saved to an individual CSV\n')
 
 ############# Age files #############
 def apendSingle(file, folder, subj_n, data_point):
+    """
+        Function to save the age of the participant to a csv with the age of all participants for a given experiment.
+    """
 
-    of3 = open('./{}/{}.csv'.format(folder, file), 'a')
+    of3 = open('{}/{}.csv'.format(folder, file), 'a')
 
     writer_subject = csv.writer(of3)
     writer_subject.writerow([subj_n, data_point])
 
     of3.close()
+
+########################################################
+############# Saving variables #########################
+########################################################
+######## Saving Zaber
+
+def saveZaberPos(file, path, data, header = ['Zaber', 'x', 'y', 'z']):
+    """
+        Function to save one position of multiple Zaber sets
+    """
+    
+    llaves = list(data.keys())
+    of1 = open(f'{path}/{file}.csv', 'a')
+    data_writer = csv.writer(of1)
+
+    data_writer.writerow(header)
+
+    for i in llaves:
+        
+        rowToWrite = [i, data[i]['x'], data[i]['y'], data[i]['z']]
+        data_writer.writerow(rowToWrite)
+        
+    of1.close()
+
+    print('Zaber position saved')
+
+######## Saving ROI
+def saveROI(file, path, data, header = ['Axis', '1']):
+    """
+        Function to save one ROI centre
+    """
+    
+    of1 = open(f'{path}/{file}.csv', 'a')
+    data_writer = csv.writer(of1)
+
+    data_writer.writerow(header)
+    rows = ['x', 'y']
+
+    for i, r in enumerate(rows):
+        rowToWrite = [r, data[i]]
+        data_writer.writerow(rowToWrite)
+        
+    of1.close()
+
+    print('ROI position saved')
+
+########################################################
+################## PERMISSIONS #########################
+########################################################
+
+def rootToUser(*paths):
+    pwd = os.getcwd()
+    print(f"\nCurrent directory is: {pwd}\n")
+    
+    paths = [*paths]
+
+    for i in paths:
+        os.chdir(i)
+        subprocess.call("brapper.sh")
+        print(f"\nChanged permissions of following path: {i}\n")
+        os.chdir(pwd)
+
+    
 
 #################################################################
 ########## Pipeline to check & create folder architecture #######
@@ -213,18 +363,18 @@ def folderTesting(path, testing):
     return path
 
 def folderDataFigs(path):
-    path_figure = path + "/" + 'figures'
-    path_figure = checkORcreate(path_figure)
+    path_figs = path + "/" + 'figures'
+    path_figs = checkORcreate(path_figs)
 
     path_data = path + "/" + 'data'
     path_data = checkORcreate(path_data)
 
-    return [path_figure, path_data]
+    return [path_figs, path_data]
 
 
 def folderChreation(testing = 'n'):
     """
-        Function of functions to check whether we have all the folder architecture in place.
+        Function of functions to check whether we have all the folder architecture in place to save data and figures.
     """
     tbORtesting(testing)
     steps_back = depthToSrc()
@@ -232,9 +382,78 @@ def folderChreation(testing = 'n'):
     path_day = folderTesting(path_anal, testing)
     path_figs, path_data = folderDataFigs(path_day)
 
-    return [path_figs, path_data]
+    return [path_day, path_anal, path_figs, path_data]
+
+def folderVideos(path):
+    """
+        Function to check whether the folder videos exists.
+        If the folder doesn't exist it is created automatically
+    """
+    path_video = path + "/" + 'videos'
+    path_video = checkORcreate(path_video)
+
+    return path_video
+
+def folderVhrideos(testing = 'n'):
+    """
+        Function of functions to check whether we have all the folder architecture in place to save videos.
+    """
+    steps_back = depthToSrc()
+    path_anal = folderAnalysis(steps_back)
+    path_day = folderTesting(path_anal, testing)
+    path_video = folderVideos(path_day)
+    
+    return path_video
 
 
+#################################################################
+######################## Reading from CSV #######################
+#################################################################
+
+def csvtoDictZaber(path, file = 'temp_zaber_pos.csv'):
+    """
+        Transforming csv of one set of  Zabers to dictionary
+    """
+    df= pd.read_csv(f"{path}/{file}", index_col='Zaber')
+    dictfromcsv = {}
+
+    for i in df.index.values:
+        dictfromcsv[i] = {}
+
+    for colu in df.columns:
+        print(colu)
+        for r in df[colu].index.values:
+            dictfromcsv[r][colu] = df[colu][r]
+
+    return dictfromcsv
+
+def csvToDictROI(path, file = 'temp_ROI.csv'):
+    """
+        Transforming csv of one ROI to a dictionary
+    """
+    df= pd.read_csv(f"{path}/{file}", index_col='Axis')
+    
+    cd = df.to_dict()
+    centreROI = cd['1']['x'], cd['1']['y']
+    return centreROI
+
+#################################################################
+######################## Deleting ###############################
+#################################################################
+
+def delTempFiles(path):
+    """
+        Function to delete temporary files
+    """
+    names = findTempFiles(path)
+
+    names.sort(key=natural_keys)
+    print(names)
+
+    for i, n in enumerate(names):
+        os.remove(f"{path}/{n}.csv")
+        
+    print("Temporary data file Removed!")
 
 ###### OLD TRASH
 

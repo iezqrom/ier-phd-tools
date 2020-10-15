@@ -60,6 +60,7 @@ import struct
 from scipy import stats
 from scipy.interpolate import interp1d
 
+from failing import *
 
 ################################################################################################################
 ################################################################################################################
@@ -90,7 +91,7 @@ y_vals_inter = intercept + slope * zebers_inter + (33 - ends[-1])
 ############################ CLASS 
 ################################################################################################################
 ################################################################################################################
-# logging.basicConfig(filename='./zaber_positions.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
+logging.basicConfig(filename='./zaber_positions.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 class Zaber(grabPorts):
     """
@@ -327,6 +328,7 @@ class Zaber(grabPorts):
                     globals.positions[globals.current_device]['z'] = int(posZ.data)
 
                     print(globals.positions)
+                    logging.info(globals.positions)
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
                 # Control
@@ -1399,6 +1401,46 @@ class Zaber(grabPorts):
 ################################################################################################################
 ################################################################################################################
 
+def grid_calculation(zaber, grid_separation, step_size = globals.step_sizes, pos = globals.positions, rule = globals.rules, dim = [3, 3]):
+    """
+        Function to estimate a grid from a point. The initial point becomes the centre cell.
+        grid_separation in millimetres
+    """
+    if len(dim) < 2:
+        raise Exception('dim should be of the form [x, y]')
+
+    # print(pos)
+
+    # step_size = step_size[zaber]
+
+    one_cm_zaber_steps = grid_separation/(step_size[zaber]/1000)
+
+    grid = {}
+
+    #Calculate origin
+    # print(revDirection(zaber, 'x', rule, one_cm_zaber_steps))
+    x_origin = pos[zaber]['x'] - revDirection(zaber, 'x', rule, one_cm_zaber_steps)
+    y_origin = pos[zaber]['y'] - revDirection(zaber, 'y', rule, one_cm_zaber_steps)
+
+    if x_origin < 0 or y_origin < 0:
+        x_origin = int(max(0, x_origin))
+        y_origin = int(max(0, y_origin))
+        print(f"Either X or Y were found to be negative values.\n They were set to 0, but the grid won't apply properly")
+
+    # print(x_origin)
+    # print(y_origin)
+    cell = 0
+    for i in np.arange(dim[1]):
+        for j in np.arange(dim[0]):
+            grid[cell] = { 'x': math.ceil(x_origin + revDirection(zaber, 'x', rule, one_cm_zaber_steps*j)), 'y': math.ceil(y_origin + revDirection(zaber, 'y', rule, one_cm_zaber_steps*i)), 'z': pos[zaber]['z']}
+            # print(j, i)
+            cell += 1
+
+    print("Grid calculated")
+
+    return grid
+
+
 def manualorder(haxes):
     """
         Function to manually choose the order for homing and moving multiple Zabers
@@ -1610,20 +1652,22 @@ def set_up_one_zaber(name_dev, axes, who = 'serial', usb_port = None, n_modem = 
         This function is for setting up ONE zaber set-up with 3 linear stage actuators
     """
     ### Zabers
-    if who == 'serial':
-        zaber1 = Zaber(1, who, usb_port, n_modem, winPort = winPort)
-        zaber2 = Zaber(2, port = zaber1, who = who, winPort = winPort)
-        zaber3 = Zaber(3, port = zaber1, who = who, winPort = winPort)
-        
-    elif who == 'modem':
-        zaber12 = Zaber(1, who, usb_port, n_modem)
-        
-        zaber1 = zaber12.device.axis(1)
-        zaber2 = zaber12.device.axis(2)
-        zaber3 = Zaber(2, port = zaber12, who = who, usb_port = usb_port, n_modem = n_modem)
+    try:
+        if who == 'serial':
+            zaber1 = Zaber(1, who, usb_port, n_modem, winPort = winPort)
+            zaber2 = Zaber(2, port = zaber1, who = who, winPort = winPort)
+            zaber3 = Zaber(3, port = zaber1, who = who, winPort = winPort)
+            
+        elif who == 'modem':
+            zaber12 = Zaber(1, who, usb_port, n_modem)
+            
+            zaber1 = zaber12.device.axis(1)
+            zaber2 = zaber12.device.axis(2)
+            zaber3 = Zaber(2, port = zaber12, who = who, usb_port = usb_port, n_modem = n_modem)
 
-    zabers = {'{}'.format(name_dev): {f'{axes[0]}': zaber1, f'{axes[1]}': zaber2, f'{axes[2]}': zaber3} }
-
+        zabers = {'{}'.format(name_dev): {f'{axes[0]}': zaber1, f'{axes[1]}': zaber2, f'{axes[2]}': zaber3} }
+    except Exception as e:
+        errorloc(e)
     return zabers
 
 ################################################################################################################

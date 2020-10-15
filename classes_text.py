@@ -38,6 +38,8 @@ try:
 except:
     pass
 
+import re
+
 from grabPorts import grabPorts
 
 # Maths
@@ -337,3 +339,6 @@ class TextIO:
                 break
             else:
                 print("\n Only y and n are valid inputs")
+
+def findWholeWord(w):
+    return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search

@@ -264,6 +264,94 @@ def saveROI(file, path, data, header = ['Axis', '1']):
 
     print('ROI position saved')
 
+######## Saving Grid All
+def saveGridAll(path, data, file = 'temp_grid'):
+    """
+        Function to save all grids
+    """
+    print(f"\nSaving grids in temporary file...\n")
+
+    for i in data.keys():
+        saveGridIndv(file, path, data, i)
+
+    print(f"\nGrids saved in temporary file...\n")
+
+######## Saving Grid Indv
+def saveGridIndv(file, path, data, zaber):
+    """
+        Function to save grid of one Zaber
+    """
+
+    file = file + f"_{zaber}"
+    
+    of1 = open(f'{path}/{file}.csv', 'a')
+    data_writer = csv.writer(of1)
+
+    grid_i = list(np.arange(1, len(data['colther']) + 0.1))
+    header = [str(int(i)) for i in grid_i]
+    header.insert(0, 'Axis')
+
+    data_writer.writerow(header)
+    rows = ['x', 'y', 'z']
+
+    for i, r in enumerate(rows):
+        rowToWrite = [r]
+        rowToWrite.extend([data[zaber][str(int(x))][r] for x in grid_i])
+        data_writer.writerow(rowToWrite)
+        
+    of1.close()
+
+    print(f'\nGrid position of {zaber} saved\n')
+
+######## Saving ALL ROI centres
+def saveROIAll(path, data, file = 'temp_ROIs'):
+    """
+        Function to save all ROI centres of a grid
+    """
+    
+    of1 = open(f'{path}/{file}.csv', 'a')
+    data_writer = csv.writer(of1)
+
+    grid_i = list(np.arange(1, len(data) + 0.1))
+    header = [str(int(i)) for i in grid_i]
+    header.insert(0, 'Axis')
+
+    data_writer.writerow(header)
+    rows = ['x', 'y']
+
+    for i, r in enumerate(rows):
+        rowToWrite = [r]
+        rowToWrite.extend([data[str(int(x))][i] for x in grid_i])
+        data_writer.writerow(rowToWrite)
+        
+    of1.close()
+
+    print('ROI position saved')
+
+######## Saving ALL haxes
+def saveHaxesAll(path, data, file = 'temp_haxes'):
+    """
+        Function to save all ROI centres of a grid
+    """
+    
+    of1 = open(f'{path}/{file}.csv', 'a')
+    data_writer = csv.writer(of1)
+
+    header = list(data.keys())
+    header.insert(0, 'Position')
+
+    data_writer.writerow(header)
+    rows = ['1', '2', '3']
+
+    for i, r in enumerate(rows):
+        rowToWrite = [r]
+        rowToWrite.extend([data[x][i] for x in data.keys()])
+        data_writer.writerow(rowToWrite)
+        
+    of1.close()
+
+    print('Haxes saved')
+
 ########################################################
 ################## PERMISSIONS #########################
 ########################################################
@@ -421,7 +509,7 @@ def csvtoDictZaber(path, file = 'temp_zaber_pos.csv'):
         dictfromcsv[i] = {}
 
     for colu in df.columns:
-        print(colu)
+        # print(colu)
         for r in df[colu].index.values:
             dictfromcsv[r][colu] = df[colu][r]
 
@@ -436,6 +524,63 @@ def csvToDictROI(path, file = 'temp_ROI.csv'):
     cd = df.to_dict()
     centreROI = cd['1']['x'], cd['1']['y']
     return centreROI
+
+def csvToDictGridAll(path, file_pattern = 'temp_grid_(.*).csv'):
+
+    patternc = re.compile(file_pattern)
+    names = []
+    zabers = []
+
+    for filename in os.listdir(f'{path}'):
+        if patternc.match(filename):
+            name, form = filename.split('.')
+            names.append(filename)
+            r = patternc.search(filename)
+            zabers.append(r.group(1))
+        else:
+            continue
+
+    grid = {}
+    for n, z in zip(names, zabers):
+        grid[z] = csvToDictGridIndv(path, n)
+
+    return grid
+
+def csvToDictGridIndv(path, file):
+    """
+        Transforming csv of one Grid to a dictionary
+    """
+    df= pd.read_csv(f"{path}/{file}", index_col='Axis')
+    
+    grid_indv = df.to_dict()
+    return grid_indv
+
+def csvToDictROIAll(path, file = 'temp_ROIs.csv'):
+    """
+        Transforming csv of all ROIs to a dictionary
+    """
+    df= pd.read_csv(f"{path}/{file}", index_col='Axis')
+    
+    ROIs = df.to_dict()
+
+    for i in ROIs:
+        ROIs[i] = ROIs[i]['x'], ROIs[i]['y']
+
+    return ROIs
+
+
+def csvToDictHaxes(path, file = 'temp_haxes.csv'):
+    """
+        Transforming csv of haxes to a dictionary
+    """
+    df=  pd.read_csv(f"{path}/{file}", index_col='Position')
+    
+    haxes = df.to_dict()
+
+    for i in haxes:
+        haxes[i] = [haxes[i][1], haxes[i][2], haxes[i][3]]
+
+    return haxes
 
 #################################################################
 ######################## Deleting ###############################

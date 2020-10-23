@@ -63,12 +63,12 @@ class ArdUIno(grabPorts):
 
         if num_ards == 1:
             try:
-                self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
+                self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 1)
             except IndexError:
                 print('I cannot find any arduino boards!')
         elif num_ards > 1:
-            self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
-            self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 5)
+            self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 1)
+            self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 1)
 
         self.arduino.flushInput()
 
@@ -207,6 +207,43 @@ class ArdUIno(grabPorts):
                 event[0].set()
                 # print('Waiting for Zaber to move')
                 event[1].wait()
+
+    def closeOpenTemp(self, range):
+        """
+            Method of function to close and open shutter depending on the temperature
+        """
+
+        while True:
+            # print(globals.temp)
+            if globals.temp < range[0]:
+                # print('Close')
+                globals.stimulus = 0
+                self.arduino.write(struct.pack('>B', globals.stimulus))
+            elif globals.temp > range[1]:
+                # print('Open')
+                globals.stimulus = 1
+                self.arduino.write(struct.pack('>B', globals.stimulus))
+            
+            if globals.momen > globals.timeout:
+                print('Finish shutter')
+                globals.stimulus = 0
+                self.arduino.write(struct.pack('>B', globals.stimulus))
+                break
+
+    def readDistance(self):
+        while True:
+            buffer = []
+            while len(buffer) < 100:
+                read = self.arduino.readline()
+                buffer.append(read)
+
+            print(np.mean(buffer))
+
+            if keyboard.is_pressed('e'):
+                break
+
+        print(f'\nDone reading distance\n')
+
 
 
 ################################################################################

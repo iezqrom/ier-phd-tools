@@ -71,7 +71,7 @@ colorMapType = 0
 
 class TherCam(object):
 
-    def __init__(self, vminT = 29, vmaxT = 35):
+    def __init__(self, vminT = 30, vmaxT = 34):
         self.vminT = int(vminT)
         self.vmaxT = int(vmaxT)
 
@@ -179,6 +179,15 @@ class TherCam(object):
         global devh
         print('Shutter is now manual.')
         set_manual_ffc(devh)
+
+    def killStreaming(self):
+        global devh
+        libuvc.uvc_stop_streaming(devh)
+        
+    def performManualff(self):
+        print('Manual FFC')
+        perform_manual_ffc(devh)
+        print_shutter_info(devh)
 
     def saveRawData(self, output):
         global dev
@@ -384,7 +393,7 @@ class TherCam(object):
                 roiC = dataC[mask]
                 globals.temp = round(np.mean(roiC), 2)
                 print('Mean: ' + str(globals.temp))
-                # if globals.stimulus == 1:
+
                 event1.set()
 
                 momen = time.time() - start
@@ -421,13 +430,12 @@ class TherCam(object):
             # libuvc.uvc_stop_streaming(devh)
             pass
 
-
     def targetTempMan(self, output, target_temp, r = 20, arduino = None):
         """
-            Method function to perform PID on a given ROI with the camera.
-            The required parameters are output.
+            Method function to open the shutter and then close when target temperature is reached.
+            The required parameters are output and target temperature
             It doesn't save the dynamic ROI.
-            Globals: stimulus, timeout, pid_var, centreROI
+            Globals: stimulus, timeout, centreROI
         """
         global dev
         global devh
@@ -462,8 +470,8 @@ class TherCam(object):
 
                 momen = time.time() - start
 
-                names = ['image', 'pid_out', 'shutter_pos', 'fixed_ROI', 'time_now']
-                datas = [dataC, [globals.pid_out], [globals.stimulus], [indx, indy], [momen]]
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen]]
 
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
@@ -501,7 +509,7 @@ class TherCam(object):
             Method function to measure temperature of ROI and trigger action when a given temperature is reached.
             The required parameters are output and target temperature.
             It doesn't save the dynamic ROI.
-            Globals: stimulus, timeout, pid_var, centreROI
+            Globals: stimulus, timeout, centreROI
         """
         global dev
         global devh
@@ -514,7 +522,7 @@ class TherCam(object):
         close_shutter_time = time.time() + 10000
         end = 'no'
 
-        total_time_out = 10
+        total_time_out = 15
         post_shutter_time_out = 3
         pre_shutter_time_in = 3
 
@@ -542,8 +550,8 @@ class TherCam(object):
 
                 momen = time.time() - start
 
-                names = ['image', 'pid_out', 'shutter_pos', 'fixed_ROI', 'time_now']
-                datas = [dataC, [globals.pid_out], [globals.stimulus], [indx, indy], [momen]]
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen]]
 
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
@@ -590,7 +598,152 @@ class TherCam(object):
             # libuvc.uvc_stop_streaming(devh)
             pass
 
+    def readShutterOnOff(self, output, range, r = 20, arduino = None):
+        """
+            Method function to read passively on a given ROI with the camera.
+            The required parameters are output.
+            It doesn't save the dynamic ROI.
+            Globals: stimulus, timeout, pid_var, centreROI
+        """
+        global dev
+        global devh
+        import matplotlib as mpl
 
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+        print('File to save initialised')
+        start = time.time()
+        start_countdown = start * 2
+        momen = 0
+        cd = 0
+
+        try:
+            while True:
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                # We save the data
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
+
+                dataC = (dataK - 27315) / 100
+
+                indx, indy = globals.centreROI
+                mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
+                roiC = dataC[mask]
+                globals.temp = round(np.mean(roiC), 2)
+                print('Mean: ' + str(globals.temp))
+
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen]]
+
+                saveh5py(names, datas, tiff_frameLOCAL, f)
+                tiff_frameLOCAL += 1
+
+                if globals.temp < range[1] and cd == 0:
+                    start_countdown = time.time()
+                    print('START COUNTDOWN')
+                    print(globals.momen)
+                    cd += 1
+
+                globals.momen = time.time() - start_countdown
+
+                if globals.momen > globals.timeout:
+                    print('Time out')
+                    globals.stimulus = 0
+                    print('Close shutter (camera)')
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    break
+
+            print('Camera off')
+            f.close()
+
+        except Exception as e:
+            errorloc(e)
+
+        finally:
+            print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            pass
+
+    def readShutterOff(self, output, target_temp, duration, r = 20, arduino = None):
+        """
+            Method function to read passively on a given ROI with the camera. 
+            A timer starts when the temperature reaches the range temperature, 
+            then it closes the shutter after the indicated time has passed.
+            The required parameters are output, range and duration.
+            It doesn't save the dynamic ROI.
+            Globals: stimulus, timeout, pid_var, centreROI
+        """
+        global dev
+        global devh
+        import matplotlib as mpl
+
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+        print('File to save initialised')
+        start = time.time()
+        start_countdown = start * 2
+        cd = 0
+
+        time.sleep(1)
+
+        globals.stimulus = 1
+        print('Open shutter (camera)')
+        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+
+        try:
+            while True:
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                # We save the data
+                xs = np.arange(0, 160)
+                ys = np.arange(0, 120)
+
+                dataC = (dataK - 27315) / 100
+
+                indx, indy = globals.centreROI
+                mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
+                roiC = dataC[mask]
+                globals.temp = round(np.mean(roiC), 2)
+                print('Mean: ' + str(globals.temp))
+
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now']
+                datas = [dataC, [globals.stimulus], [indx, indy], [globals.momen]]
+
+                saveh5py(names, datas, tiff_frameLOCAL, f)
+                tiff_frameLOCAL += 1
+
+                if globals.temp < target_temp and cd == 0:
+                    start_countdown = time.time()
+                    print('START COUNTDOWN')
+                    print(globals.momen)
+                    cd += 1
+
+                globals.momen = time.time() - start_countdown
+
+                if globals.momen > globals.timeout:
+                    print('Time out')
+                    globals.stimulus = 0
+                    print('Close shutter (camera)')
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    break
+
+            print('Camera off')
+            f.close()
+
+        except Exception as e:
+            errorloc(e)
+
+        finally:
+            print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            pass
 
 ################################### Developing phase
 
@@ -1577,139 +1730,7 @@ class TherCam(object):
                         plt.close('all')
                         plt.clf()
                         # fig.gcf()
-                        print(plt.get_fignums())
-                        break
-
-        except Exception as e:
-            errorloc(e)
-
-        finally:
-            print('Stop streaming')
-            # libuvc.uvc_stop_streaming(devh)
-            # sys.exit()
-            pass
-
-
-    def plotLiveROINEtest(self, c_w = 'c', r = 20, record='n', output= None):
-
-        import matplotlib as mpl
-        mpl.rc('image', cmap='hot')
-
-        print('Press "r" to refresh the shutter.')
-
-        if record == 'y':
-            print('Initialising file to save')
-            tiff_frameLOCAL = 1
-            f = h5py.File("./{}.hdf5".format(output), "w")
-            start = time.time()
-
-        else:
-            print("Not recording")
-    
-        global dev
-        global devh
-        global tiff_frame
-
-        # fig = plt.figure(1)
-        # ax = plt.axes()
-
-        # fig.tight_layout()
-
-        dummy = np.zeros([120, 160])
-
-        img = plt.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
-        plt.colorbar(img)
-        # fig.canvas.mpl_connect('close_event', lambda _: fig.canvas.manager.window.destroy()) 
-        # plt.show(block=False)
-
-        try:
-            while True:
-                    dataK = q.get(True, 500)
-                    if dataK is None:
-                        print('Data is none')
-                        exit(1)
-
-                    # We get the min temp and draw a circle
-                    edge = 30
-                    if c_w == 'c':
-                        subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
-                        minimoK = np.min(subdataK)
-
-                    elif c_w == 'w':
-                        subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
-                        minimoK = np.max(subdataK)
-
-                    dataC = (dataK - 27315) / 100
-                    minimoC = (minimoK - 27315) / 100
-                    subdataC = (subdataK - 27315)/100
-
-                    xs = np.arange(0, 160)
-                    ys = np.arange(0, 120)
-
-                    globals.temp = minimoC
-
-                    indx, indy = np.where(subdataC == minimoC)
-                    indx, indy = indx + edge, indy + edge
-
-                    try:
-                        mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
-                    except:
-                        continue
-                    
-                    roiC = dataC[mask]
-                    mean = round(np.mean(roiC), 2)
-                    print(mean)
-
-                    circles = []
-
-                    for a, j in zip(indx, indy):
-                        cirD = plt.Circle((j, a), r, color='b', fill = False)
-                        circles.append(cirD)
-
-                    globals.indx0, globals.indy0  = indx[0], indy[0]
-
-                    # ax.clear()
-                    plt.cla()
-                    # ax.set_xticks([])
-                    # ax.set_yticks([])
-
-                    # ax.spines['top'].set_visible(False)
-                    # ax.spines['right'].set_visible(False)
-                    # ax.spines['left'].set_visible(False)
-                    # ax.spines['bottom'].set_visible(False)
-                    plt.imshow(dataC, vmin = self.vminT, vmax = self.vmaxT)
-                    # ax.add_artist(circles[0])
-                    # time.sleep(0.0005)
-                    plt.show(block=False)
-                    # plt.ion()
-                    # plt.pause(3)
-                    plt.pause(0.0005)
-                    plt.show(block=False)
-                    
-
-                    if record == 'y':
-                        print('Saving info to file')
-                        momen = time.time() - start
-                        
-                        names = ['image', 'shutter_pos', 'fixed_ROI', 'dynamic_ROI', 'time_now']
-                        datas = [dataC, [globals.stimulus], [globals.centreROI], [indx[0], indy[0]], [momen]]
-
-                        saveh5py(names, datas, tiff_frameLOCAL, f)
-                        tiff_frameLOCAL += 1
-                        # print(tiff_frameLOCAL)
-
-                    if keyboard.is_pressed('r'):
-                        print('Manual FFC')
-                        perform_manual_ffc(devh)
-                        print_shutter_info(devh)
-
-                    if keyboard.is_pressed('e'):
-                        frame = 1
-                        print('We are done')
-                        # plt.cla()
-                        # plt.clf()
-                        plt.close('all')
-                        print(plt.get_fignums())
+                        # print(plt.get_fignums())
                         break
 
         except Exception as e:

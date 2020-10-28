@@ -138,7 +138,6 @@ class ArdUIno(grabPorts):
     def controlShu(self, devices):
 
         while True:
-
             try:
 
                 if keyboard.is_pressed('c'):
@@ -179,11 +178,16 @@ class ArdUIno(grabPorts):
         globals.stimulus = 1
         self.arduino.write(struct.pack('>B', globals.stimulus))
         start = time.time()
+        time.sleep(0.1)
+        globals.stimulus = 1
+        self.arduino.write(struct.pack('>B', globals.stimulus))
 
         while True:
             time.sleep(0.001)
             if globals.stimulus == 0:
                 globals.rt = time.time() - start
+                self.arduino.write(struct.pack('>B', globals.stimulus))
+                time.sleep(0.1)
                 self.arduino.write(struct.pack('>B', globals.stimulus))
                 break
 
@@ -232,19 +236,22 @@ class ArdUIno(grabPorts):
 
     def readDistance(self):
         while True:
-            buffer = []
-            while len(buffer) < 100:
-                read = self.arduino.readline()
-                buffer.append(read)
+            # buffer = []
+            read = self.arduino.readline()
+            print(float(read))
+            # while len(buffer) < 100:
+            #     read = self.arduino.readline()
+                
+            #     try:
+            #         buffer.append(float(read))
+            #     except:
+            #         print('Arduino sent garbage')
 
-            print(np.mean(buffer))
+            # print(round(np.mean(buffer), 2))
 
-            if keyboard.is_pressed('e'):
+            if keyboard.is_pressed('q'):
+                print(f'\nDone reading distance\n')
                 break
-
-        print(f'\nDone reading distance\n')
-
-
 
 ################################################################################
 ############################# FUNCTION #########################################
@@ -254,18 +261,15 @@ def shakeShutter(ard, times):
     for i in np.arange(times):
         globals.stimulus = 1
         ard.arduino.write(struct.pack('>B', globals.stimulus))
-        # read = ard.arduino.readline()
-        # print(read)
         print('Open shutter')
 
-        time.sleep(0.5)
+        time.sleep(0.2)
 
         globals.stimulus = 0
         ard.arduino.write(struct.pack('>B', globals.stimulus))
-        # read = ard.arduino.readline()
-        # print(read)
+
         print('Close shutter')
-        time.sleep(0.5)
+        time.sleep(0.2)
 
 Fs = 20; # sampling freq
 Fc = 2; # cutoff

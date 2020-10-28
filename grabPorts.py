@@ -46,6 +46,7 @@ class grabPorts(object):
         elif sys.platform.startswith('darwin'):
             if num_ards == 1:
                 self.arduino_ports = [s for s in self.ports  if "usbmodem14{}{}01".format(usb_port, n_modem) in s]
+                print(self.arduino_ports)
 
             elif num_ards > 1:
                 self.arduino_ports = []

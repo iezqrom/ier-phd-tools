@@ -54,15 +54,14 @@ def findTempFiles(path):
     """
         Function to find temporary files in folder
     """
-    pattern = 'temp_.*\.csv$'
+    pattern = '^temp_'
     patternc = re.compile(pattern)
     names = []
 
     for filename in os.listdir(f"{path}"):
         if patternc.match(filename):
             name, form = filename.split('.')
-            names.append(name)
-            # print(name)
+            names.append((name, form))
         else:
             continue
 
@@ -80,7 +79,7 @@ def changeNameTempFile(path):
     for i, n in enumerate(names):
         # print(n)
         temp_file_name = n.split("temp_", 1)[1]
-        os.rename(f"{path}/{n}.csv", f"./{path}/{temp_file_name}_failed_script_{todaydate}_{time_now}.csv") 
+        os.rename(f"{path}/{n[0]}.{n[1]}", f"./{path}/{temp_file_name}_failed_script_{todaydate}_{time_now}.csv") 
 
 
 ############ apending to file with all subjects ############
@@ -209,7 +208,8 @@ def saveIndv(file, folder, data):
 ############# Age files #############
 def apendSingle(file, folder, subj_n, data_point):
     """
-        Function to save the age of the participant to a csv with the age of all participants for a given experiment.
+        Function to save a single value to a csv that contains
+        more values from a given experiment.
     """
 
     of3 = open('{}/{}.csv'.format(folder, file), 'a')
@@ -242,7 +242,7 @@ def saveZaberPos(file, path, data, header = ['Zaber', 'x', 'y', 'z']):
         
     of1.close()
 
-    print('Zaber position saved')
+    print(f'\nZaber position saved\n')
 
 ######## Saving ROI
 def saveROI(file, path, data, header = ['Axis', '1']):
@@ -262,7 +262,7 @@ def saveROI(file, path, data, header = ['Axis', '1']):
         
     of1.close()
 
-    print('ROI position saved')
+    print(f'\nROI position saved\n')
 
 ######## Saving Grid All
 def saveGridAll(path, data, file = 'temp_grid'):
@@ -326,7 +326,7 @@ def saveROIAll(path, data, file = 'temp_ROIs'):
         
     of1.close()
 
-    print('ROI position saved')
+    print(f'\nROI position saved\n')
 
 ######## Saving ALL haxes
 def saveHaxesAll(path, data, file = 'temp_haxes'):
@@ -350,7 +350,7 @@ def saveHaxesAll(path, data, file = 'temp_haxes'):
         
     of1.close()
 
-    print('Haxes saved')
+    print(f'\nHaxes saved\n')
 
 ########################################################
 ################## PERMISSIONS #########################
@@ -592,11 +592,8 @@ def delTempFiles(path):
     """
     names = findTempFiles(path)
 
-    names.sort(key=natural_keys)
-    print(names)
-
     for i, n in enumerate(names):
-        os.remove(f"{path}/{n}.csv")
+        os.remove(f"{path}/{n[0]}.{n[1]}")
         
     print("Temporary data file Removed!")
 

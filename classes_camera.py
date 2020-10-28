@@ -558,6 +558,9 @@ class TherCam(object):
                 print('Time:  ' + str(momen))
 
                 if momen > total_time_out:
+                    globals.stimulus = 0
+                    print('Close shutter (camera)')
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
                     break
 
                 if momen > pre_shutter_time_in and momen < (pre_shutter_time_in + 0.2):
@@ -565,6 +568,7 @@ class TherCam(object):
                     print('Open shutter (camera)')
                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
                     event.set()
+                    # time.sleep(0.1)
 
                 if globals.temp < target_temp and end == 'no':
                     globals.stimulus = 0
@@ -573,7 +577,6 @@ class TherCam(object):
                     close_shutter_time = time.time()
                     end = 'yes'
                     event.set()
-                    
 
                 shutter_closed = time.time() - close_shutter_time
 
@@ -1074,20 +1077,16 @@ class TherCam(object):
                 globals.temp = round(np.mean(roiC), 2)
 
                 momen = time.time()
+                
+                names = ['image', 'stimulus', 'fixed_coor', 'dynamic_coor', 'time']
+                datas = [dataC, [globals.stimulus], [globals.centreROI[0], globals.centreROI[1]], [indx[0], indy[0]], [momen]]
 
-                f.create_dataset(('image'+str(tiff_frameLOCAL)), data = dataC)
-                f.create_dataset(('stimulus'+str(tiff_frameLOCAL)), data = [globals.stimulus])
-                f.create_dataset(('fixed_coor'+str(tiff_frameLOCAL)), data = [globals.centreROI[0], globals.centreROI[1]])
-                f.create_dataset(('dynamic_coor'+str(tiff_frameLOCAL)), data = [indx[0], indy[0]])
-                f.create_dataset(('time'+str(tiff_frameLOCAL)), data = [momen])
-
+                saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
-
-                # print(globals.temp)
 
                 if keyboard.is_pressed('space'):  # globals.counter > globals.limit_counter:
                     #Close file in which we are saving the stuff
-                    print('We are done')
+                    print('\nThermal recording finished\n')
                     globals.thres_temp = globals.temp
                     globals.stimulus = 0
                     f.close()

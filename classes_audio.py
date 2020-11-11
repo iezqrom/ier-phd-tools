@@ -28,7 +28,7 @@ class Sound(object):
         # Convert to 16-bit data
         self.audio = self.audio.astype(np.int16)
 
-        print(f"Object audio initiliased")
+        print(f"\nObject audio initiliased\n")
 
     def play(self, event = None):
         try:
@@ -37,19 +37,19 @@ class Sound(object):
                 # time.sleep(1)
             # Start playback
             self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
+            print(f"\nTONE ON\n")
             
             if event != None:
                 event.clear()
-                time.sleep(0.2)
-                print('Event CLEARED')
-
+                time.sleep(0.1)
+                
             # Logic to terminate sound while in thread
             if event != None:
                 # print(event.__dict__)
                 event.wait()
                 sa.stop_all()
 
-            print(f"\nTone terminated")
+            print(f"\nTone OFF\n")
 
         except Exception as e:
             print(e)

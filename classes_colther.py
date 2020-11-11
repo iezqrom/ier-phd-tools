@@ -50,6 +50,7 @@ from classes_arduino import ArdUIno
 from grabPorts import grabPorts
 from pyd import PYD
 from saving_data import *
+from classes_text import *
 
 # Maths
 import numpy as np
@@ -593,7 +594,7 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('e'):
                     vars = [globals.centreROI, globals.positions]
                     if all(v is not None for v in vars) and home =='n':
-                        print('Terminating Zaber game \n')
+                        printme('Terminating Zaber game')
                         break
 
                     elif all(v is not None for v in vars) and home =='y':
@@ -621,7 +622,10 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('h'):
                     homingZabers(devices)
 
-                #### Triple
+                elif keyboard.is_pressed('g'):
+                    if not was_pressed:
+                        print(self.rois)
+                        was_pressed = True
 
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
@@ -1643,7 +1647,7 @@ def manualorder(haxes):
         Function to manually choose the order for homing and moving multiple Zabers
     """
     os.system('clear')
-    print(f'There are {len(haxes.keys())} set of zabers, their names are: ')
+    print(f'\nThere are {len(haxes.keys())} set of zabers, their names are: ')
     list_keys = list(haxes.keys())
 
     pos_zabs = tuple(str(i) for i in range(0, len(list_keys)))
@@ -1678,7 +1682,7 @@ def manualorder(haxes):
                         print(f'\nOnly {pos_zabs} are valid answers \n')
                         continue
                 except:
-                    print('Wrong input')
+                    printme('Wrong input')
         else:
             if len(list(set_diff_za)) > 1:
                 while True:
@@ -1784,13 +1788,19 @@ def movetostartZabers(zabers, zaber, axes, pos = globals.positions, cond = None)
         This function is to move one set of Zabers to a defined positions (pos)
     """
     for d in axes:
-        print(f'\n Moving axis {d} of {zaber} to {pos[d]}')
-        if pos[d] < 0:
-            pos[d] = 0
+        if isinstance(pos, dict):
+            posc = pos[d]
+        else:
+            posc = pos
+
+        if posc < 0:
+            posc = 0
+        print(f'\n Moving axis {d} of {zaber} to {posc}')
+
         try:
-            zabers[zaber][d].device.move_abs(pos[d])
+            zabers[zaber][d].device.move_abs(posc)
         except:
-            zabers[zaber][d].move_abs(pos[d])
+            zabers[zaber][d].move_abs(posc)
         time.sleep(0.1)
 
 
@@ -1799,11 +1809,20 @@ def movetostartZabersConcu(zabers, zaber, axes, pos = globals.positions, cond = 
         This function is to move one set of Zabers to a defined positions (pos)
     """
     def startOneAxis(zaber, d):
-        print(f'\n Moving axis {d} of {zaber} to {pos[d]}')
+        if isinstance(pos, dict):
+            posc = pos[d]
+        else:
+            posc = pos
+  
+        if posc < 0:
+            posc = 0
+
+        print(f'\n Moving axis {d} of {zaber} to {posc}\n')
+
         try:
-            zabers[zaber][d].device.move_abs(pos[d])
+            zabers[zaber][d].device.move_abs(posc)
         except:
-            zabers[zaber][d].move_abs(pos[d])
+            zabers[zaber][d].move_abs(posc)
     
     threads_zabers = []
 

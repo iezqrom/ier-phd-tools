@@ -482,7 +482,7 @@ class TherCam(object):
 
                 if keyboard.is_pressed('o'):
                     globals.stimulus = 1
-                    print('Ooen shutter (camera)')
+                    print('Open shutter (camera)')
                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
 
                 if globals.temp < target_temp:
@@ -504,11 +504,10 @@ class TherCam(object):
             # libuvc.uvc_stop_streaming(devh)
             pass
 
-    def targetTempAuto(self, output, target_temp, r = 20, arduino = None, event = None):
+    def targetTempAuto(self, output, target_temp, centreROI, r = 20, arduino = None, event = None, stimulus = 1, total_time_out = 15):
         """
             Method function to measure temperature of ROI and trigger action when a given temperature is reached.
             The required parameters are output and target temperature.
-            It doesn't save the dynamic ROI.
             Globals: stimulus, timeout, centreROI
         """
         global dev
@@ -520,11 +519,16 @@ class TherCam(object):
         print(f'\nFile to save video initialised\n')
         start = time.time()
         close_shutter_time = time.time() + 10000
-        end = 'no'
+        end = False
+        shutter_opened = False
 
-        total_time_out = 15
         post_shutter_time_out = 3
         pre_shutter_time_in = 3
+        self.shutter_open_time = None
+
+        # print(f'TOTAL TIMEOUT {total_time_out}')
+
+        edge = 30
 
         try:
             while True:
@@ -534,55 +538,78 @@ class TherCam(object):
                     print('Data is none')
                     break
 
-                # We save the data
+                # Dynamic ROI
+                subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
+                minimoK = np.min(subdataK)
+
+                minimoC = (minimoK - 27315) / 100
+                subdataC = (subdataK - 27315)/100
+
+                indxD, indyD = np.where(subdataC == minimoC)
+                indxD, indyD = indxD + edge, indyD + edge
 
                 xs = np.arange(0, 160)
                 ys = np.arange(0, 120)
 
                 dataC = (dataK - 27315) / 100
 
-                indx, indy = globals.centreROI
-                # print(indx, indy)
+                indx, indy = centreROI
                 mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
                 roiC = dataC[mask]
                 globals.temp = round(np.mean(roiC), 2)
                 print('Mean: ' + str(globals.temp))
 
+                x_diff = (indxD[0] - indx)**2
+                y_diff = (indyD[0] - indy)**2
+
+                eud = np.sqrt(x_diff + y_diff)
+
+                if stimulus == 2:
+                    print(f'Euclidean distance between ROIs {round(eud, 2)}')
+
                 momen = time.time() - start
 
-                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now']
-                datas = [dataC, [globals.stimulus], [indx, indy], [momen]]
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'dynamic_ROI', 'eud']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxD, indyD], round(eud, 2)]
 
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
-                print('Time:  ' + str(momen))
+                # print('Time:  ' + str(momen))
 
-                if momen > total_time_out:
-                    globals.stimulus = 0
-                    print('Close shutter (camera)')
-                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                if momen > (total_time_out + pre_shutter_time_in):
+                    if not end and shutter_opened:
+                        self.shutter_open_time = time.time() - self.shutter_open_time
+                        # print(f'\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n')
+                        globals.stimulus = 4
+                        print('Close shutter (camera)')
+                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
                     break
 
-                if momen > pre_shutter_time_in and momen < (pre_shutter_time_in + 0.2):
-                    globals.stimulus = 1
+                if globals.temp > target_temp and momen > pre_shutter_time_in and momen < (pre_shutter_time_in + 0.2) and not shutter_opened:
+                    globals.stimulus = stimulus
                     print('Open shutter (camera)')
                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
                     event.set()
+                    shutter_opened = True
+                    self.shutter_open_time = time.time()
                     # time.sleep(0.1)
 
-                if globals.temp < target_temp and end == 'no':
-                    globals.stimulus = 0
+                if globals.temp < target_temp and not end and shutter_opened:
+                    self.shutter_open_time = time.time() - self.shutter_open_time
+                    print(f'\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n')
+                    globals.stimulus = 4
                     print('Close shutter (camera)')
                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
-                    close_shutter_time = time.time()
-                    end = 'yes'
                     event.set()
+                    close_shutter_time = time.time()
+                    end = True
+                    shutter_opened = False
 
                 shutter_closed = time.time() - close_shutter_time
 
-                print(f"Time since shutter closed: {shutter_closed}")
+                # print(f"Time since shutter closed: {shutter_closed}")
                 
-                if shutter_closed > post_shutter_time_out and end == 'yes':
+                if shutter_closed > post_shutter_time_out and end:
                     break
 
                 event.clear()
@@ -1038,12 +1065,19 @@ class TherCam(object):
             # libuvc.uvc_stop_streaming(devh)
             pass
 
-    def rtMoF(self, output):
+    def rtMoF(self, output, event = None):
+        """
+            Method to perform method of limits with the thermal camera.
+        """
         global dev
         global devh
         tiff_frameLOCAL = 1
         f = h5py.File("./{}.hdf5".format(output), "w")
         edge = 30
+        shutter_opened = False
+
+        start = time.time()
+
         try:
             counter = 0
             while True:
@@ -1084,13 +1118,25 @@ class TherCam(object):
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
 
-                if keyboard.is_pressed('space'):  # globals.counter > globals.limit_counter:
+                momen = time.time() - start
+
+                if momen > 2 and not shutter_opened:
+                    if event != None:
+                        event.set()
+                    shutter_opened = True
+
+                if keyboard.is_pressed('l'):  # globals.counter > globals.limit_counter:
                     #Close file in which we are saving the stuff
+                    if event != None:
+                        event.set()
                     print('\nThermal recording finished\n')
                     globals.thres_temp = globals.temp
                     globals.stimulus = 0
                     f.close()
                     break
+
+        except Exception as e:
+            errorloc(e)
 
         finally:
             # print('Stop streaming')

@@ -7,6 +7,7 @@ from classes_tharnal import natural_keys
 import pandas as pd
 import subprocess
 import re
+import shutil
 
 
 ##################################################################
@@ -39,15 +40,14 @@ def appendDataDict(data, tempdata):
 ###################### Saving data ##############################
 ################################################################
 
-def tempSaving(path, temp_file_name = 'temp_data'):
+def tempSaving(path, header, temp_file_name = 'temp_data'):
     """
         Function to initiliase temporary file to store data in case the 
         script fails
     """
-    temp_file = open(f'{path}/{temp_file_name}.csv', 'a')
+    temp_file = open(f'{path}/{temp_file_name}.csv', 'w')
     temp_data_writer = csv.writer(temp_file)
-    header_temp = ['Trial', 'Response']
-    temp_data_writer.writerow(header_temp)
+    temp_data_writer.writerow(header)
     return [temp_data_writer, temp_file, temp_file_name]
 
 def findTempFiles(path):
@@ -60,6 +60,7 @@ def findTempFiles(path):
 
     for filename in os.listdir(f"{path}"):
         if patternc.match(filename):
+            print(filename)
             name, form = filename.split('.')
             names.append((name, form))
         else:
@@ -77,10 +78,9 @@ def changeNameTempFile(path):
     time_now = time.strftime("%H_%M_%S", t)
     todaydate = date.today().strftime("%d%m%Y")
     for i, n in enumerate(names):
-        # print(n)
-        temp_file_name = n.split("temp_", 1)[1]
-        os.rename(f"{path}/{n[0]}.{n[1]}", f"./{path}/{temp_file_name}_failed_script_{todaydate}_{time_now}.csv") 
-
+        print(n)
+        temp_file_name = n[0].split("temp_", 1)[1]
+        shutil.copyfile(f"{path}/{n[0]}.{n[1]}", f"./{path}/{temp_file_name}_failed_script_{todaydate}_{time_now}.{n[1]}")
 
 ############ apending to file with all subjects ############
 def apendAll(folder, subj_n, data, file = 'data_all'):
@@ -230,7 +230,7 @@ def saveZaberPos(file, path, data, header = ['Zaber', 'x', 'y', 'z']):
     """
     
     llaves = list(data.keys())
-    of1 = open(f'{path}/{file}.csv', 'a')
+    of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
     data_writer.writerow(header)
@@ -250,7 +250,7 @@ def saveROI(file, path, data, header = ['Axis', '1']):
         Function to save one ROI centre
     """
     
-    of1 = open(f'{path}/{file}.csv', 'a')
+    of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
     data_writer.writerow(header)
@@ -284,7 +284,7 @@ def saveGridIndv(file, path, data, zaber):
 
     file = file + f"_{zaber}"
     
-    of1 = open(f'{path}/{file}.csv', 'a')
+    of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
     grid_i = list(np.arange(1, len(data['colther']) + 0.1))
@@ -309,7 +309,7 @@ def saveROIAll(path, data, file = 'temp_ROIs'):
         Function to save all ROI centres of a grid
     """
     
-    of1 = open(f'{path}/{file}.csv', 'a')
+    of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
     grid_i = list(np.arange(1, len(data) + 0.1))
@@ -334,7 +334,7 @@ def saveHaxesAll(path, data, file = 'temp_haxes'):
         Function to save all ROI centres of a grid
     """
     
-    of1 = open(f'{path}/{file}.csv', 'a')
+    of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
     header = list(data.keys())
@@ -368,7 +368,6 @@ def rootToUser(*paths):
         print(f"\nChanged permissions of following path: {i}\n")
         os.chdir(pwd)
 
-    
 
 #################################################################
 ########## Pipeline to check & create folder architecture #######
@@ -493,7 +492,50 @@ def folderVhrideos(testing = 'n'):
     
     return path_video
 
+#################################################################
+########## Pipeline to set subject number & others ##############
+#################################################################
 
+def setSubjNum(path, file_pattern = 'data_subj_(.*).csv'):
+    """
+        Function to set the number of the subject automatically
+    """
+    patternc = re.compile(file_pattern)
+    names = []
+    subjs = []
+
+    for filename in os.listdir(f'{path}'):
+        if patternc.match(filename):
+            name, form = filename.split('.')
+            names.append(filename)
+            r = patternc.search(filename)
+            subjs.append(int(r.group(1)))
+        else:
+            continue
+
+    if len(subjs) < 1:
+        subject_n = 1
+    else:
+        subjs.sort()
+        subject_n = subjs[-1] + 1
+
+    return subject_n
+
+def saveIndvVar(path, var, file_name):
+    """
+        Function to save subject number in temporary file
+    """
+    with open(f"{path}/{file_name}.txt", "w") as f:
+        f.write(str(var))
+
+def txtToVar(path, file):
+    """
+        Function to recover subject number in temporary files
+    """
+    with open(f"{path}/{file}.txt", "r") as f:
+        var = f.readline()
+    return var
+    
 #################################################################
 ######################## Reading from CSV #######################
 #################################################################
@@ -567,7 +609,6 @@ def csvToDictROIAll(path, file = 'temp_ROIs.csv'):
         ROIs[i] = ROIs[i]['x'], ROIs[i]['y']
 
     return ROIs
-
 
 def csvToDictHaxes(path, file = 'temp_haxes.csv'):
     """

@@ -141,8 +141,8 @@ class TextIO:
 
     def famTGI(self):
         while True:
-            self.famTGI= input("\n What familiarisation step are we doing now? (C / W / TGI)  ")
-            if self.famTGI in ('C', 'W'):
+            self.famTGIs = input("\n What familiarisation step are we doing now? (C / W / TGI)  ")
+            if self.famTGIs in ('C', 'W'):
                 break
             else:
                 print("\n Only C and W are valid answers \n")
@@ -270,15 +270,15 @@ class TextIO:
 
     def age(self):
         while True:
-            self.age = input("\n How old are you?  Type your answer and press enter    ")
+            self.agef = input("\n How old are you?  Type your answer and press enter    ")
             try:
-                self.age = float(self.age)
+                self.agef = float(self.agef)
+                break
 
             except:
                 print('\n Only numbers are valid answers \n')
                 continue
 
-            break
 
     def TargetTemp(self):
         while True:
@@ -340,5 +340,27 @@ class TextIO:
             else:
                 print("\n Only y and n are valid inputs")
 
+########################################################################
+########################## FUNCTIONS ##################################
+########################################################################
 def findWholeWord(w):
     return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
+
+def printme(text):
+    """
+        Quick function to print with space at the beginning and end
+    """
+    print(f'\n{text}\n')
+
+def agebyExperimenter():
+    while True:
+        age = input('\n Ask the participants for their age and input it here: ')
+        try:
+            age = int(age)
+            break
+
+        except:
+            print('\n Only numbers are valid answers \n')
+            continue
+
+    return age

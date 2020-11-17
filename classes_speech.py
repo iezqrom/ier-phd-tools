@@ -89,7 +89,6 @@ except ImportError:
 CHUNK = 1024
 BUF_MAX_SIZE = CHUNK * 10
 
-
 def audioInstance(BUF_MAX_SIZE=BUF_MAX_SIZE, CHUNK=CHUNK):
     q = Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK)))
     audio_source = AudioSource(q, True, True)
@@ -131,11 +130,11 @@ class MyRecognizeCallback(RecognizeCallback):
         print('Inactivity timeout: {}'.format(error))
 
     def on_listening(self):
-        print('Service is listening')
+        print('\nSERVICE IS LISTENING\n')
 
     def on_hypothesis(self, hypothesis):
         # print('hola')
-        # print(hypothesis)
+        print(hypothesis)
         pass
 
     def on_data(self, data):
@@ -185,7 +184,6 @@ def startAudioWatson():
     return audio
 
 def openStream(audio, q):
-
     def pyaudio_callback(in_data, frame_count, time_info, status):
         try:
             q.put(in_data)

@@ -168,7 +168,7 @@ class ArdUIno(grabPorts):
             except KeyboardInterrupt:
                 sys.exit(1)
 
-    def OpenCloseMoF(self, event):
+    def OpenCloseMoL(self, event):
         """
             Method to perform Method of Limits with the shutter
         """
@@ -250,8 +250,8 @@ class ArdUIno(grabPorts):
             except:
                 printme('Arduino sent garbage')
 
-            if keyboard.is_pressed('q'):
-                printme('Done reading distance')
+            if keyboard.is_pressed('e'):
+                printme('Done reading distance...')
                 break
             elif keyboard.is_pressed('s'):
                 if not pressed:

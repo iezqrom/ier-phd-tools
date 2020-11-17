@@ -95,7 +95,7 @@ y_vals_inter = intercept + slope * zebers_inter + (33 - ends[-1])
 ############################ CLASS 
 ################################################################################################################
 ################################################################################################################
-logging.basicConfig(filename='./zaber_positions.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
+# logging.basicConfig(filename='./zaber_positions.log', level=logging.INFO, format='%(asctime)s:%(levelname)s:%(message)s')
 
 class Zaber(grabPorts):
     """
@@ -336,7 +336,7 @@ class Zaber(grabPorts):
                         globals.positions[globals.current_device]['z'] = int(posZ.data)
 
                         print(globals.positions)
-                        logging.info(globals.positions)
+                        # logging.info(globals.positions)
                         was_pressed = True
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
@@ -507,7 +507,7 @@ class Zaber(grabPorts):
                         globals.positions[globals.current_device]['z'] = int(posZ.data)
 
                         print(globals.positions)
-                        logging.info(globals.positions)
+                        # logging.info(globals.positions)
                         was_pressed = True
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
@@ -549,7 +549,7 @@ class Zaber(grabPorts):
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
-    def gridCon3(self, devices, arduino = None, home='y', grid = globals.grid, rois = globals.ROIs, rules = globals.rules, amount = globals.amount, haxes = globals.haxes):
+    def gridCon2(self, devices, arduino = None, home='y', grid = globals.grid, rois = globals.ROIs, rules = globals.rules, amount = globals.amount, haxes = globals.haxes):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
             The coordinates of two positions can be saved with 'z' and 'x'
@@ -633,12 +633,12 @@ class Zaber(grabPorts):
                         if int(current_roi) > len(grid[globals.current_device]):
                             current_roi = '1'
 
-                        moveZabersUp(devices, ['colther', 'tactile'])
+                        moveZabersUp(devices, ['colther'])
 
                         for k, v in reversed(haxes.items()):
-                            # print(k, v, devices, grid[k][current_roi])
-                            movetostartZabersConcu(devices, k, list(reversed(v)), pos = grid[k][current_roi])
-                            time.sleep(0.1)
+                            if k != 'tactile':
+                                movetostartZabersConcu(devices, k, list(reversed(v)), pos = grid[k][current_roi])
+                            
                         was_pressed = True
 
                 elif keyboard.is_pressed('a'):
@@ -647,11 +647,12 @@ class Zaber(grabPorts):
                         if int(current_roi) == 0:
                             current_roi = '1'
 
-                        moveZabersUp(devices, ['colther', 'tactile'])
+                        moveZabersUp(devices, ['colther'])
 
                         for k, v in reversed(haxes.items()):
-                            movetostartZabersConcu(devices, k, list(reversed(v)), pos = grid[k][current_roi])
-                            time.sleep(0.1)
+                            if k != 'tactile':
+                                movetostartZabersConcu(devices, k, list(reversed(v)), pos = grid[k][current_roi])
+                            
                         was_pressed = True
 
                 else:
@@ -1610,7 +1611,7 @@ def grid_calculation(zaber, grid_separation, step_size = globals.step_sizes, pos
     if len(dim) < 2:
         raise Exception('dim should be of the form [x, y]')
 
-    # print(pos)
+    print(pos)
 
     # step_size = step_size[zaber]
 
@@ -1633,6 +1634,7 @@ def grid_calculation(zaber, grid_separation, step_size = globals.step_sizes, pos
     cell = 1
     for i in np.arange(dim[1]):
         for j in np.arange(dim[0]):
+            print(pos[zaber]['z'])
             grid[str(cell)] = { 'x': math.ceil(x_origin + revDirection(zaber, 'x', rule, one_cm_zaber_steps*j)), 'y': math.ceil(y_origin + revDirection(zaber, 'y', rule, one_cm_zaber_steps*i)), 'z': pos[zaber]['z']}
             # print(j, i)
             cell += 1
@@ -1783,10 +1785,14 @@ def homingZabers(zabers, axes = None, speed = 153600):
                 zabers[kaxes][d].send('/set maxspeed {}'.format(speed))
                 zabers[kaxes][d].home()
 
-def movetostartZabers(zabers, zaber, axes, pos = globals.positions, cond = None):
+def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None):
     """
         This function is to move one set of Zabers to a defined positions (pos)
     """
+    if event:
+        print(event._flag)
+        event.wait()
+
     for d in axes:
         if isinstance(pos, dict):
             posc = pos[d]
@@ -1890,6 +1896,14 @@ def homingZabersConcu(zabers, axes = None, speed = 153600):
 
         for x in threads_zabers:
             x.join()
+
+def z_axis_pos(z_d, step_size):
+    """
+        Function to translate centimetres into Zaber steps
+    """
+    z_d_microm = z_d*10000
+    z_steps = z_d_microm/step_size
+    return round(z_steps)
 
 def sineWave(set_point, amplitude, freq, phase = 0, repeats = 1):
 

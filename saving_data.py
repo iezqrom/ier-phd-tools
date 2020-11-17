@@ -78,7 +78,6 @@ def changeNameTempFile(path):
     time_now = time.strftime("%H_%M_%S", t)
     todaydate = date.today().strftime("%d%m%Y")
     for i, n in enumerate(names):
-        print(n)
         temp_file_name = n[0].split("temp_", 1)[1]
         shutil.copyfile(f"{path}/{n[0]}.{n[1]}", f"./{path}/{temp_file_name}_failed_script_{todaydate}_{time_now}.{n[1]}")
 

@@ -152,42 +152,43 @@ class Zaber(grabPorts):
                 #### Y axis
                 if keyboard.is_pressed('up'):
                     try:
-                        device[2].move_rel(globals.amount)
+                        device['y'].move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
                     except:
-                        device[2].device.move_rel(globals.amount)
+                        device['y'].device.move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
 
                 elif keyboard.is_pressed('down'):
                     try:
-                        device[2].move_rel(0 - globals.amount)
+                        device['y'].move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
                     except:
-                        device[2].device.move_rel(0 - globals.amount)
+                        device['y'].device.move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
 
                 #### X axis
 
                 elif keyboard.is_pressed('left'):
                     try:
-                        device[1].move_rel(0 - globals.amount)
+                        device['x'].move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
                     except:
-                        device[1].device.move_rel(0 - globals.amount)
+                        device['x'].device.move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
 
                 elif keyboard.is_pressed('right'):
                     try:
-                        device[1].move_rel(globals.amount)
+                        device['x'].move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
                     except:
-                        device[1].device.move_rel(globals.amount)
+                        device['x'].device.move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
 
                 ### Z axis
                 elif keyboard.is_pressed('d'):
                     try:
-                        device[0].move_rel(globals.amount)
+                        device['z'].move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
                     except:
-                        device[0].device.move_rel(globals.amount)
+                        device['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
 
                 elif keyboard.is_pressed('u'):
                     try:
-                        device[0].move_rel(0 - globals.amount)
+                        device['z'].move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
                     except:
-                        device[0].device.move_rel(0 - globals.amount)
+                        device['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+
 
                 ### TERMINATE
                 elif keyboard.is_pressed('e'):

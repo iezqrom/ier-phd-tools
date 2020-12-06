@@ -531,7 +531,9 @@ class TherCam(object):
         touch_time_in = 1
         self.shutter_open_time = None
 
-        edge = 30
+        xs = np.arange(0, 160)
+        ys = np.arange(0, 120)
+        edge = 0
 
         try:
             while True:
@@ -544,25 +546,16 @@ class TherCam(object):
                 # Dynamic ROI
                 subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
                 subdataC = (subdataK - 27315)/100
-                subdataC[subdataC <= target_temp] = 100
+                subdataC[subdataC <= (target_temp - 0.1)] = 100
                 minimoC = np.min(subdataC)
 
-                # minimoK = np.min(subdataK)
-                # minimoC = (minimoK - 27315) / 100
-                
                 indxD, indyD = np.where(subdataC == minimoC)
                 indxD, indyD = indxD + edge, indyD + edge
 
-                xs = np.arange(0, 160)
-                ys = np.arange(0, 120)
 
                 dataC = (dataK - 27315) / 100
 
                 indx, indy = centreROI
-                mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
-                roiC = dataC[mask]
-                globals.temp = round(np.mean(roiC), 2)
-                print('Mean: ' + str(globals.temp))
 
                 try:
                     x_diff = (indxD[0] - indx)**2
@@ -571,14 +564,30 @@ class TherCam(object):
                     continue
 
                 eud = np.sqrt(x_diff + y_diff)
+                eud = round(eud, 2)
 
                 if stimulus == 2:
-                    print(f'Euclidean distance between ROIs {round(eud, 2)}')
+                    print(f'Euclidean distance between ROIs {eud}')
+                else:
+                    eud = 100
+
+                if eud < 20:
+                    mask = (xs[np.newaxis,:]- indyD[0])**2 + (ys[:,np.newaxis] - indxD[0])**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+                    sROI = 'dynamic'
+                else:
+                    mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+                    sROI = 'static'
+
+                print('Mean: ' + str(globals.temp))
 
                 momen = time.time() - start
 
-                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'dynamic_ROI', 'eud']
-                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxD, indyD], [round(eud, 2)]]
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'dynamic_ROI', 'eud', 'sROI']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxD, indyD], [eud], [sROI]]
 
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
@@ -638,6 +647,159 @@ class TherCam(object):
 
                 print(f"Time since shutter closed: {shutter_closed}")
 
+                if globals.temp < target_temp and momen > pre_shutter_time_in and momen < (pre_shutter_time_in + 0.2) and not shutter_opened:
+                    break
+
+                if end and shutter_closed:  
+                    if shutter_closed > post_shutter_time_out:
+                        break
+
+                event_camera.clear()
+
+            print('Camera off')
+            f.close()
+
+        except Exception as e:
+            print(e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+
+        finally:
+            print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            pass
+
+
+    def targetTempAutoDiff(self, output, target_temp, centreROI, r = 20, arduino = None, stimulus = 1, total_time_out = 15, event_camera = None, event_touch = None):
+        """
+            Method function to measure temperature of ROI and trigger action when a given temperature is reached.
+            The required parameters are output and target temperature.
+            Globals: stimulus, timeout, centreROI
+        """
+        global dev
+        global devh
+        import matplotlib as mpl
+
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+        print(f'\nFile to save video initialised\n')
+        start = time.time()
+        close_shutter = None
+        shutter_closed = None
+        end = False
+        shutter_opened = False
+        touched = False
+
+        post_shutter_time_out = 2
+        pre_shutter_time_in = 2
+        touch_time_out = 1
+        touch_time_in = 1
+        self.shutter_open_time = None
+        diff_buffer = []
+        xs = np.arange(0, 160)
+        ys = np.arange(0, 120)
+
+        try:
+            while True:
+                
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                momen = time.time() - start
+
+                dataC = (dataK - 27315) / 100
+
+                indx, indy = centreROI
+
+                if momen > 1.5 and momen < 1.9:
+                    diff_buffer.append(dataC)
+
+                if globals.stimulus == 2:
+                    dif = mean_diff_buffer - dataC
+                    maxdif = np.max(dif)
+                    indxdf, indydf = np.where(dif == maxdif)
+                    mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+                    
+                    print('DYNAMIC Mean: ' + str(globals.temp))
+                    sROI = 'diffROI'
+                else:
+                    mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+                    
+                    print('STATIC Mean: ' + str(globals.temp))
+                    sROI = 'fixedROI'
+
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'diff_ROI', 'sROI']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxdf, indydf], [sROI]]
+
+                saveh5py(names, datas, tiff_frameLOCAL, f)
+                tiff_frameLOCAL += 1
+
+                if end:
+                    shutter_closed = time.time() - close_shutter
+
+                if momen > (total_time_out + pre_shutter_time_in):
+                    if not end and shutter_opened:
+                        self.shutter_open_time = time.time() - self.shutter_open_time
+                        globals.stimulus = 4
+                        print('Close shutter (camera)')
+                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        event_camera.set()
+                        close_shutter = time.time()
+                        if event_touch:
+                            event_touch.set()
+                        end = True
+
+                    if event_touch:
+                        event_touch.set()
+                        touched = True
+                        
+                    break
+
+                if self.shutter_open_time and touched and end and shutter_closed:
+                    if shutter_closed > touch_time_out and shutter_closed < (touch_time_out + 0.2):
+                        print('UNTOUCH CAMERA')
+                        if event_touch:
+                            event_touch.set()
+                            touched = False
+
+                if momen > touch_time_in and not touched:
+                    if event_touch:
+                        event_touch.set()
+                        touched = True
+
+                if globals.temp > target_temp and momen > pre_shutter_time_in and momen < (pre_shutter_time_in + 0.2) and not shutter_opened:
+                    globals.stimulus = stimulus
+                    print('Open shutter (camera)')
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    event_camera.set()
+                    shutter_opened = True
+                    self.shutter_open_time = time.time()
+                    mean_diff_buffer = np.mean(diff_buffer, axis=0)
+                    # time.sleep(0.1)
+
+                if globals.temp < target_temp and not end and shutter_opened:
+                    self.shutter_open_time = time.time() - self.shutter_open_time
+                    print(f'\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n')
+                    globals.stimulus = 4
+                    print('Close shutter (camera)')
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    event_camera.set()
+                    close_shutter = time.time()
+                    end = True
+                    shutter_opened = False
+
+                if globals.temp < target_temp and momen > pre_shutter_time_in and momen < (pre_shutter_time_in + 0.2) and not shutter_opened:
+                    break
+
+                print(f"Time since shutter closed: {shutter_closed}")
+
                 if end and shutter_closed:  
                     if shutter_closed > post_shutter_time_out:
                         break
@@ -658,6 +820,7 @@ class TherCam(object):
             print('Stop streaming')
             # libuvc.uvc_stop_streaming(devh)
             pass
+
 
     def readShutterOnOff(self, output, range, r = 20, arduino = None):
         """
@@ -1104,7 +1267,7 @@ class TherCam(object):
         global devh
         tiff_frameLOCAL = 1
         f = h5py.File("./{}.hdf5".format(output), "w")
-        edge = 30
+        edge = 0
         shutter_opened = False
 
         start = time.time()
@@ -1127,6 +1290,8 @@ class TherCam(object):
                 minimoC = (minimoK - 27315) / 100
                 subdataC = (subdataK - 27315) / 100
 
+                momen = time.time() - start
+
                 self.data = dataC
 
                 r = 20
@@ -1137,27 +1302,33 @@ class TherCam(object):
                 indxD, indyD = np.where(subdataC == minimoC)
                 indxD, indyD = indxD + edge, indyD + edge
 
-                mask = (xs[np.newaxis,:]- cROI[1])**2 + (ys[:,np.newaxis] - cROI[0])**2 < r**2
-                roiC = dataC[mask]
-                globals.temp = round(np.mean(roiC), 2)
-
                 x_diff = (indxD[0] - cROI[0])**2
                 y_diff = (indyD[0] - cROI[1])**2
 
                 eud = np.sqrt(x_diff + y_diff)
+                eud = round(eud, 2)
 
-                print(f'Euclidean distance between ROIs {round(eud, 2)}')
+                print(f'Euclidean distance between ROIs {eud}')
 
-                momen = time.time()
-                
-                names = ['image', 'stimulus', 'fixed_coor', 'dynamic_coor', 'time', 'eu']
-                datas = [dataC, [globals.stimulus], [cROI[0], cROI[1]], [indxD[0], indyD[0]], [momen], [eud]]
+                if eud < 20:
+                    mask = (xs[np.newaxis,:]- indyD[0])**2 + (ys[:,np.newaxis] - indxD[0])**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+                    sROI = 'dynamic'
+                    print('Switched to DYNAMIC')
+                else:
+                    mask = (xs[np.newaxis,:]- cROI[1])**2 + (ys[:,np.newaxis] - cROI[0])**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+                    sROI = 'static'
+                    print('Reading from FIXED')
+                    
+                names = ['image', 'stimulus', 'fixed_coor', 'dynamic_coor', 'time', 'eu', 'sROI']
+                datas = [dataC, [globals.stimulus], [cROI[0], cROI[1]], [indxD[0], indyD[0]], [momen], [eud], [sROI]]
 
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
-
-                momen = time.time() - start
-
+                
                 if momen > 2 and not shutter_opened:
                     if event != None:
                         event.set()
@@ -1180,6 +1351,85 @@ class TherCam(object):
             # print('Stop streaming')
             # libuvc.uvc_stop_streaming(devh)
             pass
+
+
+    def rtMoLDiff(self, output, event = None, cROI = globals.centreROI):
+        """
+            Method to perform method of limits with the thermal camera.
+        """
+        global dev
+        global devh
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+        shutter_opened = False
+        diff_buffer = []
+        start = time.time()
+        r = 20
+        xs = np.arange(0, 160)
+        ys = np.arange(0, 120)
+
+        try:
+            while True:
+                print('start script')
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+                # print(dataK)
+                # Get data
+                momen = time.time() - start
+                
+                dataC = (dataK - 27315) / 100
+
+                if momen > 2 and not shutter_opened:
+                    if event != None:
+                        event.set()
+                    shutter_opened = True
+
+                if momen > 1.5 and momen < 1.9:
+                    diff_buffer.append(dataC)
+
+                if globals.stimulus == 1:
+                    mean_diff_buffer = np.mean(diff_buffer, axis=0)
+                    dif = mean_diff_buffer - dataC
+                    maxdif = np.max(dif)
+                    indxdf, indydf = np.where(dif == maxdif)
+                    mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
+                    roiC = dataC[mask]
+                    print(f'DIFF TEMP: {round(np.mean(roiC), 2)}')
+                    sROI = 'diffROI'
+                else:
+                    sROI = 'fixedROI'
+
+                # We get the min temp and shape to draw the ROI
+
+                self.data = dataC
+
+                names = ['image', 'stimulus', 'fixed_coor', 'diff_coor', 'time', 'sROI']
+                datas = [dataC, [globals.stimulus], [cROI[0], cROI[1]], [indxdf[0], indydf[0]], [momen], [sROI]]
+
+                saveh5py(names, datas, tiff_frameLOCAL, f)
+                tiff_frameLOCAL += 1
+
+                if keyboard.is_pressed('l') and shutter_opened:  # globals.counter > globals.limit_counter:
+                    #Close file in which we are saving the stuff
+                    if event != None:
+                        event.set()
+                    print('\nThermal recording finished\n')
+                    globals.thres_temp = globals.temp
+                    globals.stimulus = 0
+                    f.close()
+                    break
+
+        except Exception as e:
+            errorloc(e)
+
+        finally:
+            # print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            pass
+
+
 
     def savePosMinShu(self, output, event1 = None):
         global dev

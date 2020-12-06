@@ -493,6 +493,28 @@ def folderVhrideos(testing = 'n'):
     
     return path_video
 
+def folderAudios(path):
+    """
+        Function to check whether the folder videos exists.
+        If the folder doesn't exist it is created automatically
+    """
+    
+    path_audio = path + "/" + 'audios'
+    path_audio = checkORcreate(path_audio)
+
+    return path_audio
+
+def folderArudio(testing = 'n'):
+    """
+        Function of functions to check whether we have all the folder architecture in place to save videos.
+    """
+    steps_back = depthToSrc()
+    path_anal = folderAnalysis(steps_back)
+    path_day = folderTesting(path_anal, testing)
+    path_audio = folderAudios(path_day)
+    
+    return path_audio
+
 #################################################################
 ########## Pipeline to set subject number & others ##############
 #################################################################

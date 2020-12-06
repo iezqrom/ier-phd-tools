@@ -135,10 +135,12 @@ class MyRecognizeCallback(RecognizeCallback):
 
     def on_hypothesis(self, hypothesis):
         globals.hypothesis = hypothesis
+        # print(hypothesis)
         pass
 
     def on_data(self, data):
         listened = data['results'][0]['alternatives'][0]['transcript']
+        # print(data)
         try:
             globals.confidence = data['results'][0]['alternatives'][0]['confidence']
         except:
@@ -161,6 +163,7 @@ class MyRecognizeCallback(RecognizeCallback):
 # this function will initiate the recognize service and pass in the AudioSource
 def recognize_yes_no_weboscket(speech_to_text, audio_source, text, *args):
     mycallback = MyRecognizeCallback(text)
+    # print('Speech recognition on')
     speech_to_text.recognize_using_websocket(audio=audio_source,
                                              content_type='audio/l16; rate=44100',
                                              recognize_callback=mycallback,

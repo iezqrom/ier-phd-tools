@@ -172,10 +172,11 @@ class ArdUIno(grabPorts):
         """
             Method to perform Method of Limits with the shutter
         """
-        globals.stimulus = 1
 
         if event != None:
             event.wait()
+
+        globals.stimulus = 1
         
         self.arduino.write(struct.pack('>B', globals.stimulus))
         printme('Start reaction time')

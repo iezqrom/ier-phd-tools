@@ -112,7 +112,8 @@ class MyRecognizeCallback(RecognizeCallback):
         # print(text)
 
     def on_transcription(self, transcript):
-        # print(transcript[0]['transcript'])
+        # print('LISTENING IN INSIDE')
+        # print(transcript)
         
         # listened = transcript[0]['transcript']
         # if any(x in listened for x in ['yes', 'yeah', 'no']):
@@ -133,25 +134,25 @@ class MyRecognizeCallback(RecognizeCallback):
         print('\nSERVICE IS LISTENING\n')
 
     def on_hypothesis(self, hypothesis):
-        # print('hola')
-        print(hypothesis)
+        globals.hypothesis = hypothesis
         pass
 
     def on_data(self, data):
-        # print('hola')
-        # print(data['results'][0]['alternatives'][0]['transcript'])
         listened = data['results'][0]['alternatives'][0]['transcript']
-        print(listened)
+        try:
+            globals.confidence = data['results'][0]['alternatives'][0]['confidence']
+        except:
+            pass
+
         if any(x in listened for x in ['yes', 'yeah', 'no']):
-            # print(any(x in listened for x in ['yes', 'yeah', 'no']))
             globals.answer = 1
-            if any(x in listened for x in ['yes', 'yeah']):
+            globals.listened = listened
+            if any(x in globals.listened for x in ['yes', 'yeah']):
                 globals.answered = 1
-                # print('YES')
-            elif any(x in listened for x in ['no']):
+            
+            elif any(x in globals.listened for x in ['no']):
                 globals.answered = 0
-                # print('NO')
-                # time.sleep(0.1)
+
             
 
     def on_close(self):
@@ -187,6 +188,9 @@ def openStream(audio, q):
     def pyaudio_callback(in_data, frame_count, time_info, status):
         try:
             q.put(in_data)
+            globals.frames.append(in_data)
+            # print(in_data)
+            # print('WE ARE HERE')
         except Full:
             pass # discard
         return (None, pyaudio.paContinue)

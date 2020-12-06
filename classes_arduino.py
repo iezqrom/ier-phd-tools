@@ -255,12 +255,12 @@ class ArdUIno(grabPorts):
                 break
             elif keyboard.is_pressed('s'):
                 if not pressed:
-                    printme('Saving reading from Ultrasound distance metre')
+                    printme('STARTED saving readings from Arduino')
                     save_buffer = True
                     pressed = True
             elif keyboard.is_pressed('o'):
                 if not pressed:
-                    printme('Stopped saving reading from Ultrasound distance metre')
+                    printme('STOPPED saving readings from Arduino')
                     save_buffer = False
                     pressed = True
             else:

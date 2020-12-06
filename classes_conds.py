@@ -1,6 +1,7 @@
 import numpy as np 
 import random
 from math import gcd
+from classes_text import *
 
 class ConditionsHandler():
     
@@ -28,24 +29,45 @@ def sdt_setup(n_trials, conds):
         Condition and stimulus absent/present come in tuples.
     """
 
-    if not any(v % 4 == 0 for v in factorization(n_trials)):
-        raise ValueError(f"Number of trials is not divisable by 4")
-
-    code_conds = np.arange(conds)
-    n_cond_trials = n_trials/conds
-
-    n_conds = np.repeat(code_conds, n_cond_trials, axis = 0)
-    unique, counts = np.unique(n_conds, return_counts=True)
-    # print(counts)
-
     stimulations = []
-    for u, c in zip(unique, counts):
-        abs_pres = np.repeat([0, 1], c/2, axis = 0)
-        
-        for ap in abs_pres:
-            stimulations.append((u, ap))
 
-    np.random.shuffle(stimulations)
+    if not n_trials % (2*conds) == 0:
+        printme(f'Number of trials is not divisable by {2*conds}')
+        if not n_trials % 2 == 0:
+            printme(f'Number of trials is an odd number')
+        printme('WARNING: Uneven number of conditions')
+        code_conds = np.arange(conds)
+        n_cond_trials = n_trials/conds
+
+        n_conds = np.repeat(code_conds, n_cond_trials, axis = 0)
+        unique, counts = np.unique(n_conds, return_counts=True)
+        print(counts)
+        
+        for u, c in zip(unique, counts):
+            abs_pres = np.repeat([0, 1], c, axis = 0)
+            
+            for ap in abs_pres:
+                stimulations.append((u, ap))
+
+        np.random.shuffle(stimulations)
+        stimulations = stimulations[:n_trials]
+        
+    else:
+        code_conds = np.arange(conds)
+        n_cond_trials = n_trials/conds
+
+        n_conds = np.repeat(code_conds, n_cond_trials, axis = 0)
+        unique, counts = np.unique(n_conds, return_counts=True)
+        # print(counts)
+        
+        for u, c in zip(unique, counts):
+            abs_pres = np.repeat([0, 1], c/2, axis = 0)
+            
+            for ap in abs_pres:
+                stimulations.append((u, ap))
+
+        np.random.shuffle(stimulations)
+
 
     return stimulations
 

@@ -65,22 +65,41 @@ def check_linear(ordered_array, current_chosen, i, coords = None):
     previous_chosen = ordered_array[-int(i)]
     
     if previous_chosen == current_chosen[0]:
-        print(f'\nInvalid choice at position {-int(i)}\n')
+        # print(f'\nInvalid choice at position {-int(i)}\n')
         return False
     else:
-        print(f'\nValid choice at position {-int(i)}\n')
+        # print(f'\nValid choice at position {-int(i)}\n')
         return True
 
-def randomise_constraints(val_left, ordered_array, count, func, limit = 2, coords= None, restart = 100):
+def exp_rand(init_rep, func, restart = 100, coor_cells=None):
+    """
+        Function to converge randomisation with constraints algorithm 
+    """
+    while True:
+        final_order = []
+        final_order = randomise_constraints(init_rep, final_order, 0, func, restart, coords= coor_cells)
+        if len(final_order) < len(init_rep):
+            printme("Didn't converge...")
+        else:
+            # printme('Constraint randomisation done')
+            break
+    return final_order
+
+
+def randomise_constraints(val_left, ordered_array, count, func, restart, limit = 2, coords= None):
     """
        Recursive function to randomise with constraints
     """
     count += 1
-    print(count)
+    # print(count)
     if len(val_left) == 0:
         printme('Constraint randomisation done...')
     
     elif count > restart:
+        print(count)
+        print(len(val_left))
+        print(len(ordered_array))
+        # time.sleep(2)
         return False
 
     elif len(ordered_array) == 0:
@@ -88,7 +107,7 @@ def randomise_constraints(val_left, ordered_array, count, func, limit = 2, coord
         current_chosen = np.random.choice(val_left, 1, replace=False)
         ordered_array.append(int(current_chosen))
         val_left = rem_chosen(val_left, current_chosen)
-        randomise_constraints(val_left, ordered_array, count, func, limit, coords, restart)
+        randomise_constraints(val_left, ordered_array, count, func, restart, limit, coords)
     
     else:
         # unique_elements, counts_elements = np.unique(val_left, return_counts=True)
@@ -110,22 +129,8 @@ def randomise_constraints(val_left, ordered_array, count, func, limit = 2, coord
             print('Another value in...')
             ordered_array.append(int(current_chosen))
             val_left = rem_chosen(val_left, current_chosen)
-            randomise_constraints(val_left, ordered_array, count, func, limit, coords, restart)
+            randomise_constraints(val_left, ordered_array, count, func, restart, limit, coords)
         else:
-            randomise_constraints(val_left, ordered_array, count, func, limit, coords, restart)
+            randomise_constraints(val_left, ordered_array, count, func, restart, limit, coords)
 
     return ordered_array
-
-def exp_rand(init_rep, func, restart = 100, coor_cells=None):
-    """
-        Function to converge randomisation with constraints algorithm 
-    """
-    while True:
-        final_order = []
-        final_order = randomise_constraints(init_rep, final_order, 0, func, coords= coor_cells, restart = restart)
-        if len(final_order) < len(init_rep):
-            printme("Didn't converge...")
-        else:
-            # printme('Constraint randomisation done')
-            break
-    return final_order

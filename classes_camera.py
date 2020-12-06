@@ -181,6 +181,7 @@ class TherCam(object):
         set_manual_ffc(devh)
 
     def killStreaming(self):
+        print('Terminating video streaming')
         global devh
         libuvc.uvc_stop_streaming(devh)
         
@@ -283,7 +284,7 @@ class TherCam(object):
             The min and max values of the heatmap are specified.
             You can take a pic too.
         """
-        print('Press "f" to refresh the shutter.')
+        print('Press "r" to refresh the shutter.')
         print('Press "t" to take a thermal pic.')
 
         import matplotlib as mpl
@@ -325,7 +326,7 @@ class TherCam(object):
 
                 plt.pause(0.0005)
 
-                if keyboard.is_pressed('f'):
+                if keyboard.is_pressed('r'):
                     print('Manual FFC')
                     perform_manual_ffc(devh)
                     print_shutter_info(devh)
@@ -542,11 +543,13 @@ class TherCam(object):
 
                 # Dynamic ROI
                 subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
-                minimoK = np.min(subdataK)
-
-                minimoC = (minimoK - 27315) / 100
                 subdataC = (subdataK - 27315)/100
+                subdataC[subdataC <= target_temp] = 100
+                minimoC = np.min(subdataC)
 
+                # minimoK = np.min(subdataK)
+                # minimoC = (minimoK - 27315) / 100
+                
                 indxD, indyD = np.where(subdataC == minimoC)
                 indxD, indyD = indxD + edge, indyD + edge
 
@@ -561,8 +564,11 @@ class TherCam(object):
                 globals.temp = round(np.mean(roiC), 2)
                 print('Mean: ' + str(globals.temp))
 
-                x_diff = (indxD[0] - indx)**2
-                y_diff = (indyD[0] - indy)**2
+                try:
+                    x_diff = (indxD[0] - indx)**2
+                    y_diff = (indyD[0] - indy)**2
+                except:
+                    continue
 
                 eud = np.sqrt(x_diff + y_diff)
 
@@ -572,7 +578,7 @@ class TherCam(object):
                 momen = time.time() - start
 
                 names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'dynamic_ROI', 'eud']
-                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxD, indyD], round(eud, 2)]
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxD, indyD], [round(eud, 2)]]
 
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
@@ -1106,12 +1112,12 @@ class TherCam(object):
         try:
             counter = 0
             while True:
-                # time.sleep(0.01)
+                print('start script')
                 dataK = q.get(True, 500)
                 if dataK is None:
                     print('Data is none')
                     break
-
+                # print(dataK)
                 # Get data
                 subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
                 minimoK = np.min(subdataK)
@@ -1144,8 +1150,8 @@ class TherCam(object):
 
                 momen = time.time()
                 
-                names = ['image', 'stimulus', 'fixed_coor', 'dynamic_coor', 'time']
-                datas = [dataC, [globals.stimulus], [cROI[0], cROI[1]], [indxD[0], indyD[0]], [momen]]
+                names = ['image', 'stimulus', 'fixed_coor', 'dynamic_coor', 'time', 'eu']
+                datas = [dataC, [globals.stimulus], [cROI[0], cROI[1]], [indxD[0], indyD[0]], [momen], [eud]]
 
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
@@ -1157,7 +1163,7 @@ class TherCam(object):
                         event.set()
                     shutter_opened = True
 
-                if keyboard.is_pressed('l'):  # globals.counter > globals.limit_counter:
+                if keyboard.is_pressed('l') and shutter_opened:  # globals.counter > globals.limit_counter:
                     #Close file in which we are saving the stuff
                     if event != None:
                         event.set()
@@ -1733,38 +1739,47 @@ class TherCam(object):
                         exit(1)
 
                     # We get the min temp and draw a circle
-                    edge = 30
+                    edgexl = 0
+                    edgexr = 0
+                    edgey = 0
                     if c_w == 'c':
-                        subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
-                        minimoK = np.min(subdataK)
-
+                        subdataK = dataK[edgey:edgey + (120 - edgey*2), edgexl:(160 - edgexr)]
+                        subdataC = (subdataK - 27315)/100
+                        # print([subdataC <= 28.5])
+                        # subdataC[subdataC <= 28.5] = 100
+                        minimoC = np.min(subdataC)
+                        # print(minimoK)
+                        
                     elif c_w == 'w':
-                        subdataK = dataK[edge:edge + (120 - edge*2), edge:edge + (160 - edge*2)]
-                        minimoK = np.max(subdataK)
+                        subdataK = dataK[edgey:edgey + (120 - edgey*2), edgexl:(160 - edgexr)]
 
                     dataC = (dataK - 27315) / 100
-                    minimoC = (minimoK - 27315) / 100
-                    subdataC = (subdataK - 27315)/100
-
+                    
+                    # print(f'min: {minimoC}')
+                    
                     xs = np.arange(0, 160)
                     ys = np.arange(0, 120)
 
                     globals.temp = minimoC
 
-                    indx, indy = np.where(subdataC == minimoC)
-                    indx, indy = indx + edge, indy + edge
+                    # print(indx, ind)
 
                     try:
+                        # print('HERE')
+                        indy, indx = np.where(subdataC == minimoC)
+                        # print(indy[0], indx[0])
+                        indx, indy = indy + edgey, indx + edgexl
                         mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
                     except:
                         continue
                     
                     roiC = dataC[mask]
                     mean = round(np.mean(roiC), 2)
-                    print(mean)
+                    print(f'Mean: {mean}')
 
                     circles = []
 
+                    # print(indx, indy)
                     for a, j in zip(indx, indy):
                         cirD = plt.Circle((j, a), r, color='b', fill = False)
                         circles.append(cirD)

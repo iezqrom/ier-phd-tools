@@ -8,6 +8,7 @@ import pandas as pd
 import subprocess
 import re
 import shutil
+from classes_text import *
 
 
 ##################################################################
@@ -68,7 +69,7 @@ def findTempFiles(path):
 
     return names
 
-def changeNameTempFile(path):
+def changeNameTempFile(path, outcome = 'failed_script'):
     """
         Function to change the name of the temporary files with current date and time.
         This functions should be placed in the except sections. It is triggered when the script fails
@@ -79,7 +80,7 @@ def changeNameTempFile(path):
     todaydate = date.today().strftime("%d%m%Y")
     for i, n in enumerate(names):
         temp_file_name = n[0].split("temp_", 1)[1]
-        shutil.copyfile(f"{path}/{n[0]}.{n[1]}", f"./{path}/{temp_file_name}_failed_script_{todaydate}_{time_now}.{n[1]}")
+        shutil.copyfile(f"{path}/{n[0]}.{n[1]}", f"./{path}/{temp_file_name}_{outcome}_{todaydate}_{time_now}.{n[1]}")
 
 ############ apending to file with all subjects ############
 def apendAll(folder, subj_n, data, file = 'data_all'):
@@ -204,7 +205,10 @@ def saveIndv(file, folder, data):
 
     print(f'\nData saved to an individual CSV\n')
 
-############# Age files #############
+########################################################
+############# Saving variables #########################
+########################################################
+############# SINGLE VARIABLE #############
 def apendSingle(file, folder, subj_n, data_point):
     """
         Function to save a single value to a csv that contains
@@ -217,10 +221,7 @@ def apendSingle(file, folder, subj_n, data_point):
     writer_subject.writerow([subj_n, data_point])
 
     of3.close()
-
-########################################################
-############# Saving variables #########################
-########################################################
+    
 ######## Saving Zaber
 
 def saveZaberPos(file, path, data, header = ['Zaber', 'x', 'y', 'z']):
@@ -378,9 +379,9 @@ def tbORtesting(testing):
     """
     if testing in ('y', 'n'):
         if testing == 'n':
-            print('You are troubleshooting')
+            printme('You are troubleshooting')
         else:
-            print('We are testing a participant')
+            printme('We are testing a participant')
     else:
         raise Exception("Variable 'testing' can only take values 'y' or 'n'.")
 
@@ -475,6 +476,7 @@ def folderVideos(path):
         Function to check whether the folder videos exists.
         If the folder doesn't exist it is created automatically
     """
+    
     path_video = path + "/" + 'videos'
     path_video = checkORcreate(path_video)
 
@@ -495,22 +497,26 @@ def folderVhrideos(testing = 'n'):
 ########## Pipeline to set subject number & others ##############
 #################################################################
 
-def setSubjNum(path, file_pattern = 'data_subj_(.*).csv'):
+def setSubjNum(file_pattern = 'data_subj_(.*).csv', folder_pattern = 'test_(.)'):
     """
         Function to set the number of the subject automatically
     """
     patternc = re.compile(file_pattern)
+    patternf = re.compile(folder_pattern)
     names = []
     subjs = []
 
-    for filename in os.listdir(f'{path}'):
-        if patternc.match(filename):
-            name, form = filename.split('.')
-            names.append(filename)
-            r = patternc.search(filename)
-            subjs.append(int(r.group(1)))
-        else:
-            continue
+    for foldername in os.listdir(f'./../../src_analysis/'):
+        if patternf.match(foldername):
+            for filename in os.listdir(f'./../../src_analysis/{foldername}/data/'):
+                if patternc.match(filename):
+                    print(filename)
+                    name, form = filename.split('.')
+                    names.append(filename)
+                    r = patternc.search(filename)
+                    subjs.append(int(r.group(1)))
+                else:
+                    continue
 
     if len(subjs) < 1:
         subject_n = 1

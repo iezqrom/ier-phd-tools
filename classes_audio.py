@@ -9,6 +9,7 @@ except:
 import numpy as np
 import time
 import math
+import globals
 
 class Sound(object):
     def __init__(self, freq, duration):
@@ -39,20 +40,50 @@ class Sound(object):
             self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
             print(f"\nTONE ON\n")
             
+            
             if event != None:
                 event.clear()
-                time.sleep(0.1)
                 
             # Logic to terminate sound while in thread
+            # print('HEREEEEE')
             if event != None:
-                # print(event.__dict__)
                 event.wait()
                 sa.stop_all()
-
             print(f"\nTone OFF\n")
 
         except Exception as e:
             print(e)
+
+    def playEndGlobal(self, event = None):
+        try:
+            if event != None:
+                event.wait()
+                # time.sleep(1)
+            # Start playback
+            self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
+            print(f"\nTONE ON\n")
+            
+            
+            if event != None:
+                event.clear()
+                
+            # Logic to terminate sound while in thread
+            # print('HEREEEEE')
+            if event != None:
+                while True:                  
+                    if globals.stimulus == 0:
+
+                        break
+
+            sa.stop_all()
+            print(f"\nTone OFF\n")
+
+        except Exception as e:
+            print(e)
+
+
+
+
 
 
 

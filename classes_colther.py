@@ -1612,7 +1612,7 @@ def grid_calculation(zaber, grid_separation, step_size = globals.step_sizes, pos
     if len(dim) < 2:
         raise Exception('dim should be of the form [x, y]')
 
-    print(pos)
+    # print(pos)
 
     # step_size = step_size[zaber]
 
@@ -1635,7 +1635,7 @@ def grid_calculation(zaber, grid_separation, step_size = globals.step_sizes, pos
     cell = 1
     for i in np.arange(dim[1]):
         for j in np.arange(dim[0]):
-            print(pos[zaber]['z'])
+            # print(pos[zaber]['z'])
             grid[str(cell)] = { 'x': math.ceil(x_origin + revDirection(zaber, 'x', rule, one_cm_zaber_steps*j)), 'y': math.ceil(y_origin + revDirection(zaber, 'y', rule, one_cm_zaber_steps*i)), 'z': pos[zaber]['z']}
             # print(j, i)
             cell += 1

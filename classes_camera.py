@@ -575,12 +575,13 @@ class TherCam(object):
                     mask = (xs[np.newaxis,:]- indyD[0])**2 + (ys[:,np.newaxis] - indxD[0])**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    sROI = 'dynamic'
+                    sROI = 'dynamROI'
+                    
                 else:
                     mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    sROI = 'static'
+                    sROI = 'fixedROI'
 
                 print('Mean: ' + str(globals.temp))
 
@@ -1314,13 +1315,13 @@ class TherCam(object):
                     mask = (xs[np.newaxis,:]- indyD[0])**2 + (ys[:,np.newaxis] - indxD[0])**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    sROI = 'dynamic'
+                    sROI = 'dynamROI'
                     print('Switched to DYNAMIC')
                 else:
                     mask = (xs[np.newaxis,:]- cROI[1])**2 + (ys[:,np.newaxis] - cROI[0])**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    sROI = 'static'
+                    sROI = 'fixedROI'
                     print('Reading from FIXED')
                     
                 names = ['image', 'stimulus', 'fixed_coor', 'dynamic_coor', 'time', 'eu', 'sROI']

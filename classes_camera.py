@@ -575,13 +575,15 @@ class TherCam(object):
                     mask = (xs[np.newaxis,:]- indyD[0])**2 + (ys[:,np.newaxis] - indxD[0])**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    sROI = 'dynamROI'
+                    sROI = 1
+                    print('DYNAMIC')
                     
                 else:
                     mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    sROI = 'fixedROI'
+                    sROI = 0
+                    print('STATIC')
 
                 print('Mean: ' + str(globals.temp))
 
@@ -649,6 +651,10 @@ class TherCam(object):
                 print(f"Time since shutter closed: {shutter_closed}")
 
                 if globals.temp < target_temp and momen > pre_shutter_time_in and momen < (pre_shutter_time_in + 0.2) and not shutter_opened:
+                    print('UNTOUCH CAMERA')
+                    if event_touch:
+                        event_touch.set()
+                        touched = False
                     break
 
                 if end and shutter_closed:  
@@ -726,15 +732,16 @@ class TherCam(object):
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
                     
-                    print('DYNAMIC Mean: ' + str(globals.temp))
-                    sROI = 'diffROI'
+                    print('DIFFERENCE Mean: ' + str(globals.temp))
+                    sROI = 1
                 else:
                     mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
                     
                     print('STATIC Mean: ' + str(globals.temp))
-                    sROI = 'fixedROI'
+                    sROI = 1
+                    indxdf, indydf = -1, -1
 
                 names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'diff_ROI', 'sROI']
                 datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxdf, indydf], [sROI]]
@@ -797,6 +804,10 @@ class TherCam(object):
                     shutter_opened = False
 
                 if globals.temp < target_temp and momen > pre_shutter_time_in and momen < (pre_shutter_time_in + 0.2) and not shutter_opened:
+                    print('UNTOUCH CAMERA')
+                    if event_touch:
+                        event_touch.set()
+                        touched = False
                     break
 
                 print(f"Time since shutter closed: {shutter_closed}")
@@ -1315,13 +1326,13 @@ class TherCam(object):
                     mask = (xs[np.newaxis,:]- indyD[0])**2 + (ys[:,np.newaxis] - indxD[0])**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    sROI = 'dynamROI'
+                    sROI = 1
                     print('Switched to DYNAMIC')
                 else:
                     mask = (xs[np.newaxis,:]- cROI[1])**2 + (ys[:,np.newaxis] - cROI[0])**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    sROI = 'fixedROI'
+                    sROI = 0
                     print('Reading from FIXED')
                     
                 names = ['image', 'stimulus', 'fixed_coor', 'dynamic_coor', 'time', 'eu', 'sROI']
@@ -1371,7 +1382,7 @@ class TherCam(object):
 
         try:
             while True:
-                print('start script')
+                # print('start script')
                 dataK = q.get(True, 500)
                 if dataK is None:
                     print('Data is none')
@@ -1386,21 +1397,24 @@ class TherCam(object):
                     if event != None:
                         event.set()
                     shutter_opened = True
+                    mean_diff_buffer = np.mean(diff_buffer, axis=0)
+                    print(np.shape(mean_diff_buffer))
 
                 if momen > 1.5 and momen < 1.9:
                     diff_buffer.append(dataC)
+                    print(diff_buffer)
 
                 if globals.stimulus == 1:
-                    mean_diff_buffer = np.mean(diff_buffer, axis=0)
                     dif = mean_diff_buffer - dataC
                     maxdif = np.max(dif)
                     indxdf, indydf = np.where(dif == maxdif)
                     mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
                     roiC = dataC[mask]
                     print(f'DIFF TEMP: {round(np.mean(roiC), 2)}')
-                    sROI = 'diffROI'
+                    sROI = 1
                 else:
-                    sROI = 'fixedROI'
+                    indxdf, indydf = [-1], [-1]
+                    sROI = 0
 
                 # We get the min temp and shape to draw the ROI
 

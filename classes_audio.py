@@ -40,7 +40,6 @@ class Sound(object):
             self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
             print(f"\nTONE ON\n")
             
-            
             if event != None:
                 event.clear()
                 

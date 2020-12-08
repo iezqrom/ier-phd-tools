@@ -740,7 +740,7 @@ class TherCam(object):
                     globals.temp = round(np.mean(roiC), 2)
                     
                     print('STATIC Mean: ' + str(globals.temp))
-                    sROI = 1
+                    sROI = 0
                     indxdf, indydf = -1, -1
 
                 names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'diff_ROI', 'sROI']

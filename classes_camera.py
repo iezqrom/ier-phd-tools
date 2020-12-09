@@ -732,14 +732,14 @@ class TherCam(object):
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
                     
-                    print('DIFFERENCE Mean: ' + str(globals.temp))
+                    print('Mean: ' + str(globals.temp))
                     sROI = 1
                 else:
                     mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
                     
-                    print('STATIC Mean: ' + str(globals.temp))
+                    print('Mean: ' + str(globals.temp))
                     sROI = 1
                     indxdf, indydf = -1, -1
 
@@ -1402,7 +1402,7 @@ class TherCam(object):
 
                 if momen > 1.5 and momen < 1.9:
                     diff_buffer.append(dataC)
-                    print(diff_buffer)
+                    # print(diff_buffer)
 
                 if globals.stimulus == 1:
                     dif = mean_diff_buffer - dataC
@@ -1410,7 +1410,7 @@ class TherCam(object):
                     indxdf, indydf = np.where(dif == maxdif)
                     mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
                     roiC = dataC[mask]
-                    print(f'DIFF TEMP: {round(np.mean(roiC), 2)}')
+                    print(f'Temp: {round(np.mean(roiC), 2)}')
                     sROI = 1
                 else:
                     indxdf, indydf = [-1], [-1]

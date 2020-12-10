@@ -177,6 +177,9 @@ class ArdUIno(grabPorts):
             event.wait()
 
         globals.stimulus = 1
+
+        if event != None:
+            event.clear()
         
         self.arduino.write(struct.pack('>B', globals.stimulus))
         printme('Start reaction time')

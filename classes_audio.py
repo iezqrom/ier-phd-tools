@@ -48,34 +48,26 @@ class Sound(object):
             if event != None:
                 event.wait()
                 sa.stop_all()
-            print(f"\nTone OFF\n")
+                print(f"\nTone OFF\n")
 
         except Exception as e:
             print(e)
 
     def playEndGlobal(self, event = None):
         try:
-            if event != None:
-                event.wait()
-                # time.sleep(1)
-            # Start playback
-            self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
-            print(f"\nTONE ON\n")
-            
-            
-            if event != None:
-                event.clear()
+            while True:
+                if globals.stimulus == 1:
+                    self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
+                    print(f"\nTONE ON\n")
+                    break
                 
-            # Logic to terminate sound while in thread
-            # print('HEREEEEE')
-            if event != None:
-                while True:                  
-                    if globals.stimulus == 0:
-
-                        break
+            while True:                  
+                if globals.stimulus == 0:
+                    print(f"\nTone OFF\n")
+                    break
 
             sa.stop_all()
-            print(f"\nTone OFF\n")
+            
 
         except Exception as e:
             print(e)

@@ -721,7 +721,7 @@ class TherCam(object):
 
                 indx, indy = centreROI
 
-                if momen > 1.5 and momen < 1.9:
+                if momen > 1.6 and momen < 2.0:
                     diff_buffer.append(dataC)
 
                 if globals.stimulus == 2:
@@ -1398,7 +1398,7 @@ class TherCam(object):
                         event.set()
                     shutter_opened = True
                     mean_diff_buffer = np.mean(diff_buffer, axis=0)
-                    print(np.shape(mean_diff_buffer))
+                    # print(np.shape(mean_diff_buffer))
 
                 if momen > 1.5 and momen < 1.9:
                     diff_buffer.append(dataC)
@@ -2004,8 +2004,8 @@ class TherCam(object):
                         exit(1)
 
                     # We get the min temp and draw a circle
-                    edgexl = 0
-                    edgexr = 0
+                    edgexl = 15
+                    edgexr = 15
                     edgey = 0
                     if c_w == 'c':
                         subdataK = dataK[edgey:edgey + (120 - edgey*2), edgexl:(160 - edgexr)]

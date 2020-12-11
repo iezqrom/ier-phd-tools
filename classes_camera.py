@@ -677,7 +677,6 @@ class TherCam(object):
             # libuvc.uvc_stop_streaming(devh)
             pass
 
-
     def targetTempAutoDiff(self, output, target_temp, centreROI, r = 20, arduino = None, stimulus = 1, total_time_out = 15, event_camera = None, event_touch = None):
         """
             Method function to measure temperature of ROI and trigger action when a given temperature is reached.
@@ -726,6 +725,7 @@ class TherCam(object):
 
                 if globals.stimulus == 2:
                     dif = mean_diff_buffer - dataC
+                    dif[dataC <= (target_temp - 0.1)] = 0
                     maxdif = np.max(dif)
                     indxdf, indydf = np.where(dif == maxdif)
                     mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
@@ -816,6 +816,168 @@ class TherCam(object):
                     if shutter_closed > post_shutter_time_out:
                         break
 
+
+                event_camera.clear()
+
+            print('Camera off')
+            f.close()
+
+        except Exception as e:
+            print(e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+
+        finally:
+            print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            pass
+
+    def targetTempAutoDiffDelta(self, output, target_delta, centreROI, r = 20, arduino = None, stimulus = 1, total_time_out = 12, event_camera = None, event_touch = None):
+        """
+            Method function to measure temperature of ROI and trigger action when a given temperature is reached.
+            The required parameters are output and target temperature.
+            Globals: stimulus, timeout, centreROI
+        """
+        global dev
+        global devh
+        import matplotlib as mpl
+
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+        print(f'\nFile to save video initialised\n')
+        start = time.time()
+        close_shutter_stamp = None
+        shutter_closed_time = None
+        end = False
+        shutter_opened = False
+        touched = False
+
+        post_shutter_time_out = 2
+        pre_shutter_time_in = 2
+        touch_time_out = 1
+        touch_time_in = 1
+        self.shutter_open_time = None
+        xs = np.arange(0, 160)
+        ys = np.arange(0, 120)
+
+        diff_buffer = []
+        baseline_buffer = []
+
+        try:
+            while True:
+                
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                momen = time.time() - start
+
+                dataC = (dataK - 27315) / 100
+
+                indx, indy = centreROI
+
+                if momen > 1.6 and momen < 2:
+                    diff_buffer.append(dataC)
+
+                if end:
+                    shutter_closed_time = time.time() - close_shutter_stamp
+
+                if momen > (total_time_out + pre_shutter_time_in):
+                    if not end and shutter_opened:
+                        self.shutter_open_time = time.time() - self.shutter_open_time
+                        globals.stimulus = 4
+                        print('Close shutter (camera)')
+                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        event_camera.set()
+                        close_shutter_stamp = time.time()
+                        if event_touch:
+                            event_touch.set()
+                        end = True
+
+                    if event_touch:
+                        event_touch.set()
+                        touched = True
+                        
+                if self.shutter_open_time and touched and end and shutter_closed_time:
+                    if shutter_closed_time > touch_time_out and shutter_closed_time < (touch_time_out + 0.2):
+                        print('UNTOUCH CAMERA')
+                        if event_touch:
+                            event_touch.set()
+                            touched = False
+
+                if momen > touch_time_in and not touched:
+                    if event_touch:
+                        event_touch.set()
+                        touched = True
+
+                if momen > pre_shutter_time_in and not end and not shutter_opened:
+                    globals.stimulus = stimulus
+                    print('Open shutter (camera)')
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    event_camera.set()
+                    shutter_opened = True
+                    self.shutter_open_time = time.time()
+                    mean_diff_buffer = np.mean(diff_buffer, axis=0)
+                    meand_baseline_buffer = np.mean(baseline_buffer)
+                    print(f'Meaned baseline {meand_baseline_buffer}')
+                    # time.sleep(0.1)
+
+                if globals.stimulus == 2:
+                    dif = mean_diff_buffer - dataC
+                    dif[dataC <= 26] = 0
+                    maxdif = np.max(dif)
+                    indxdf, indydf = np.where(dif == maxdif)
+                    print(indxdf, indydf)
+
+                    if len(indxdf) > 1:
+                        print('More than one pixel max diff')                  
+
+                    mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+
+                    globals.delta = meand_baseline_buffer - globals.temp
+                    
+                    print('Delta: ' + str(globals.delta))
+                    sROI = 1
+
+                elif globals.stimulus == 4 and not end:
+                    mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+
+                    baseline_buffer.append(globals.temp)
+                    
+                    print('Baseline: ' + str(globals.temp))
+                    sROI = 0
+                    indxdf, indydf = -1, -1
+
+                if globals.delta > target_delta and not end and shutter_opened:
+                    self.shutter_open_time = time.time() - self.shutter_open_time
+                    
+                    print(f'\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n')
+                    print(f'\nClose shutter (camera)\n')
+
+                    globals.stimulus = 4
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    close_shutter_stamp = time.time()
+
+                    event_camera.set()
+                    end = True
+                    shutter_opened = False
+
+                # print(f"Time since shutter closed: {shutter_closed}")
+
+                if end and shutter_closed_time:  
+                    if shutter_closed_time > post_shutter_time_out:
+                        break
+
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'diff_ROI', 'sROI']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxdf, indydf], [sROI]]
+                saveh5py(names, datas, tiff_frameLOCAL, f)
+                tiff_frameLOCAL += 1
 
                 event_camera.clear()
 

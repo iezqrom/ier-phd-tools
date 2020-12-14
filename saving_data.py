@@ -419,12 +419,12 @@ def depthToSrc():
 
     return backwards
 
-def folderAnalysis(backs):
+def folderData(backs):
     """
         Function to check whether the folder src_analysis exists.
         If the folder doesn't exist it is created automatically
     """
-    path = f"./{backs}src_analysis"
+    path = f"./{backs}data"
     
     path_anal = checkORcreate(path)
 
@@ -449,14 +449,14 @@ def folderTesting(path, testing):
   
     return path
 
-def folderDataFigs(path):
+def folderDataLocalFigs(path):
     path_figs = path + "/" + 'figures'
     path_figs = checkORcreate(path_figs)
 
-    path_data = path + "/" + 'data'
-    path_data = checkORcreate(path_data)
+    path_datalocal = path + "/" + 'data'
+    path_datalocal = checkORcreate(path_datalocal)
 
-    return [path_figs, path_data]
+    return [path_figs, path_datalocal]
 
 
 def folderChreation(testing = 'n'):
@@ -465,11 +465,11 @@ def folderChreation(testing = 'n'):
     """
     tbORtesting(testing)
     steps_back = depthToSrc()
-    path_anal = folderAnalysis(steps_back)
-    path_day = folderTesting(path_anal, testing)
-    path_figs, path_data = folderDataFigs(path_day)
+    path_data = folderData(steps_back)
+    path_day = folderTesting(path_data, testing)
+    path_figs, path_datalocal = folderDataLocalFigs(path_day)
 
-    return [path_day, path_anal, path_figs, path_data]
+    return [path_day, path_data, path_figs, path_datalocal]
 
 def folderVideos(path):
     """
@@ -487,8 +487,8 @@ def folderVhrideos(testing = 'n'):
         Function of functions to check whether we have all the folder architecture in place to save videos.
     """
     steps_back = depthToSrc()
-    path_anal = folderAnalysis(steps_back)
-    path_day = folderTesting(path_anal, testing)
+    path_data = folderData(steps_back)
+    path_day = folderTesting(path_data, testing)
     path_video = folderVideos(path_day)
     
     return path_video
@@ -509,8 +509,8 @@ def folderArudio(testing = 'n'):
         Function of functions to check whether we have all the folder architecture in place to save videos.
     """
     steps_back = depthToSrc()
-    path_anal = folderAnalysis(steps_back)
-    path_day = folderTesting(path_anal, testing)
+    path_data = folderData(steps_back)
+    path_day = folderTesting(path_data, testing)
     path_audio = folderAudios(path_day)
     
     return path_audio
@@ -528,9 +528,9 @@ def setSubjNum(file_pattern = 'data_subj_(.*).csv', folder_pattern = 'test_(.)')
     names = []
     subjs = []
 
-    for foldername in os.listdir(f'./../../src_analysis/'):
+    for foldername in os.listdir(f'./../../data/'):
         if patternf.match(foldername):
-            for filename in os.listdir(f'./../../src_analysis/{foldername}/data/'):
+            for filename in os.listdir(f'./../../data/{foldername}/data/'):
                 if patternc.match(filename):
                     print(filename)
                     name, form = filename.split('.')

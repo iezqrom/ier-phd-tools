@@ -82,7 +82,7 @@ class ReAnRaw(object):
 
             try:
                 shape = np.shape(self.data[name_coor][i])[1]
-                print(shape)
+                # print(shape)
                 cs = self.data[name_coor][i][:, 0]
                 cy = cs[1]
                 cx = cs[0]
@@ -105,9 +105,6 @@ class ReAnRaw(object):
             self.surround.append(meanSU)
 
  
-
-
-
 ########################################################################
 ############ Functions Display
 #########################################################################

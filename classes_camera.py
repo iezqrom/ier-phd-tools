@@ -929,10 +929,7 @@ class TherCam(object):
                     dif[dataC <= 26] = 0
                     maxdif = np.max(dif)
                     indxdf, indydf = np.where(dif == maxdif)
-                    print(indxdf, indydf)
-
-                    if len(indxdf) > 1:
-                        print('More than one pixel max diff')                  
+                    print(indxdf[0], indydf[0])
 
                     mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
                     roiC = dataC[mask]
@@ -974,8 +971,8 @@ class TherCam(object):
                     if shutter_closed_time > post_shutter_time_out:
                         break
 
-                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'diff_ROI', 'sROI']
-                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxdf, indydf], [sROI]]
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'diff_ROI', 'sROI', 'delta']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [indxdf, indydf], [sROI], [globals.delta]]
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1
 
@@ -1566,7 +1563,7 @@ class TherCam(object):
                     diff_buffer.append(dataC)
                     # print(diff_buffer)
 
-                if globals.stimulus == 1:
+                if globals.stimulus == 2:
                     dif = mean_diff_buffer - dataC
                     maxdif = np.max(dif)
                     indxdf, indydf = np.where(dif == maxdif)
@@ -1594,7 +1591,7 @@ class TherCam(object):
                         event.set()
                     print('\nThermal recording finished\n')
                     globals.thres_temp = globals.temp
-                    globals.stimulus = 0
+                    globals.stimulus = 4
                     f.close()
                     break
 

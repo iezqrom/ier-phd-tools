@@ -56,13 +56,13 @@ class Sound(object):
     def playEndGlobal(self, event = None):
         try:
             while True:
-                if globals.stimulus == 1:
+                if globals.stimulus == 2:
                     self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
                     print(f"\nTONE ON\n")
                     break
                 
             while True:                  
-                if globals.stimulus == 0:
+                if globals.stimulus == 4:
                     print(f"\nTone OFF\n")
                     break
 

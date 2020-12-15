@@ -453,7 +453,7 @@ def depthToSrc():
 
 def folderData(backs):
     """
-        Function to check whether the folder src_analysis exists.
+        Function to check whether the folder data exists.
         If the folder doesn't exist it is created automatically
     """
     path = f"./{backs}data"

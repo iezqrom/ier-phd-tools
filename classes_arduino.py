@@ -176,7 +176,7 @@ class ArdUIno(grabPorts):
         if event != None:
             event.wait()
 
-        globals.stimulus = 1
+        globals.stimulus = 2
 
         if event != None:
             event.clear()
@@ -188,7 +188,7 @@ class ArdUIno(grabPorts):
 
         while True:
             time.sleep(0.001)
-            if globals.stimulus == 0:
+            if globals.stimulus == 4:
                 globals.rt = time.time() - start
                 self.arduino.write(struct.pack('>B', globals.stimulus))
                 # time.sleep(0.1)

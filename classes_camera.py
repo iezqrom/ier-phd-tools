@@ -1595,6 +1595,16 @@ class TherCam(object):
                     f.close()
                     break
 
+                if momen > 10:
+                    print('\nTime out!\n')
+                    if event != None:
+                        event.set()
+                    print('\nThermal recording finished\n')
+                    globals.thres_temp = globals.temp
+                    globals.stimulus = 4
+                    f.close()
+                    break
+
         except Exception as e:
             errorloc(e)
 

@@ -37,6 +37,38 @@ def appendDataDict(data, tempdata):
 
     return data
 
+def subjFile(file = 'subjs.csv'):
+    """
+        Function to create subject file (date, time, valid, age)
+    """
+    of1 = open(f'./data/{file}', 'w')
+    data_writer = csv.writer(of1)
+
+    header = ['Date', 'Time', 'NumDayWithin' 'Age', 'Valid']
+
+    data_writer.writerow(header)
+
+    of1.close()
+
+def setSubjNumDec(age, numdaywithin, file = 'subjs.csv'):
+    """
+        Function to save subject date, time, valid and age
+    """
+    steps_back = depthToSrc()
+    
+    sf = open(f'./{steps_back}data/{file}', 'a')
+    data_writer = csv.writer(sf)
+
+    t = time.localtime()
+    time_now = time.strftime("%H_%M_%S", t)
+    todaydate = date.today().strftime("%d%m%Y")
+    
+    data_writer.writerow([todaydate, time_now, numdaywithin, age, 0])
+
+    sf.close()
+
+    return todaydate, time_now
+
 ##################################################################
 ###################### Saving data ##############################
 ################################################################
@@ -430,7 +462,44 @@ def folderData(backs):
 
     return path_anal
 
-def folderTesting(path, testing):
+
+def numberSubjDay(testing = 'n'):
+    if testing == 'y':
+        head_folder_name = 'test'
+    
+    elif testing == 'n':
+        head_folder_name = 'tb'
+
+    backwards = depthToSrc()
+    
+    todaydate = date.today().strftime("%d%m%Y")
+    folder_name = f"{head_folder_name}_" + todaydate + "_"
+
+    patternf = re.compile(folder_name)
+    print(patternf)
+
+    nums = []
+
+    for foldername in os.listdir(f'./{backwards}data/'):
+        print(foldername)
+        if patternf.match(foldername):
+            print(foldername)
+            name = foldername.split('_')
+            nums.append(foldername[-1])
+        else:
+            continue
+
+    nums = sorted(nums, reverse=False)
+    print(nums)
+    if len(nums) >= 1:
+        numdaysubj = int(nums[-1])
+    else:
+        numdaysubj = 0
+
+    return numdaysubj + 1
+
+
+def folderTesting(path, testing, numdaysubj):
     """
         Function to check whether the folder to save the data today exists.
         If the folder does't exist it is created automatically
@@ -442,7 +511,7 @@ def folderTesting(path, testing):
         head_folder_name = 'tb'
 
     todaydate = date.today().strftime("%d%m%Y")
-    folder_name = head_folder_name + "_" + todaydate
+    folder_name = head_folder_name + "_" + todaydate + "_" + str(numdaysubj)
     path = path + "/" + folder_name
 
     path = checkORcreate(path)
@@ -459,14 +528,14 @@ def folderDataLocalFigs(path):
     return [path_figs, path_datalocal]
 
 
-def folderChreation(testing = 'n'):
+def folderChreation(numdaysubj, testing = 'n'):
     """
         Function of functions to check whether we have all the folder architecture in place to save data and figures.
     """
     tbORtesting(testing)
     steps_back = depthToSrc()
     path_data = folderData(steps_back)
-    path_day = folderTesting(path_data, testing)
+    path_day = folderTesting(path_data, testing, numdaysubj)
     path_figs, path_datalocal = folderDataLocalFigs(path_day)
 
     return [path_day, path_data, path_figs, path_datalocal]
@@ -482,13 +551,13 @@ def folderVideos(path):
 
     return path_video
 
-def folderVhrideos(testing = 'n'):
+def folderVhrideos(numdaysubj, testing = 'n'):
     """
         Function of functions to check whether we have all the folder architecture in place to save videos.
     """
     steps_back = depthToSrc()
     path_data = folderData(steps_back)
-    path_day = folderTesting(path_data, testing)
+    path_day = folderTesting(path_data, testing, numdaysubj)
     path_video = folderVideos(path_day)
     
     return path_video
@@ -504,13 +573,13 @@ def folderAudios(path):
 
     return path_audio
 
-def folderArudio(testing = 'n'):
+def folderArudio(numdaysubj, testing = 'n'):
     """
         Function of functions to check whether we have all the folder architecture in place to save videos.
     """
     steps_back = depthToSrc()
     path_data = folderData(steps_back)
-    path_day = folderTesting(path_data, testing)
+    path_day = folderTesting(path_data, testing, numdaysubj)
     path_audio = folderAudios(path_day)
     
     return path_audio

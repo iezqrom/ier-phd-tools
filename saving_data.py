@@ -39,18 +39,18 @@ def appendDataDict(data, tempdata):
 
 def subjFile(file = 'subjs.csv'):
     """
-        Function to create subject file (date, time, valid, age)
+        Function to create subject file (date, time, age, valid, state (ex 1)/tb 1))
     """
     of1 = open(f'./data/{file}', 'w')
     data_writer = csv.writer(of1)
 
-    header = ['Date', 'Time', 'NumDayWithin' 'Age', 'Valid']
+    header = ['Date', 'Time', 'NumDayWithin', 'Age', 'Valid', 'State']
 
     data_writer.writerow(header)
 
     of1.close()
 
-def setSubjNumDec(age, numdaywithin, file = 'subjs.csv'):
+def setSubjNumDec(age, numdaywithin, situ, file = 'subjs.csv'):
     """
         Function to save subject date, time, valid and age
     """
@@ -62,12 +62,27 @@ def setSubjNumDec(age, numdaywithin, file = 'subjs.csv'):
     t = time.localtime()
     time_now = time.strftime("%H_%M_%S", t)
     todaydate = date.today().strftime("%d%m%Y")
+
+    if situ == 'tb':
+        state = 0
+    elif situ == 'ex':
+        state = 1
     
-    data_writer.writerow([todaydate, time_now, numdaywithin, age, 0])
+    data_writer.writerow([todaydate, time_now, numdaywithin, age, 0, state])
 
     sf.close()
 
     return todaydate, time_now
+
+def getSubjNumDec(file = 'subjs.csv'):
+    steps_back = depthToSrc()
+
+    df= pd.read_csv(f"./{steps_back}data/{file}")
+    nums_within = df.loc[:,'NumDayWithin']
+
+    numdaywithin = nums_within.to_numpy()[-1]
+
+    return numdaywithin
 
 ##################################################################
 ###################### Saving data ##############################
@@ -101,7 +116,7 @@ def findTempFiles(path):
 
     return names
 
-def changeNameTempFile(path, outcome = 'failed_script'):
+def changeNameTempFile(path, outcome = 'failed'):
     """
         Function to change the name of the temporary files with current date and time.
         This functions should be placed in the except sections. It is triggered when the script fails
@@ -476,15 +491,14 @@ def numberSubjDay(testing = 'n'):
     folder_name = f"{head_folder_name}_" + todaydate + "_"
 
     patternf = re.compile(folder_name)
-    print(patternf)
-
+    # print(patternf)
     nums = []
 
     for foldername in os.listdir(f'./{backwards}data/'):
-        print(foldername)
+        # print(foldername)
         if patternf.match(foldername):
-            print(foldername)
-            name = foldername.split('_')
+            # print(foldername)
+            # name = foldername.split('_')
             nums.append(foldername[-1])
         else:
             continue

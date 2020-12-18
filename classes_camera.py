@@ -121,6 +121,8 @@ class TherCam(object):
                     frame_formats[0].wWidth, frame_formats[0].wHeight, int(1e7 / frame_formats[0].dwDefaultFrameInterval))
 
                 res = libuvc.uvc_start_streaming(devh, byref(ctrl), PTR_PY_FRAME_CALLBACK, None, 0)
+                print('RES')
+                print(res)
                 if res < 0:
                     print("uvc_start_streaming failed: {0}".format(res))
                     exit(1)

@@ -37,11 +37,11 @@ def appendDataDict(data, tempdata):
 
     return data
 
-def subjFile(file = 'subjs.csv'):
+def subjFile(path, file = 'subjs.csv'):
     """
         Function to create subject file (date, time, age, valid, state (ex 1)/tb 1))
     """
-    of1 = open(f'./data/{file}', 'w')
+    of1 = open(f'{path}/data/{file}', 'w')
     data_writer = csv.writer(of1)
 
     header = ['Date', 'Time', 'NumDayWithin', 'Age', 'Valid', 'State']

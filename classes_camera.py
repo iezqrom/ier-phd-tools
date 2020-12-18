@@ -899,6 +899,8 @@ class TherCam(object):
                     if event_touch:
                         event_touch.set()
                         touched = True
+
+                    
                         
                 if self.shutter_open_time and touched and end and shutter_closed_time:
                     if shutter_closed_time > touch_time_out and shutter_closed_time < (touch_time_out + 0.2):
@@ -937,7 +939,7 @@ class TherCam(object):
 
                     globals.delta = meand_baseline_buffer - globals.temp
                     
-                    print('Delta: ' + str(globals.delta))
+                    print('Delta: ' + str(round(globals.delta, 2)))
                     sROI = 1
 
                 elif globals.stimulus == 4 and not end:

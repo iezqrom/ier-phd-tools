@@ -4,3 +4,5 @@ listened = None
 hypothesis = None
 confidence = None
 frames = None
+centreROI = None
+rules = None

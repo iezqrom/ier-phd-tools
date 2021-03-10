@@ -82,7 +82,7 @@ def getSubjNumDec(file = 'subjs.csv'):
 
     numdaywithin = nums_within.to_numpy()[-1]
 
-    return numdaywithin
+    return int(numdaywithin)
 
 ##################################################################
 ###################### Saving data ##############################

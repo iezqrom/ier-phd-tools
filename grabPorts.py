@@ -16,18 +16,27 @@ class grabPorts(object):
 
 # [s for s in ports  if "usbmodem14{}{}01".format(1, 2) in s][0]
 
-    def zaberPort(self, who, usb_port = None, n_modem = None, winPort = None):
+    def zaberPort(self, who, head, tail2, tail1, usb_port = None, n_modem = None, winPort = None):
+        
         if sys.platform.startswith('win'):
             self.zaber_port = winPort
             # self.zaber_port = serial.Serial('COM{}'.format(winPort), baudrate = 115200, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE);
 
         elif sys.platform.startswith('darwin'):
-
+            # print("HELLO")
+            # pri
             if who == 'serial':
                 self.zaber_port = [s for s in self.ports if "serial" in s]
+                
+                # print(self.zaber_port)
 
             elif who == 'modem':
-                self.zaber_port = [s for s in self.ports if "usbmodem14{}{}01".format(usb_port, str(n_modem)) in s]
+                # print(who)
+                # print('HELLO')
+                # print(f"usbmodem{str(head)}{str(usb_port)}{str(n_modem)}{str(tail2)}{str(tail1)}")
+                # print([s for s in self.ports if f"usbmodem{str(usb_port)}{str(n_modem)}{str(tail2)}{str(tail1)}"])
+                self.zaber_port = [s for s in self.ports if f"usbmodem{str(head)}{str(usb_port)}{str(n_modem)}{str(tail2)}{str(tail1)}" in s]
+                print(self.zaber_port)
 
             try:
                 pass

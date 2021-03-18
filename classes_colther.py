@@ -102,9 +102,9 @@ class Zaber(grabPorts):
         Zaber class developed by Ivan Ezquerra-Romano at the Action & Body lab (2018-2020)
     """
 
-    def __init__(self, n_device, who, usb_port = None, n_modem = None, winPort = None, port = None):
+    def __init__(self, n_device, who, usb_port = None, n_modem = None, winPort = None, port = None, head = 14, tail2=0, tail1=1):
         self.ports = grabPorts()
-        self.ports.zaberPort(who, usb_port, n_modem, winPort)
+        self.ports.zaberPort(who, head, tail2, tail1, usb_port, n_modem, winPort)
 
         if n_device == 1: # number 1 device is chosen to lead the Daisy chain
             try:
@@ -117,8 +117,9 @@ class Zaber(grabPorts):
         else:
             self.port = port
             self.device = zs.AsciiDevice(port.port, n_device)
-        
-        # print(self.device)
+
+        print('DEVICE')
+        print(self.device)
 
     def move(self, amount):
         reply = self.device.move_rel(amount)
@@ -1805,9 +1806,9 @@ def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None
         print(f'\n Moving axis {d} of {zaber} to {posc}')
 
         try:
-            zabers[zaber][d].device.move_abs(posc)
+            zabers[zaber][d].device.move_abs(math.ceil(posc))
         except:
-            zabers[zaber][d].move_abs(posc)
+            zabers[zaber][d].move_abs(math.ceil(posc))
         time.sleep(0.1)
 
 
@@ -1827,9 +1828,9 @@ def movetostartZabersConcu(zabers, zaber, axes, pos = globals.positions, cond = 
         print(f'\n Moving axis {d} of {zaber} to {posc}\n')
 
         try:
-            zabers[zaber][d].device.move_abs(posc)
+            zabers[zaber][d].device.move_abs(math.ceil(posc))
         except:
-            zabers[zaber][d].move_abs(posc)
+            zabers[zaber][d].move_abs(math.ceil(posc))
     
     threads_zabers = []
 
@@ -1961,16 +1962,16 @@ def set_up_big_three(axes):
     camera2 = camera12.device.axis(2)
     camera3 = Zaber(2, port = camera12, who = 'modem', usb_port = 2, n_modem = 1)
 
-    tactile12 = Zaber(1, who = 'modem', usb_port = 2, n_modem = 2)
+    tactile12 = Zaber(1, who = 'modem', usb_port = 9, n_modem = 3, head = 75, tail2=3, tail1=1)
     tactile1 = tactile12.device.axis(1)
     tactile2 = tactile12.device.axis(2)
-    tactile3 = Zaber(2, port = tactile12, who = 'modem', usb_port = 2, n_modem = 2)
+    tactile3 = Zaber(2, port = tactile12, who = 'modem', usb_port = 9, n_modem = 3, head = 75, tail2=3, tail1=1)
 
     colther = {axes['colther'][0]: colther1, axes['colther'][1]: colther2, axes['colther'][2]: colther3}
     camera = {axes['camera'][0]: camera1, axes['camera'][1]: camera2, axes['colther'][2]: camera3}
     tactile = {axes['tactile'][0]: tactile1, axes['tactile'][1]: tactile2, axes['tactile'][2]: tactile3}
 
-    zabers = {'colther': colther, 'camera': camera,
+    zabers = {'colther': colther, 'camera': camera, 
                 'tactile': tactile}
 
     return zabers

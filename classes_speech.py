@@ -7,7 +7,6 @@ import globals
 from classes_text import *
 from failing import *
 
-
 ########################################################################
 ######################## FUNCTIONS ########################
 ########################################################################
@@ -114,7 +113,7 @@ class MyRecognizeCallback(RecognizeCallback):
     def on_transcription(self, transcript):
         # print('LISTENING IN INSIDE')
         # print(transcript)
-        
+
         # listened = transcript[0]['transcript']
         # if any(x in listened for x in ['yes', 'yeah', 'no']):
         #     globals.test = 1
@@ -151,11 +150,9 @@ class MyRecognizeCallback(RecognizeCallback):
             globals.listened = listened
             if any(x in globals.listened for x in ['yes', 'yeah']):
                 globals.answered = 1
-            
             elif any(x in globals.listened for x in ['no']):
                 globals.answered = 0
 
-            
 
     def on_close(self):
         print("Connection closed")
@@ -207,7 +204,7 @@ def openStream(audio, q):
         stream_callback=pyaudio_callback,
         start=False
     )
-    
+
     return stream
 
 def terminateSpeechRecognition(stream, audio, audio_source):

@@ -41,7 +41,7 @@ try:
 except:
     pass
 from grabPorts import grabPorts
-
+from classes_text import *
 
 # Maths
 import numpy as np
@@ -58,17 +58,17 @@ class ArdUIno(grabPorts):
         self.ports = grabPorts()
         self.ports.arduinoPort(winPort, num_ards, usb_port, n_modem)
         print(self.ports)
-        print('Arduino port: ')
+        printme('Arduino port: ')
         print(str(self.ports.arduino_ports))
 
         if num_ards == 1:
             try:
-                self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
+                self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 1)
             except IndexError:
                 print('I cannot find any arduino boards!')
         elif num_ards > 1:
-            self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 5)
-            self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 5)
+            self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 1)
+            self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 1)
 
         self.arduino.flushInput()
 
@@ -93,7 +93,7 @@ class ArdUIno(grabPorts):
             if keyboard.is_pressed('e'):
                 break
         
-        print('Reading done')
+        printme('Reading done')
 
     def OpenClose(self, wait_close, wait_open, devices = None):
 
@@ -138,7 +138,6 @@ class ArdUIno(grabPorts):
     def controlShu(self, devices):
 
         while True:
-
             try:
 
                 if keyboard.is_pressed('c'):
@@ -169,22 +168,30 @@ class ArdUIno(grabPorts):
             except KeyboardInterrupt:
                 sys.exit(1)
 
-    def OpenCloseMoF(self, event):
+    def OpenCloseMoL(self, event):
+        """
+            Method to perform Method of Limits with the shutter
+        """
 
         if event != None:
             event.wait()
-            
-        time.sleep(1)
 
-        globals.stimulus = 1
+        globals.stimulus = 2
+
+        if event != None:
+            event.clear()
+        
         self.arduino.write(struct.pack('>B', globals.stimulus))
+        printme('Start reaction time')
         start = time.time()
+        # time.sleep(0.2)
 
         while True:
             time.sleep(0.001)
-            if globals.stimulus == 0:
+            if globals.stimulus == 4:
                 globals.rt = time.time() - start
                 self.arduino.write(struct.pack('>B', globals.stimulus))
+                # time.sleep(0.1)
                 break
 
     def readFloat(self, start, finish, globali, event):
@@ -208,6 +215,62 @@ class ArdUIno(grabPorts):
                 # print('Waiting for Zaber to move')
                 event[1].wait()
 
+    def closeOpenTemp(self, range):
+        """
+            Method of function to close and open shutter depending on the temperature
+        """
+
+        while True:
+            # print(globals.temp)
+            if globals.temp < range[0]:
+                # print('Close')
+                globals.stimulus = 0
+                self.arduino.write(struct.pack('>B', globals.stimulus))
+            elif globals.temp > range[1]:
+                # print('Open')
+                globals.stimulus = 1
+                self.arduino.write(struct.pack('>B', globals.stimulus))
+            
+            if globals.momen > globals.timeout:
+                printme('Finish shutter')
+                globals.stimulus = 0
+                self.arduino.write(struct.pack('>B', globals.stimulus))
+                break
+
+    def readDistance(self):
+        """
+            Method to read distance and save it during a period set manually
+        """
+        self.buffer = []
+        save_buffer = False
+        pressed = False
+        while True:
+            # 
+            read = self.arduino.readline()
+            if save_buffer:
+                self.buffer.append(float(read))
+            try:
+                print(float(read))
+            except:
+                printme('Arduino sent garbage')
+
+            if keyboard.is_pressed('e'):
+                printme('Done reading distance...')
+                break
+            elif keyboard.is_pressed('s'):
+                if not pressed:
+                    printme('STARTED saving readings from Arduino')
+                    save_buffer = True
+                    pressed = True
+            elif keyboard.is_pressed('o'):
+                if not pressed:
+                    printme('STOPPED saving readings from Arduino')
+                    save_buffer = False
+                    pressed = True
+            else:
+                pressed = False
+
+
 
 ################################################################################
 ############################# FUNCTION #########################################
@@ -217,18 +280,15 @@ def shakeShutter(ard, times):
     for i in np.arange(times):
         globals.stimulus = 1
         ard.arduino.write(struct.pack('>B', globals.stimulus))
-        # read = ard.arduino.readline()
-        # print(read)
-        print('Open shutter')
+        printme('Open shutter')
 
-        time.sleep(0.5)
+        time.sleep(0.2)
 
         globals.stimulus = 0
         ard.arduino.write(struct.pack('>B', globals.stimulus))
-        # read = ard.arduino.readline()
-        # print(read)
-        print('Close shutter')
-        time.sleep(0.5)
+
+        printme('Close shutter')
+        time.sleep(0.2)
 
 Fs = 20; # sampling freq
 Fc = 2; # cutoff

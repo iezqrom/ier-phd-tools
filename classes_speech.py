@@ -7,7 +7,6 @@ import globals
 from classes_text import *
 from failing import *
 
-
 ########################################################################
 ######################## FUNCTIONS ########################
 ########################################################################
@@ -89,7 +88,6 @@ except ImportError:
 CHUNK = 1024
 BUF_MAX_SIZE = CHUNK * 10
 
-
 def audioInstance(BUF_MAX_SIZE=BUF_MAX_SIZE, CHUNK=CHUNK):
     q = Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK)))
     audio_source = AudioSource(q, True, True)
@@ -113,8 +111,9 @@ class MyRecognizeCallback(RecognizeCallback):
         # print(text)
 
     def on_transcription(self, transcript):
-        # print(transcript[0]['transcript'])
-        
+        # print('LISTENING IN INSIDE')
+        # print(transcript)
+
         # listened = transcript[0]['transcript']
         # if any(x in listened for x in ['yes', 'yeah', 'no']):
         #     globals.test = 1
@@ -131,29 +130,29 @@ class MyRecognizeCallback(RecognizeCallback):
         print('Inactivity timeout: {}'.format(error))
 
     def on_listening(self):
-        print('Service is listening')
+        print('\nSERVICE IS LISTENING\n')
 
     def on_hypothesis(self, hypothesis):
-        # print('hola')
+        globals.hypothesis = hypothesis
         # print(hypothesis)
         pass
 
     def on_data(self, data):
-        # print('hola')
-        # print(data['results'][0]['alternatives'][0]['transcript'])
         listened = data['results'][0]['alternatives'][0]['transcript']
-        print(listened)
+        # print(data)
+        try:
+            globals.confidence = data['results'][0]['alternatives'][0]['confidence']
+        except:
+            pass
+
         if any(x in listened for x in ['yes', 'yeah', 'no']):
-            # print(any(x in listened for x in ['yes', 'yeah', 'no']))
             globals.answer = 1
-            if any(x in listened for x in ['yes', 'yeah']):
+            globals.listened = listened
+            if any(x in globals.listened for x in ['yes', 'yeah']):
                 globals.answered = 1
-                # print('YES')
-            elif any(x in listened for x in ['no']):
+            elif any(x in globals.listened for x in ['no']):
                 globals.answered = 0
-                # print('NO')
-                # time.sleep(0.1)
-            
+
 
     def on_close(self):
         print("Connection closed")
@@ -161,6 +160,7 @@ class MyRecognizeCallback(RecognizeCallback):
 # this function will initiate the recognize service and pass in the AudioSource
 def recognize_yes_no_weboscket(speech_to_text, audio_source, text, *args):
     mycallback = MyRecognizeCallback(text)
+    # print('Speech recognition on')
     speech_to_text.recognize_using_websocket(audio=audio_source,
                                              content_type='audio/l16; rate=44100',
                                              recognize_callback=mycallback,
@@ -185,10 +185,12 @@ def startAudioWatson():
     return audio
 
 def openStream(audio, q):
-
     def pyaudio_callback(in_data, frame_count, time_info, status):
         try:
             q.put(in_data)
+            globals.frames.append(in_data)
+            # print(in_data)
+            # print('WE ARE HERE')
         except Full:
             pass # discard
         return (None, pyaudio.paContinue)
@@ -202,7 +204,7 @@ def openStream(audio, q):
         stream_callback=pyaudio_callback,
         start=False
     )
-    
+
     return stream
 
 def terminateSpeechRecognition(stream, audio, audio_source):

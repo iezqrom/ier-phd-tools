@@ -9,7 +9,10 @@ import os
 import matplotlib.pyplot as plt
 import os
 import re
-from func_anim import *
+try:
+    from func_anim import *
+except:
+    pass
 import numpy as np
 import h5py
 import re
@@ -65,7 +68,10 @@ class ReAnRaw(object):
         shus = np.asarray(self.data[name])
         self.open = np.where(shus[:-1] != shus[1:])[0]
 
-    def extractMeansF(self, name_image = 'image', name_coorF = 'fixed_coor', r = 20):
+    def extractMeans(self, name_image = 'image', name_coor = 'fixed_coor', r = 20):
+        """
+            Method to extract mean of ROI (default: fixed_coor)
+        """
 
         self.min_pixel = []
         self.means = []
@@ -78,7 +84,20 @@ class ReAnRaw(object):
             xs = np.arange(0, 160)
             ys = np.arange(0, 120)
 
-            mask = (xs[np.newaxis,:] - self.data[name_coorF][i][1])**2 + (ys[:,np.newaxis] - self.data[name_coorF][i][0])**2 < r**2
+            # print(self.data[name_coor][i])
+
+            try:
+                shape = np.shape(self.data[name_coor][i])[1]
+                # print(shape)
+                cs = self.data[name_coor][i][:, 0]
+                cy = cs[1]
+                cx = cs[0]
+            except:
+                cs = self.data[name_coor][i]
+                cy = cs[1]
+                cx = cs[0]
+
+            mask = (xs[np.newaxis,:] - cy)**2 + (ys[:,np.newaxis] - cx)**2 < r**2
 
             roiC = self.data[name_image][i][mask]
             mean = round(np.mean(roiC), 2)
@@ -92,9 +111,6 @@ class ReAnRaw(object):
             self.surround.append(meanSU)
 
  
-
-
-
 ########################################################################
 ############ Functions Display
 #########################################################################

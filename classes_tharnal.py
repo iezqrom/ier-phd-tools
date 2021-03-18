@@ -9,7 +9,10 @@ import os
 import matplotlib.pyplot as plt
 import os
 import re
-from func_anim import *
+try:
+    from func_anim import *
+except:
+    pass
 import numpy as np
 import h5py
 import re
@@ -66,6 +69,9 @@ class ReAnRaw(object):
         self.open = np.where(shus[:-1] != shus[1:])[0]
 
     def extractMeans(self, name_image = 'image', name_coor = 'fixed_coor', r = 20):
+        """
+            Method to extract mean of ROI (default: fixed_coor)
+        """
 
         self.min_pixel = []
         self.means = []

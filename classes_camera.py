@@ -6,7 +6,10 @@ import numpy as np
 import ctypes
 import struct
 import h5py
-import keyboard
+try:
+    import keyboard
+except:
+    pass
 from datetime import datetime
 
 ## Maths
@@ -15,7 +18,10 @@ from scipy import optimize
 ## Media
 import time
 import cv2
-from imutils.video import VideoStream
+try:
+    from imutils.video import VideoStream
+except:
+    pass
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import animation
@@ -31,7 +37,10 @@ import platform
 # from pynput import keyboard
 import os
 import argparse
-import imutils
+try:
+    import imutils
+except:
+    pass
 import matplotlib as mpl
 
 try:

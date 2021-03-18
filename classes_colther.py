@@ -1805,9 +1805,9 @@ def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None
         print(f'\n Moving axis {d} of {zaber} to {posc}')
 
         try:
-            zabers[zaber][d].device.move_abs(posc)
+            zabers[zaber][d].device.move_abs(math.ceil(posc))
         except:
-            zabers[zaber][d].move_abs(posc)
+            zabers[zaber][d].move_abs(math.ceil(posc))
         time.sleep(0.1)
 
 
@@ -1827,9 +1827,9 @@ def movetostartZabersConcu(zabers, zaber, axes, pos = globals.positions, cond = 
         print(f'\n Moving axis {d} of {zaber} to {posc}\n')
 
         try:
-            zabers[zaber][d].device.move_abs(posc)
+            zabers[zaber][d].device.move_abs(math.ceil(posc))
         except:
-            zabers[zaber][d].move_abs(posc)
+            zabers[zaber][d].move_abs(math.ceil(posc))
     
     threads_zabers = []
 

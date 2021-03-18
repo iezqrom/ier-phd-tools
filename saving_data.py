@@ -82,7 +82,7 @@ def getSubjNumDec(file = 'subjs.csv'):
 
     numdaywithin = nums_within.to_numpy()[-1]
 
-    return numdaywithin
+    return int(numdaywithin)
 
 ##################################################################
 ###################### Saving data ##############################
@@ -411,7 +411,7 @@ def rootToUser(*paths):
 
     for i in paths:
         os.chdir(i)
-        subprocess.call("brapper.sh")
+        subprocess.call("/Users/manny/Documents/ProjectCold/expt4_py_nontactileColdnew/ew_scripts/brapper.sh")
         print(f"\nChanged permissions of following path: {i}\n")
         os.chdir(pwd)
 
@@ -546,6 +546,7 @@ def folderChreation(numdaysubj, testing = 'n'):
     """
         Function of functions to check whether we have all the folder architecture in place to save data and figures.
     """
+    print (numdaysubj)
     tbORtesting(testing)
     steps_back = depthToSrc()
     path_data = folderData(steps_back)

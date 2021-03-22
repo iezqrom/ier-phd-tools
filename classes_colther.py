@@ -1622,7 +1622,6 @@ def grid_calculation(zaber, grid_separation, step_size = globals.step_sizes, pos
     grid = {}
 
     #Calculate origin
-    
     x_origin = pos[zaber]['x'] - revDirection(zaber, 'x', rule, one_cm_zaber_steps)
     y_origin = pos[zaber]['y'] - revDirection(zaber, 'y', rule, one_cm_zaber_steps)
 

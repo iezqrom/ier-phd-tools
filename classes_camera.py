@@ -938,8 +938,10 @@ class TherCam(object):
 
                 if globals.stimulus == 2:
                     dif = mean_diff_buffer - dataC
+                    
                     dif[dataC <= 28] = 0
                     dif[dif <= (target_delta - 0.3)] = 0
+
                     maxdif = np.max(dif)
                     indxdf, indydf = np.where(dif == maxdif)
                     print(indxdf[0], indydf[0])

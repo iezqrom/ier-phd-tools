@@ -411,7 +411,10 @@ def rootToUser(*paths):
 
     for i in paths:
         os.chdir(i)
-        subprocess.call("/Users/manny/Documents/ProjectCold/expt4_py_nontactileColdnew/ew_scripts/brapper.sh")
+        try:
+            subprocess.call("brapper.sh")
+        except:
+            subprocess.call("/Users/manny/Documents/ProjectCold/expt4_py_nontactileColdnew/ew_scripts/brapper.sh")
         print(f"\nChanged permissions of following path: {i}\n")
         os.chdir(pwd)
 

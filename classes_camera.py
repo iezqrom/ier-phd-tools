@@ -888,9 +888,6 @@ class TherCam(object):
 
                 indx, indy = centreROI
 
-                if momen > 1.6 and momen < 2:
-                    diff_buffer.append(dataC)
-
                 if end:
                     shutter_closed_time = time.time() - close_shutter_stamp
 
@@ -929,28 +926,31 @@ class TherCam(object):
                     event_camera.set()
                     shutter_opened = True
                     self.shutter_open_time = time.time()
-                    mean_diff_buffer = np.mean(diff_buffer, axis=0)
                     meand_baseline_buffer = np.mean(baseline_buffer)
                     print(f'Meaned baseline {meand_baseline_buffer}')
-                    # time.sleep(0.1)
 
                 if globals.stimulus == 2:
-                    dif = mean_diff_buffer - dataC
-
-                    dif[dataC <= 28] = 0
-                    dif[dif <= (target_delta - 0.3)] = 0
-
-                    maxdif = np.max(dif)
-                    indxdf, indydf = np.where(dif == maxdif)
-                    print(indxdf[0], indydf[0])
-
-                    mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
-                    roiC = dataC[mask]
-                    globals.temp = round(np.mean(roiC), 2)
-
                     self.shutter_open_time = time.time() - self.shutter_open_time
 
-                    if self.shutter_open_time > 0.5:
+                    if self.shutter_open_time < 0.6:
+                        diff_buffer.append(dataC)
+                        print('buffering...')
+                        print(self.shutter_open_time)
+                        mean_diff_buffer = np.mean(diff_buffer, axis=0)
+                    elif self.shutter_open_time => 0.6:
+                        dif = mean_diff_buffer - dataC
+
+                        dif[dataC <= 28] = 0
+                        dif[dif <= (target_delta - 0.3)] = 0
+
+                        maxdif = np.max(dif)
+                        indxdf, indydf = np.where(dif == maxdif)
+                        print(indxdf[0], indydf[0])
+
+                        mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
+                        roiC = dataC[mask]
+                        globals.temp = round(np.mean(roiC), 2)
+
                         globals.delta = meand_baseline_buffer - globals.temp
                         print('Delta: ' + str(round(globals.delta, 2)))
 

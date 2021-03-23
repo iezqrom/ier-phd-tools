@@ -910,8 +910,6 @@ class TherCam(object):
                         event_touch.set()
                         touched = True
 
-                    
-                        
                 if self.shutter_open_time and touched and end and shutter_closed_time:
                     if shutter_closed_time > touch_time_out and shutter_closed_time < (touch_time_out + 0.2):
                         print('UNTOUCH CAMERA')
@@ -938,7 +936,7 @@ class TherCam(object):
 
                 if globals.stimulus == 2:
                     dif = mean_diff_buffer - dataC
-                    
+
                     dif[dataC <= 28] = 0
                     dif[dif <= (target_delta - 0.3)] = 0
 
@@ -950,9 +948,12 @@ class TherCam(object):
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
 
-                    globals.delta = meand_baseline_buffer - globals.temp
-                    
-                    print('Delta: ' + str(round(globals.delta, 2)))
+                    self.shutter_open_time = time.time() - self.shutter_open_time
+
+                    if self.shutter_open_time > 0.5:
+                        globals.delta = meand_baseline_buffer - globals.temp
+                        print('Delta: ' + str(round(globals.delta, 2)))
+
                     sROI = 1
 
                 elif globals.stimulus == 4 and not end:

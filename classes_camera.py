@@ -930,18 +930,20 @@ class TherCam(object):
                     print(f'Meaned baseline {meand_baseline_buffer}')
 
                 if globals.stimulus == 2:
-                    self.shutter_open_time = time.time() - self.shutter_open_time
+                    buffering_time = time.time() - self.shutter_open_time
 
-                    if self.shutter_open_time < 0.6:
+                    if buffering_time < 0.5:
                         diff_buffer.append(dataC)
                         print('buffering...')
-                        print(self.shutter_open_time)
+                        print(round(buffering_time, 4))
                         mean_diff_buffer = np.mean(diff_buffer, axis=0)
-                    elif self.shutter_open_time => 0.6:
+                        indxdf, indydf = np.ones((2, 1))
+
+                    elif buffering_time >= 0.6:
                         dif = mean_diff_buffer - dataC
 
                         dif[dataC <= 28] = 0
-                        dif[dif <= (target_delta - 0.3)] = 0
+                        dif[dif <= (0.3)] = 0
 
                         maxdif = np.max(dif)
                         indxdf, indydf = np.where(dif == maxdif)
@@ -965,6 +967,7 @@ class TherCam(object):
                     
                     print('Baseline: ' + str(globals.temp))
                     sROI = 0
+                    
                     indxdf, indydf = -1, -1
 
                 if globals.delta > target_delta and not end and shutter_opened:

@@ -887,6 +887,7 @@ class TherCam(object):
                 dataC = (dataK - 27315) / 100
 
                 indx, indy = centreROI
+                indxdf, indydf = np.ones((2, 1))
 
                 if end:
                     shutter_closed_time = time.time() - close_shutter_stamp
@@ -922,7 +923,10 @@ class TherCam(object):
                 if momen > pre_shutter_time_in and not end and not shutter_opened:
                     globals.stimulus = stimulus
                     print('Open shutter (camera)')
-                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    try:
+                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    except:
+                        print('ARDUINO FAILED!')
                     event_camera.set()
                     shutter_opened = True
                     self.shutter_open_time = time.time()
@@ -932,14 +936,14 @@ class TherCam(object):
                 if globals.stimulus == 2:
                     buffering_time = time.time() - self.shutter_open_time
 
-                    if buffering_time < 0.5:
+                    if buffering_time < 0.3:
                         diff_buffer.append(dataC)
                         print('buffering...')
                         print(round(buffering_time, 4))
                         mean_diff_buffer = np.mean(diff_buffer, axis=0)
                         indxdf, indydf = np.ones((2, 1))
 
-                    elif buffering_time >= 0.6:
+                    elif buffering_time >= 0.3:
                         dif = mean_diff_buffer - dataC
 
                         dif[dataC <= 28] = 0

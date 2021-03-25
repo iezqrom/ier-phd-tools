@@ -939,7 +939,7 @@ class TherCam(object):
                         mean_diff_buffer = np.mean(diff_buffer, axis=0)
                         indxdf, indydf = np.ones((2, 1))
 
-                    elif buffering_time >= 0.6:
+                    elif buffering_time >= 0.5:
                         dif = mean_diff_buffer - dataC
 
                         dif[dataC <= 28] = 0

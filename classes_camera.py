@@ -863,6 +863,7 @@ class TherCam(object):
         end = False
         shutter_opened = False
         touched = False
+        globals.stimulus = 4
 
         post_shutter_time_out = 2
         pre_shutter_time_in = 2
@@ -887,9 +888,7 @@ class TherCam(object):
                 dataC = (dataK - 27315) / 100
 
                 indx, indy = centreROI
-
-                if momen > 1.6 and momen < 2:
-                    diff_buffer.append(dataC)
+                indxdf, indydf = np.ones((2, 1))
 
                 if end:
                     shutter_closed_time = time.time() - close_shutter_stamp
@@ -925,32 +924,40 @@ class TherCam(object):
                 if momen > pre_shutter_time_in and not end and not shutter_opened:
                     globals.stimulus = stimulus
                     print('Open shutter (camera)')
-                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    try:
+                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    except:
+                        print('ARDUINO FAILED!')
                     event_camera.set()
                     shutter_opened = True
                     self.shutter_open_time = time.time()
-                    mean_diff_buffer = np.mean(diff_buffer, axis=0)
                     meand_baseline_buffer = np.mean(baseline_buffer)
                     print(f'Meaned baseline {meand_baseline_buffer}')
-                    # time.sleep(0.1)
 
                 if globals.stimulus == 2:
-                    dif = mean_diff_buffer - dataC
+                    buffering_time = time.time() - self.shutter_open_time
 
-                    dif[dataC <= 28] = 0
-                    dif[dif <= (target_delta - 0.3)] = 0
+                    if buffering_time < 0.3:
+                        diff_buffer.append(dataC)
+                        print('buffering...')
+                        print(round(buffering_time, 4))
+                        mean_diff_buffer = np.mean(diff_buffer, axis=0)
+                        indxdf, indydf = np.ones((2, 1))
 
-                    maxdif = np.max(dif)
-                    indxdf, indydf = np.where(dif == maxdif)
-                    print(indxdf[0], indydf[0])
+                    elif buffering_time >= 0.3:
+                        dif = mean_diff_buffer - dataC
 
-                    mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
-                    roiC = dataC[mask]
-                    globals.temp = round(np.mean(roiC), 2)
+                        dif[dataC <= 28] = 0
+                        dif[dif <= (0.3)] = 0
 
-                    self.shutter_open_time = time.time() - self.shutter_open_time
+                        maxdif = np.max(dif)
+                        indxdf, indydf = np.where(dif == maxdif)
+                        print(indxdf[0], indydf[0])
 
-                    if self.shutter_open_time > 0.5:
+                        mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
+                        roiC = dataC[mask]
+                        globals.temp = round(np.mean(roiC), 2)
+
                         globals.delta = meand_baseline_buffer - globals.temp
                         print('Delta: ' + str(round(globals.delta, 2)))
 
@@ -965,9 +972,10 @@ class TherCam(object):
                     
                     print('Baseline: ' + str(globals.temp))
                     sROI = 0
+                    
                     indxdf, indydf = -1, -1
 
-                if globals.delta > target_delta and not end and shutter_opened:
+                if globals.delta > target_delta and not end and shutter_opened and globals.delta < (target_delta + 0.2):
                     self.shutter_open_time = time.time() - self.shutter_open_time
                     
                     print(f'\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n')

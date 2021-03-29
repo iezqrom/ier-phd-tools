@@ -975,7 +975,7 @@ class TherCam(object):
                     
                     indxdf, indydf = -1, -1
 
-                if globals.delta > target_delta and not end and shutter_opened and globals.delta < (target_delta + 0.4):
+                if globals.delta > target_delta and not end and shutter_opened and globals.delta < (target_delta + 0.6):
                     self.shutter_open_time = time.time() - self.shutter_open_time
                     
                     print(f'\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n')

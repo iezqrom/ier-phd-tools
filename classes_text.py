@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-import globals
-
-
 #Time
 from datetime import datetime
 import time
@@ -23,10 +20,7 @@ try:
 except:
     pass
 
-import zaber.serial as zs
-
 import keyboard
-import serial
 try:
     import winsound
 except:
@@ -40,11 +34,8 @@ except:
 
 import re
 
-from grabPorts import grabPorts
-
 # Maths
 import numpy as np
-import pandas as pd
 import curses
 
 class TextIO:

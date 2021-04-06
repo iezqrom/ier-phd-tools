@@ -150,8 +150,10 @@ class MyRecognizeCallback(RecognizeCallback):
             globals.listened = listened
             if any(x in globals.listened for x in ['yes', 'yeah']):
                 globals.answered = 1
+                print(globals.listened)
             elif any(x in globals.listened for x in ['no']):
                 globals.answered = 0
+                print(globals.listened)
 
 
     def on_close(self):
@@ -214,6 +216,8 @@ def terminateSpeechRecognition(stream, audio, audio_source):
 
     audio.terminate()
     audio_source.completed_recording()
+
+    print('Speech recognition terminated')
 
 
 ##### Functions of functions

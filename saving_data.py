@@ -3,13 +3,11 @@ import numpy as np
 import os
 import time
 from datetime import date
-from classes_tharnal import natural_keys
 import pandas as pd
 import subprocess
 import re
 import shutil
 from classes_text import *
-
 
 ##################################################################
 ###################### Storing data ##############################
@@ -672,7 +670,6 @@ def csvToDictROI(path, file = 'temp_ROI.csv'):
         Transforming csv of one ROI to a dictionary
     """
     df= pd.read_csv(f"{path}/{file}", index_col='Axis')
-    
     cd = df.to_dict()
     centreROI = cd['1']['x'], cd['1']['y']
     return centreROI

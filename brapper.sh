@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
 bwd=$(printf "%q\n" "$(pwd)")
-cd $1
-sudo ./bbuck.sh $bwd
+# echo $bwd 
+# echo $1
+sudo $1/bbuck.sh $bwd $1

@@ -404,12 +404,14 @@ def saveHaxesAll(path, data, file = 'temp_haxes'):
 def rootToUser(*paths):
     pwd = os.getcwd()
     print(f"\nCurrent directory is: {pwd}\n")
-    
     paths = [*paths]
+
+    path = os.path.realpath(__file__)
+    root_path = path.rsplit('/', 1)[0]
 
     for i in paths:
         os.chdir(i)
-        subprocess.call("./brapper.sh")
+        subprocess.call([f"{root_path}/brapper.sh", root_path])
         print(f"\nChanged permissions of following path: {i}\n")
         os.chdir(pwd)
 

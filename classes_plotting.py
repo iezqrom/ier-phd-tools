@@ -58,7 +58,8 @@ def framesToseconds(axis, steps, x):
     axis.xaxis.set_ticks(frames)
 
     labelsx = [item.get_text() for item in axis.get_xticklabels()]
-
+    # print(seconds)
+    # time.sleep(2)
     for j in enumerate(seconds):
         labelsx[j[0]] = int(j[1])
 

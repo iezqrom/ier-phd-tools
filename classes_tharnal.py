@@ -511,3 +511,36 @@ def natural_keys(text):
     (See Toothy's implementation in the comments)
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+
+
+
+
+def grabManyvideos(root_path, folder_name, pattern = f'mol_.*\.hdf5$'):
+    '''
+        pattern for SDT videos f'sdt_.*\.hdf5$'
+    '''
+
+    patternc = re.compile(pattern)
+    names = []
+
+    for filename in os.listdir(f'{root_path}/data/{folder_name}/videos/'):
+        if patternc.match(filename):
+            # print(filename)
+            name, form = filename.split('.')
+            names.append(name)
+        else:
+            continue
+
+    names.sort(key=natural_keys)
+    print(names)
+    return names
+
+def pairwise(vs):
+    it = iter(vs)
+    while True:
+        try:
+            yield next(it), next(it)
+        except StopIteration:
+            if len(vs) % 2 != 0:
+                yield vs[-1], None
+            return

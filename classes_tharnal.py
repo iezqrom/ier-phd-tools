@@ -489,7 +489,7 @@ def GrabNamesOrder(pattern, folder):
     pattern = re.compile(pattern)
     names = []
 
-    for filename in os.listdir('./{}'.format(folder)):
+    for filename in os.listdir('{}'.format(folder)):
         if pattern.match(filename):
             name, form = filename.split('.')
             names.append(name)

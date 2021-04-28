@@ -6,3 +6,4 @@ confidence = None
 frames = None
 centreROI = None
 rules = None
+amount = None

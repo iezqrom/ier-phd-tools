@@ -459,7 +459,9 @@ def depthToSrc():
         if splitted[1] == 'src_testing':
             break
         elif splitted[0] == '/':
-            raise Exception("Can't find folder 'src_testing' in folder tree")
+            backwards = './'
+            break
+            # raise Exception("Can't find folder 'src_testing' in folder tree")
         else:
             backwards = backwards + backwardsUnit
             path = splitted[0]

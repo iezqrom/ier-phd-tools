@@ -118,8 +118,8 @@ class Zaber(grabPorts):
             self.port = port
             self.device = zs.AsciiDevice(port.port, n_device)
 
-        print('DEVICE')
-        print(self.device)
+        # print('DEVICE')
+        # print(self.device)
 
     def move(self, amount):
         reply = self.device.move_rel(amount)
@@ -606,6 +606,13 @@ class Zaber(grabPorts):
                         print('You are missing something...')
                         print(globals.centreROI, globals.positions)
 
+                
+                elif keyboard.is_pressed('d'): # Open Arduino shutter
+                    if not was_pressed:
+                        globals.stimulus = 6
+                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        time.sleep(0.1)
+                        was_pressed = True
 
                 elif keyboard.is_pressed('o'): # Open Arduino shutter
                     if not was_pressed:

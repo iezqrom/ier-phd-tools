@@ -29,7 +29,6 @@ def appendDataDict(data, tempdata):
         Append data to dictionary
     """
     keys = data.keys()
-    
     for i, k in enumerate(keys):
         data[k].append(tempdata[i])
 
@@ -53,7 +52,6 @@ def setSubjNumDec(age, numdaywithin, situ, file = 'subjs.csv'):
         Function to save subject date, time, valid and age
     """
     steps_back = depthToSrc()
-    
     sf = open(f'./{steps_back}data/{file}', 'a')
     data_writer = csv.writer(sf)
 
@@ -65,7 +63,7 @@ def setSubjNumDec(age, numdaywithin, situ, file = 'subjs.csv'):
         state = 0
     elif situ == 'ex':
         state = 1
-    
+
     data_writer.writerow([todaydate, time_now, numdaywithin, age, 0, state])
 
     sf.close()
@@ -88,7 +86,7 @@ def getSubjNumDec(file = 'subjs.csv'):
 
 def tempSaving(path, header, temp_file_name = 'temp_data'):
     """
-        Function to initiliase temporary file to store data in case the 
+        Function to initiliase temporary file to store data in case the
         script fails
     """
     temp_file = open(f'{path}/{temp_file_name}.csv', 'w')
@@ -266,14 +264,14 @@ def apendSingle(file, folder, subj_n, data_point):
     writer_subject.writerow([subj_n, data_point])
 
     of3.close()
-    
+
 ######## Saving Zaber
 
 def saveZaberPos(file, path, data, header = ['Zaber', 'x', 'y', 'z']):
     """
         Function to save one position of multiple Zaber sets
     """
-    
+
     llaves = list(data.keys())
     of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
@@ -281,10 +279,8 @@ def saveZaberPos(file, path, data, header = ['Zaber', 'x', 'y', 'z']):
     data_writer.writerow(header)
 
     for i in llaves:
-        
         rowToWrite = [i, data[i]['x'], data[i]['y'], data[i]['z']]
         data_writer.writerow(rowToWrite)
-        
     of1.close()
 
     print(f'\nZaber position saved\n')
@@ -294,7 +290,6 @@ def saveROI(file, path, data, header = ['Axis', '1']):
     """
         Function to save one ROI centre
     """
-    
     of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
@@ -304,7 +299,7 @@ def saveROI(file, path, data, header = ['Axis', '1']):
     for i, r in enumerate(rows):
         rowToWrite = [r, data[i]]
         data_writer.writerow(rowToWrite)
-        
+
     of1.close()
 
     print(f'\nROI position saved\n')
@@ -328,7 +323,7 @@ def saveGridIndv(file, path, data, zaber):
     """
 
     file = file + f"_{zaber}"
-    
+
     of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
@@ -343,7 +338,7 @@ def saveGridIndv(file, path, data, zaber):
         rowToWrite = [r]
         rowToWrite.extend([data[zaber][str(int(x))][r] for x in grid_i])
         data_writer.writerow(rowToWrite)
-        
+
     of1.close()
 
     print(f'\nGrid position of {zaber} saved\n')
@@ -353,7 +348,7 @@ def saveROIAll(path, data, file = 'temp_ROIs'):
     """
         Function to save all ROI centres of a grid
     """
-    
+
     of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
@@ -368,7 +363,7 @@ def saveROIAll(path, data, file = 'temp_ROIs'):
         rowToWrite = [r]
         rowToWrite.extend([data[str(int(x))][i] for x in grid_i])
         data_writer.writerow(rowToWrite)
-        
+
     of1.close()
 
     print(f'\nROI position saved\n')

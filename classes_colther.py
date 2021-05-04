@@ -650,6 +650,49 @@ class Zaber(grabPorts):
                             
                         was_pressed = True
 
+                elif keyboard.is_pressed('z'):
+                    if not was_pressed:
+                        try:
+                            posXf = devices['colther']['x'].send("/get pos")
+
+                        except:
+                            posXf = devices['colther']['x'].device.send("/get pos")
+
+                        try:
+                            posYf = devices['colther']['y'].send("/get pos")
+                        except:
+                            posYf = devices['colther']['y'].device.send("/get pos")
+
+                        try:
+                            posZf = devices['colther']['z'].send("/get pos")
+                        except:
+                            posZf = devices['colther']['z'].device.send("/get pos")
+
+                        try:
+                            posXk = devices['camera']['x'].send("/get pos")
+
+                        except:
+                            posXk = devices['camera']['x'].device.send("/get pos")
+
+                        try:
+                            posYk = devices['camera']['y'].send("/get pos")
+                        except:
+                            posYk = devices['camera']['y'].device.send("/get pos")
+
+                        try:
+                            posZk = devices['camera']['z'].send("/get pos")
+                        except:
+                            posZk = devices['camera']['z'].device.send("/get pos")
+
+
+                        print('CAMERA')
+                        print(posXk, posYk, posZk)
+
+                        print('COLTHER')
+                        print(posXf, posYf, posZf)
+                        was_pressed = True
+
+
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:
                         current_roi = str(int(current_roi) - 1)

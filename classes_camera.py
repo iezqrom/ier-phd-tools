@@ -865,6 +865,8 @@ class TherCam(object):
         touched = False
         globals.stimulus = 4
 
+        self.failed_trial = False
+
         post_shutter_time_out = 2
         pre_shutter_time_in = 2
         touch_time_out = 1
@@ -896,6 +898,9 @@ class TherCam(object):
                 if momen > (total_time_out + pre_shutter_time_in):
                     if not end and shutter_opened:
                         self.shutter_open_time = time.time() - self.shutter_open_time
+                        if stimulus == 2:
+                            self.failed_trial = True
+                            print('FAILED stimulation')
                         globals.stimulus = 4
                         print('Close shutter (camera)')
                         arduino.arduino.write(struct.pack('>B', globals.stimulus))

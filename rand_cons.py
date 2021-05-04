@@ -73,7 +73,7 @@ def check_linear(ordered_array, current_chosen, i, coords = None):
 
 def exp_rand(init_rep, func, restart = 100, coor_cells=None):
     """
-        Function to converge randomisation with constraints algorithm 
+        Function to converge randomisation with constraints algorithm
     """
     while True:
         final_order = []

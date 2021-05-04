@@ -17,6 +17,7 @@ import numpy as np
 import h5py
 import re
 import numpy as np
+from failing import *
 
 ### Notes
 # look up table (LUT): open shutter and see to create a forward model
@@ -57,9 +58,11 @@ class ReAnRaw(object):
                 cu_pa = self.parameters[i]
                 cu_na_f = '{}'.format(cu_pa) + str(int(j+1))
                 try:
+                    # print()
                     frame_da = self.read[cu_na_f][:]
                     self.data[cu_pa].append(frame_da)
-                except:
+                except Exception as e:
+                    errorloc(e)
                     frame_da = float('NaN')
                     self.data[cu_pa].append(frame_da)
 

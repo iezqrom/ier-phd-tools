@@ -5,16 +5,16 @@ import numpy as np
 Z = norm.ppf
 
 def tableTosdtDoble(table, num_sdt):
-    table_single_sdt = table.loc[table['Touch'] == num_sdt]
+    table_single_sdt = table.loc[table['touch'] == num_sdt]
 
-    table_cold = table_single_sdt.loc[table_single_sdt['Cold'] == 1]
-    table_nocold = table_single_sdt.loc[table_single_sdt['Cold'] == 0]
+    table_cold = table_single_sdt.loc[table_single_sdt['cold'] == 1]
+    table_nocold = table_single_sdt.loc[table_single_sdt['cold'] == 0]
 
-    present_yes = table_cold.loc[table_cold['Responses'] == 1]
-    present_no = table_cold.loc[table_cold['Responses'] == 0]
+    present_yes = table_cold.loc[table_cold['responses'] == 1]
+    present_no = table_cold.loc[table_cold['responses'] == 0]
      
-    absent_yes = table_nocold.loc[table_nocold['Responses'] == 1]
-    absent_no = table_nocold.loc[table_nocold['Responses'] == 0]
+    absent_yes = table_nocold.loc[table_nocold['responses'] == 1]
+    absent_no = table_nocold.loc[table_nocold['responses'] == 0]
 
     return present_yes, present_no, absent_yes, absent_no
 

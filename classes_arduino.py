@@ -42,6 +42,7 @@ except:
     pass
 from grabPorts import grabPorts
 from classes_text import *
+from failing import *
 
 # Maths
 import numpy as np
@@ -275,6 +276,34 @@ class ArdUIno(grabPorts):
 ################################################################################
 ############################# FUNCTION #########################################
 ################################################################################
+
+def reLoad(ard):
+    os.system('clear')
+    was_pressed = False
+    print('\nPosition syringe pusher ("d" for down / "u" for up / "e" to move on)\n')
+    while True:
+        if keyboard.is_pressed('e'):
+            break
+
+        elif keyboard.is_pressed('d'):
+            if not was_pressed:
+                try:
+                    globals.stimulus = 6
+                    ard.arduino.write(struct.pack('>B', globals.stimulus))
+                except Exception as e:
+                    errorloc(e)
+                was_pressed = True
+
+        elif keyboard.is_pressed('u'):
+            if not was_pressed:
+                try:
+                    globals.stimulus = 5
+                    ard.arduino.write(struct.pack('>B', globals.stimulus))
+                except Exception as e:
+                    errorloc(e)
+                was_pressed = True
+        else:
+            was_pressed = False
 
 def shakeShutter(ard, times):
     for i in np.arange(times):

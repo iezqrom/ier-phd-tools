@@ -704,7 +704,7 @@ class Zaber(grabPorts):
                         for k, v in reversed(haxes.items()):
                             if k != 'tactile':
                                 movetostartZabersConcu(devices, k, list(reversed(v)), pos = grid[k][current_roi])
-                            
+
                         was_pressed = True
 
                 else:

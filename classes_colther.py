@@ -99,7 +99,7 @@ y_vals_inter = intercept + slope * zebers_inter + (33 - ends[-1])
 
 class Zaber(grabPorts):
     """
-        Zaber class developed by Ivan Ezquerra-Romano at the Action & Body lab (2018-2020)
+        Zaber class developed by Ivan Ezquerra-Romano at the Action & Body lab (2018-2023)
     """
 
     def __init__(self, n_device, who, usb_port = None, n_modem = None, winPort = None, port = None, head = 14, tail2=0, tail1=1):

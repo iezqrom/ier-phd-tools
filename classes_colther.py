@@ -379,7 +379,6 @@ class Zaber(grabPorts):
 
                 else:
                     was_pressed = False
-                    
 
         finally:
             if arduino != None:
@@ -555,7 +554,7 @@ class Zaber(grabPorts):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
             The coordinates of two positions can be saved with 'z' and 'x'
-            This method was created and it is specific to the experiment in which we measure cold 
+            This method was created and it is specific to the experiment in which we measure cold
             thresholds with and without touch
         """
 
@@ -716,6 +715,233 @@ class Zaber(grabPorts):
             if arduino != None:
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
+
+
+    # def gridCon3pantilt(self, devices, ardpantilt, arduino = None, default_pan_tilt_value = globals.default_pantilt, grid = globals.grid, haxes = globals.haxes):
+    #     """
+    #         Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
+    #         The coordinates of two positions can be saved with 'z' and 'x'
+    #         This method was created and it is specific to the experiment in which we measure cold
+    #         thresholds with and without touch
+    #     """
+
+    #     was_pressed = False
+
+    #     if arduino != None:
+    #         stimulus = 0
+    #         arduino.arduino.write(struct.pack('>B', stimulus))
+
+    #     # Build dictionary of rois
+    #     r_zaber = random.choice(list(grid))
+    #     self.rois = {}
+    #     self.PanTilts = {}
+    #     grid_i = list(np.arange(1, len(grid[r_zaber]) + 0.1, 1))
+    #     for i in grid_i:
+    #         self.rois[str(int(i))] = []
+    #         self.PanTilts[str(int(i))] = default_pan_tilt_value
+
+    #     keydelay = 0.15
+    #     pan, tilt, head = 0, 0, 0
+
+    #     print('\nZaber game activated\n')
+
+    #     try:
+    #         # device = devices[globals.current_device]
+    #         current_roi = '1'
+
+    #         while True:
+    #             try:
+    #                 red = ardpantilt.arduino.readline()
+    #             except Exception as e:
+    #                 errorloc(e)
+
+    #             if keyboard.is_pressed('p'):
+    #                 if not was_pressed:
+    #                     if len(str(red)) > 10:
+    #                         try:
+    #                             pan, tilt, head = str(red)[2:-5].split("-")
+    #                         except Exception as e:
+    #                             errorloc(e)
+    #                     self.rois[current_roi] = [globals.indx0, globals.indy0]
+    #                     self.PanTilts[current_roi] = [int(pan), int(tilt), int(head)]
+    #                     print(f'Centre of ROI is: {self.rois[current_roi]}')
+    #                     print(f'Pan/tilt head position is: {pan} {tilt} {head}')
+    #                     was_pressed = True
+
+    #             ### TERMINATE
+    #             elif keyboard.is_pressed('e'):
+    #                 # print([len(n) < 2 for n in list(self.rois.values())])
+    #                 if not any([len(n) < 2 for n in list(self.rois.values())]):
+    #                     try:
+    #                         globals.weDone = True
+    #                     except Exception as e:
+    #                         errorloc(e)
+    #                     homingZabers(devices)
+    #                     break
+    #                 else:
+    #                     print('You are missing something...')
+    #                     print(self.rois, self.PanTilts)
+    #                     was_pressed = True
+
+    #             elif keyboard.is_pressed('a'):
+    #                 if not was_pressed:
+    #                     globals.stimulus = 6
+    #                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
+    #                     time.sleep(0.1)
+    #                     was_pressed = True
+
+    #             elif keyboard.is_pressed('o'):
+    #                 if not was_pressed:
+    #                     globals.stimulus = 1
+    #                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
+    #                     time.sleep(0.1)
+    #                     was_pressed = True
+
+    #             elif keyboard.is_pressed('c'):
+    #                 if not was_pressed:
+    #                     globals.stimulus = 0
+    #                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
+    #                     time.sleep(0.1)
+    #                     was_pressed = True
+
+    #             elif keyboard.is_pressed('up'):
+    #                 ardpantilt.arduino.write(struct.pack('>B', 3))
+    #                 time.sleep(keydelay)
+    #             elif keyboard.is_pressed('down'):
+    #                 ardpantilt.arduino.write(struct.pack('>B', 4))
+    #                 time.sleep(keydelay)
+    #             elif keyboard.is_pressed('right'):
+    #                 ardpantilt.arduino.write(struct.pack('>B', 2))
+    #                 time.sleep(keydelay)
+    #             elif keyboard.is_pressed('left'):
+    #                 ardpantilt.arduino.write(struct.pack('>B', 1))
+    #                 time.sleep(keydelay)
+    #             elif keyboard.is_pressed('u'):
+    #                 ardpantilt.arduino.write(struct.pack('>B', 5))
+    #                 time.sleep(keydelay)
+    #             elif keyboard.is_pressed('d'):
+    #                 ardpantilt.arduino.write(struct.pack('>B', 6))
+    #                 time.sleep(keydelay)
+
+    #             elif keyboard.is_pressed('h'):
+    #                 homingZabers(devices)
+
+    #             elif keyboard.is_pressed('g'):
+    #                 if not was_pressed:
+    #                     print(self.rois)
+    #                     was_pressed = True
+
+    #             elif keyboard.is_pressed('n'):
+    #                 if not was_pressed:
+    #                     current_roi = str(int(current_roi) + 1)
+    #                     if int(current_roi) > len(grid[globals.current_device]):
+    #                         current_roi = '1'
+
+    #                     moveZabersUp(devices, ['colther'])
+    #                     moveZabersUp(devices, ['tactile'], 240000)
+
+    #                     for k in ['camera', 'tactile', 'colther']:
+    #                         if k == 'tactile':
+    #                             movetostartZabers(devices, k, list(haxes[k]), pos = grid[k][current_roi])
+    #                         else:
+    #                             movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
+
+    #                     ardpantilt.arduino.write(struct.pack('>B', 9))
+    #                     time.sleep(keydelay)
+    #                     was_pressed = True
+
+    #             elif keyboard.is_pressed('b'):
+    #                 if not was_pressed:
+    #                     current_roi = str(int(current_roi) - 1)
+    #                     if int(current_roi) == 0:
+    #                         current_roi = '1'
+
+    #                     moveZabersUp(devices, ['colther'])
+    #                     moveZabersUp(devices, ['tactile'], 240000)
+
+    #                     for k in ['camera', 'tactile', 'colther']:
+    #                         if k == 'tactile':
+    #                             movetostartZabers(devices, k, list(haxes[k]), pos = grid[k][current_roi])
+    #                         else:
+    #                             movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
+
+    #                     ardpantilt.arduino.write(struct.pack('>B', 9))
+    #                     time.sleep(keydelay)
+    #                     was_pressed = True
+
+    #             elif keyboard.is_pressed('z'):
+    #                 if not was_pressed:
+    #                     try:
+    #                         posXf = devices['colther']['x'].send("/get pos")
+
+    #                     except:
+    #                         posXf = devices['colther']['x'].device.send("/get pos")
+
+    #                     try:
+    #                         posYf = devices['colther']['y'].send("/get pos")
+    #                     except:
+    #                         posYf = devices['colther']['y'].device.send("/get pos")
+
+    #                     try:
+    #                         posZf = devices['colther']['z'].send("/get pos")
+    #                     except:
+    #                         posZf = devices['colther']['z'].device.send("/get pos")
+
+    #                     try:
+    #                         posXk = devices['camera']['x'].send("/get pos")
+
+    #                     except:
+    #                         posXk = devices['camera']['x'].device.send("/get pos")
+
+    #                     try:
+    #                         posYk = devices['camera']['y'].send("/get pos")
+    #                     except:
+    #                         posYk = devices['camera']['y'].device.send("/get pos")
+
+    #                     try:
+    #                         posZk = devices['camera']['z'].send("/get pos")
+    #                     except:
+    #                         posZk = devices['camera']['z'].device.send("/get pos")
+
+    #                     try:
+    #                         posXt = devices['tactile']['x'].send("/get pos")
+
+    #                     except:
+    #                         posXt = devices['tactile']['x'].device.send("/get pos")
+
+    #                     try:
+    #                         posYt = devices['tactile']['y'].send("/get pos")
+    #                     except:
+    #                         posYt = devices['tactile']['y'].device.send("/get pos")
+
+    #                     try:
+    #                         posZt = devices['tactile']['z'].send("/get pos")
+    #                     except:
+    #                         posZt = devices['tactile']['z'].device.send("/get pos")
+
+    #                     print('CAMERA')
+    #                     print(posXk, posYk, posZk)
+
+    #                     print('COLTHER')
+    #                     print(posXf, posYf, posZf)
+
+    #                     print('TACTILE')
+    #                     print(posXt, posYt, posZt)
+
+    #                     print('Pan/tilt position')
+    #                     print(red)
+    #                     was_pressed = True
+
+    #             else:
+    #                 was_pressed = False
+    #                 continue
+
+
+    #     finally:
+    #         if arduino != None:
+    #             stimulus = 0
+    #             arduino.arduino.write(struct.pack('>B', stimulus))
+
 
     def manualCon3OneCon(self, devices, amount, arduino = None):
 
@@ -1893,15 +2119,15 @@ def movetostartZabersConcu(zabers, zaber, axes, pos = globals.positions, cond = 
     for x in threads_zabers:
         x.join()
 
-def moveZabersUp(devices, zabers_to_move):
+def moveZabersUp(devices, zabers_to_move, uppos = 0):
     """
         Move Zabers up (z axis) concurrently
     """
     def moveUp(devices, zaber_to_move):
         try:
-            devices[zaber_to_move]['z'].device.move_abs(0)
+            devices[zaber_to_move]['z'].device.move_abs(uppos)
         except:
-            devices[zaber_to_move]['z'].move_abs(0)
+            devices[zaber_to_move]['z'].move_abs(uppos)
 
     threads_zabers = []
 

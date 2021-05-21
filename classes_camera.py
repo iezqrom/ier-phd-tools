@@ -25,6 +25,7 @@ except:
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib import animation
+import matplotlib as mpl
 
 ## Comms
 from uvctypes import *
@@ -41,7 +42,7 @@ try:
     import imutils
 except:
     pass
-import matplotlib as mpl
+
 
 try:
     import globals
@@ -2297,7 +2298,6 @@ class TherCam(object):
 
     def plotLiveROINE(self, c_w = 'c', r = 20, record='n', output= None):
 
-        import matplotlib as mpl
         mpl.rc('image', cmap='hot')
 
         print('Press "r" to refresh the shutter.')
@@ -2413,13 +2413,148 @@ class TherCam(object):
                         print_shutter_info(devh)
 
                     if keyboard.is_pressed('e'):
-                        frame = 1
                         print('We are done')
                         plt.close('all')
                         plt.clf()
                         # fig.gcf()
                         # print(plt.get_fignums())
                         break
+
+        except Exception as e:
+            errorloc(e)
+
+        finally:
+            print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            # sys.exit()
+            pass
+
+
+    def plotLiveROINEcheck(self, c_w = 'c', r = 20, record='n', output= None):
+
+        mpl.rc('image', cmap='hot')
+
+        print('Press "r" to refresh the shutter.')
+
+        if record == 'y':
+            print('Initialising file to save')
+            tiff_frameLOCAL = 1
+            f = h5py.File("./{}.hdf5".format(output), "w")
+            start = time.time()
+
+        else:
+            print("Not recording")
+
+        global dev
+        global devh
+        global tiff_frame
+
+        fig = plt.figure(1)
+        ax = plt.axes()
+
+        fig.tight_layout()
+
+        dummy = np.zeros([120, 160])
+
+        img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
+        fig.colorbar(img)
+        # fig.canvas.mpl_connect('close_event', lambda _: fig.canvas.manager.window.destroy()) 
+        # plt.show(block=False)
+
+        try:
+            while True:
+                    dataK = q.get(True, 500)
+                    if dataK is None:
+                        print('Data is none')
+                        exit(1)
+
+                    # We get the min temp and draw a circle
+                    edgexl = 15
+                    edgexr = 15
+                    edgey = 0
+                    if c_w == 'c':
+                        subdataK = dataK[edgey:edgey + (120 - edgey*2), edgexl:(160 - edgexr)]
+                        subdataC = (subdataK - 27315)/100
+                        # print([subdataC <= 28.5])
+                        # subdataC[subdataC <= 28.5] = 100
+                        minimoC = np.min(subdataC)
+                        # print(minimoK)
+                        
+                    elif c_w == 'w':
+                        subdataK = dataK[edgey:edgey + (120 - edgey*2), edgexl:(160 - edgexr)]
+
+                    dataC = (dataK - 27315) / 100
+                    
+                    # print(f'min: {minimoC}')
+                    
+                    xs = np.arange(0, 160)
+                    ys = np.arange(0, 120)
+
+                    globals.temp = minimoC
+
+                    # print(indx, ind)
+
+                    try:
+                        # print('HERE')
+                        indy, indx = np.where(subdataC == minimoC)
+                        # print(indy[0], indx[0])
+                        indx, indy = indy + edgey, indx + edgexl
+                        mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
+                    except:
+                        continue
+                    
+                    roiC = dataC[mask]
+                    mean = round(np.mean(roiC), 2)
+                    print(f'Mean: {mean}')
+
+                    circles = []
+
+                    # print(indx, indy)
+                    for a, j in zip(indx, indy):
+                        cirD = plt.Circle((j, a), r, color='b', fill = False)
+                        circles.append(cirD)
+
+                    globals.indx0, globals.indy0  = indx[0], indy[0]
+
+                    ax.clear()
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+
+                    ax.spines['top'].set_visible(False)
+                    ax.spines['right'].set_visible(False)
+                    ax.spines['left'].set_visible(False)
+                    ax.spines['bottom'].set_visible(False)
+                    ax.imshow(dataC, vmin = self.vminT, vmax = self.vmaxT)
+                    ax.add_artist(circles[0])
+                    # time.sleep(0.0005)
+                    plt.pause(0.0005)
+                    
+
+                    if record == 'y':
+                        print('Saving info to file')
+                        momen = time.time() - start
+                        
+                        names = ['image', 'shutter_pos', 'fixed_ROI', 'dynamic_ROI', 'time_now']
+                        datas = [dataC, [globals.stimulus], [globals.centreROI], [indx[0], indy[0]], [momen]]
+
+                        saveh5py(names, datas, tiff_frameLOCAL, f)
+                        tiff_frameLOCAL += 1
+                        # print(tiff_frameLOCAL)
+
+                    if keyboard.is_pressed('r'):
+                        print('Manual FFC')
+                        perform_manual_ffc(devh)
+                        print_shutter_info(devh)
+
+                    if keyboard.is_pressed('e'):
+                        # print(weDone)
+                        if globals.weDone:
+                            print('We are done')
+                            plt.close('all')
+                            plt.clf()
+                            # fig.gcf()
+                            # print(plt.get_fignums())
+                            break
 
         except Exception as e:
             errorloc(e)

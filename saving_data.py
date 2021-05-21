@@ -368,6 +368,30 @@ def saveROIAll(path, data, file = 'temp_ROIs'):
 
     print(f'\nROI position saved\n')
 
+def savePanTiltAll(path, data, file = 'temp_PanTilts'):
+    """
+        Function to save all ROI centres of a grid
+    """
+
+    of1 = open(f'{path}/{file}.csv', 'w')
+    data_writer = csv.writer(of1)
+
+    grid_i = list(np.arange(1, len(data) + 0.1))
+    header = [str(int(i)) for i in grid_i]
+    header.insert(0, 'Axis')
+
+    data_writer.writerow(header)
+    rows = ['x', 'y', 'z']
+
+    for i, r in enumerate(rows):
+        rowToWrite = [r]
+        rowToWrite.extend([data[str(int(x))][i] for x in grid_i])
+        data_writer.writerow(rowToWrite)
+
+    of1.close()
+
+    print(f'\nROI position saved\n')
+
 ######## Saving ALL haxes
 def saveHaxesAll(path, data, file = 'temp_haxes'):
     """
@@ -663,6 +687,19 @@ def csvtoDictZaber(path, file = 'temp_zaber_pos.csv'):
             dictfromcsv[r][colu] = df[colu][r]
 
     return dictfromcsv
+
+def csvToDictPanTiltsAll(path, file = 'temp_PanTilts.csv'):
+    """
+        Transforming csv of all ROIs to a dictionary
+    """
+    df= pd.read_csv(f"{path}/{file}", index_col='Axis')
+    
+    PanTilts = df.to_dict()
+
+    for i in PanTilts:
+        PanTilts[i] = PanTilts[i]['x'], PanTilts[i]['y'], PanTilts[i]['z']
+
+    return PanTilts
 
 def csvToDictROI(path, file = 'temp_ROI.csv'):
     """

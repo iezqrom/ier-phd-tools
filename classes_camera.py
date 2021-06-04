@@ -981,7 +981,7 @@ class TherCam(object):
                     
                     indxdf, indydf = -1, -1
 
-                if globals.delta > target_delta and not end and shutter_opened and globals.delta < (target_delta + 0.6):
+                if globals.delta > target_delta and not end and shutter_opened and globals.delta < (target_delta + 0.8):
                     self.shutter_open_time = time.time() - self.shutter_open_time
                     
                     print(f'\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n')
@@ -1022,6 +1022,127 @@ class TherCam(object):
             # libuvc.uvc_stop_streaming(devh)
             pass
 
+
+    def openTimerStatic(self, output, centreROI, r = 20, arduino = None, total_time_out = 14):
+        """
+            Method function to measure temperature of ROI and trigger action when a given temperature is reached.
+            The required parameters are output and target temperature.
+            Globals: stimulus, timeout, centreROI
+        """
+        global dev
+        global devh
+        import matplotlib as mpl
+
+        tiff_frameLOCAL = 1
+        f = h5py.File("./{}.hdf5".format(output), "w")
+        print(f'\nFile to save video initialised\n')
+        start = time.time()
+        close_shutter_stamp = None
+        shutter_closed_time = None
+        end = False
+        shutter_opened = False
+
+        globals.stimulus = 4
+
+        post_shutter_time_out = 2
+        pre_shutter_time_in = 2
+
+        self.shutter_open_time = None
+        xs = np.arange(0, 160)
+        ys = np.arange(0, 120)
+
+        diff_buffer = []
+        baseline_buffer = []
+        sROI = 0
+
+        try:
+            while True:
+                dataK = q.get(True, 500)
+                if dataK is None:
+                    print('Data is none')
+                    break
+
+                momen = time.time() - start
+
+                dataC = (dataK - 27315) / 100
+
+                indx, indy = centreROI
+
+                if end:
+                    shutter_closed_time = time.time() - close_shutter_stamp
+
+                if momen > (total_time_out) and not end:
+                    print('End time')
+                    close_shutter_stamp = time.time()
+                    end = True
+                    shutter_opened = False
+
+                if momen < pre_shutter_time_in:
+                    mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
+                    roiC = dataC[mask]
+                    globals.temp = round(np.mean(roiC), 2)
+
+                    baseline_buffer.append(globals.temp)
+                    print('Baseline: ' + str(globals.temp))
+                    sROI = 0
+
+                if momen > pre_shutter_time_in and not end and not shutter_opened:
+                    print('Start time')
+                    print(shutter_opened)
+                    print(end)
+                    shutter_opened = True
+                    self.shutter_open_time = time.time()
+                    meand_baseline_buffer = np.mean(baseline_buffer)
+                    print(f'Meaned baseline {meand_baseline_buffer}')
+
+                if shutter_opened:
+                    buffering_time = time.time() - self.shutter_open_time
+
+                    if buffering_time < 0.3:
+                        diff_buffer.append(dataC)
+                        print('buffering...')
+                        print(round(buffering_time, 4))
+                        mean_diff_buffer = np.mean(diff_buffer, axis=0)
+                        indxdf, indydf = np.ones((2, 1))
+
+                    elif buffering_time >= 0.3:
+
+
+                        mask = (xs[np.newaxis,:]-indy)**2 + (ys[:,np.newaxis]-indx)**2 < r**2
+                        roiC = dataC[mask]
+                        globals.temp = round(np.mean(roiC), 2)
+
+                        globals.delta = meand_baseline_buffer - globals.temp
+                        print('Delta: ' + str(round(globals.delta, 2)))
+
+                    sROI = 1
+
+
+                if end and shutter_closed_time:
+                    if shutter_closed_time > post_shutter_time_out:
+                        break
+
+                names = ['image', 'shutter_pos', 'fixed_ROI', 'time_now', 'sROI']
+                datas = [dataC, [globals.stimulus], [indx, indy], [momen], [sROI]]
+                saveh5py(names, datas, tiff_frameLOCAL, f)
+                tiff_frameLOCAL += 1
+
+            print('Camera off')
+            f.close()
+
+        except Exception as e:
+            print(e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(exc_type, fname, exc_tb.tb_lineno)
+
+        finally:
+            print('Stop streaming')
+            # libuvc.uvc_stop_streaming(devh)
+            pass
+
+
+
     def openTimer(self, output, centreROI, stimulus= 1, r = 20, arduino = None, total_time_out = 10):
         """
             Method function to measure temperature of ROI and trigger action when a given temperature is reached.
@@ -1052,6 +1173,7 @@ class TherCam(object):
 
         diff_buffer = []
         baseline_buffer = []
+        sROI = 0
 
         try:
             while True:

@@ -17,7 +17,10 @@ from matplotlib.animation import FuncAnimation
 from matplotlib import animation
 
 ## Comms
-from uvctypes import *
+try:
+    from uvctypes import *
+except:
+    pass
 
 try:
   from queue import Queue

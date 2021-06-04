@@ -28,7 +28,10 @@ from matplotlib import animation
 import matplotlib as mpl
 
 ## Comms
-from uvctypes import *
+try:
+    from uvctypes import *
+except:
+    pass
 
 try:
   from queue import Queue

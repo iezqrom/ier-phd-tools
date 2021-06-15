@@ -539,7 +539,19 @@ class Zaber(grabPorts):
                         globals.current_device = 'tactile'
                         print(f"Controlling TACTILE zabers")
                         was_pressed = True
-                
+
+                elif keyboard.is_pressed('a'):
+                    if not was_pressed:
+                        while True:
+                            new_amount = input('Amount to move: ')
+                            try:
+                                globals.amount = int(new_amount)
+                                break
+                            except Exception as e:
+                                errorloc(e)
+
+                        was_pressed = True
+
                 else:
                     was_pressed = False
                     continue
@@ -1921,6 +1933,26 @@ def grid_calculation(zaber, grid_separation, step_size = globals.step_sizes, pos
 
     return grid
 
+
+def vectorEnd(start, magnitude, angle):
+    '''
+        Function to calculate the end point of a vector for a given starting point (start), length (magnitude) and angle (angle)
+    '''
+    angle = angle * math.pi/180
+    length = magnitude
+
+    return [math.ceil(length * math.cos(angle) + start[0]), math.ceil(length * math.sin(angle) + start[1])]
+
+def addVectorPointGrid(zaber, pos, magnitude, angle, grid = globals.grid):
+    '''
+        Function to inject an end point of a vector starting from one grid point into the grid dictionary of a given Zaber
+    '''
+    v_end = vectorEnd([grid[zaber][pos]['x'], grid[zaber][pos]['y']], magnitude, angle)
+    new_pos = max([int(x) for x in list(globals.grid[zaber].keys())])
+
+    grid[zaber][f'{new_pos + 1}'] = {'x': v_end[0], 'y': v_end[1], 'z': 0}
+
+    return grid
 
 def manualorder(haxes):
     """

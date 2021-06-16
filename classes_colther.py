@@ -399,7 +399,7 @@ class Zaber(grabPorts):
             print("'y' selected by default")
             home = 'y'
 
-        if arduino != None:
+        if arduino:
             stimulus = 0
             arduino.arduino.write(struct.pack('>B', stimulus))
 
@@ -457,14 +457,16 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('o'): # Open Arduino shutter
                     if not was_pressed:
                         globals.stimulus = 1
-                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        if arduino:
+                            arduino.arduino.write(struct.pack('>B', globals.stimulus))
                         time.sleep(0.1)
                         was_pressed = True
 
                 elif keyboard.is_pressed('c'): # Close Arduino shutter
                     if not was_pressed:
                         globals.stimulus = 0
-                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        if arduino:
+                            arduino.arduino.write(struct.pack('>B', globals.stimulus))
                         time.sleep(0.1)
                         was_pressed = True
 
@@ -507,7 +509,7 @@ class Zaber(grabPorts):
                         globals.positions[globals.current_device]['y'] = int(posY.data)
                         globals.positions[globals.current_device]['z'] = int(posZ.data)
 
-                        print(globals.positions)
+                        printm(globals.positions)
                         # logging.info(globals.positions)
                         was_pressed = True
 
@@ -543,7 +545,7 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:
                         while True:
-                            new_amount = input('Amount to move: ')
+                            new_amount = input(f'\nAmount to move: ')
                             try:
                                 globals.amount = int(new_amount)
                                 break
@@ -558,7 +560,7 @@ class Zaber(grabPorts):
 
 
         finally:
-            if arduino != None:
+            if arduino:
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
 

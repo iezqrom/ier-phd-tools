@@ -2,10 +2,14 @@
 
 #Time
 from datetime import datetime
+from glob import glob
+from os import pread
 import time
 from time import sleep
 import logging
 import random
+
+from numpy.lib.function_base import _extract_dispatcher
 #System
 try:
     import sys
@@ -228,6 +232,124 @@ class Zaber(grabPorts):
                     continue
 
         except Exception as e: 
+            print(e)
+
+
+    def manualCon1Measure(self, devices, device, rules = globals.rules):
+        """
+            Method for Object Zaber to move 3 axes in ONE zaber with keyboard presses.
+            Like a game!
+        """
+        self.vector_coors = {'1': False, '2': False}
+        start_end = '1'
+        was_pressed = False
+
+        try:
+            while True:
+                #### Y axis
+                if keyboard.is_pressed('up'):
+                    if not was_pressed:
+                        try:
+                            devices[device]['y'].move_rel(0 - revDirection(device, 'y', rules, globals.amount))
+                        except:
+                            devices[device]['y'].device.move_rel(0 - revDirection(device, 'y', rules, globals.amount))
+
+                elif keyboard.is_pressed('down'):
+                    if not was_pressed:
+                        try:
+                            devices[device]['y'].move_rel(0 + revDirection(device, 'y', rules, globals.amount))
+                        except:
+                            devices[device]['y'].device.move_rel(0 + revDirection(device, 'y', rules, globals.amount))
+
+                elif keyboard.is_pressed('1'):
+                    if not was_pressed:
+                        start_end = '1'
+                        was_pressed = True
+
+                elif keyboard.is_pressed('2'):
+                    if not was_pressed:
+                        start_end = '2'
+                        was_pressed = True
+
+                #### X axis
+
+                elif keyboard.is_pressed('left'):
+                    if not was_pressed:
+                        try:
+                            devices[device]['x'].move_rel(0 - revDirection(device, 'x', rules, globals.amount))
+                        except:
+                            devices[device]['x'].device.move_rel(0 - revDirection(device, 'x', rules, globals.amount))
+
+                        was_pressed = True
+
+                elif keyboard.is_pressed('right'):
+                    if not was_pressed:
+                        try:
+                            devices[device]['x'].move_rel(0 + revDirection(device, 'x', rules, globals.amount))
+                        except:
+                            devices[device]['x'].device.move_rel(0 + revDirection(device, 'x', rules, globals.amount))
+
+                        was_pressed = True
+
+                ### Z axis
+                elif keyboard.is_pressed('d'):
+                    if not was_pressed:
+                        try:
+                            devices[device]['z'].move_rel(0 + revDirection(device, 'z', rules, globals.amount))
+                        except:
+                            devices[device]['z'].device.move_rel(0 + revDirection(device, 'z', rules, globals.amount))
+
+                        was_pressed = True
+
+                elif keyboard.is_pressed('u'):
+                    if not was_pressed:
+                        try:
+                            devices[device]['z'].move_rel(0 - revDirection(device, 'z', rules, globals.amount))
+                        except:
+                            devices[device]['z'].device.move_rel(0 - revDirection(device, 'z', rules, globals.amount))
+
+                        was_pressed = True
+
+
+                ### TERMINATE
+                elif keyboard.is_pressed('e'):
+                     if all(list(self.vector_coors.values())):
+                        homingZabers(devices)
+                        break
+
+                # Press letter h and Zaber will home, first z axis, then y and finally x
+                # Control
+
+                elif keyboard.is_pressed('h'):
+                    if not was_pressed:
+                        homingZabers(devices)
+                        was_pressed = True
+
+                elif keyboard.is_pressed('z'):
+                    if not was_pressed:
+                        try:
+                            posX = devices[device].send("/get pos")
+                        except:
+                            posX = devices[device].device.send("/get pos")
+
+                        try:
+                            posY = devices[device].send("/get pos")
+                        except:
+                            posY = devices[device].device.send("/get pos")
+
+                        try:
+                            posZ = devices[device].send("/get pos")
+                        except:
+                            posZ = devices[device].device.send("/get pos")
+
+                        self.vector_coors[start_end] = [int(posX.data), int(posY.data), int(posZ.data)]
+                        was_pressed = True
+
+                else:
+                    was_pressed = False
+                    continue
+
+        except Exception as e:
             print(e)
 
     def manualCon2(self, devices, arduino = None, home='y', rules = globals.rules):
@@ -731,7 +853,102 @@ class Zaber(grabPorts):
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
 
-    def gridCon3pantilt(self, devices, ardpantilt, arduino = None, default_pan_tilt_value = globals.default_pantilt, grid = globals.grid, haxes = globals.haxes):
+    def gridUpDown(self, devices, current_device, grid = globals.grid, haxes = globals.haxes,rules = globals.rules, touch_z_offset = globals.touch_z_offset):
+        was_pressed = False
+        current_roi = '1'
+
+        try:
+            while True:
+                if keyboard.is_pressed('e'):
+
+                    if not any([globals.grid[current_device][x]['z'] == 0 for x in globals.grid[current_device]]):
+                        try:
+                            globals.weDone = True
+                        except Exception as e:
+                            errorloc(e)
+                        homingZabers(devices)
+                        break
+                    else:
+                        print('You are missing something...')
+                        print(grid[current_device])
+                        was_pressed = True
+
+                elif keyboard.is_pressed('d'):
+                    try:
+                        devices[current_device]['z'].move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+                    except:
+                        devices[current_device]['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+
+                elif keyboard.is_pressed('u'):
+                    try:
+                        devices[current_device]['z'].move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+                    except:
+                        devices[current_device]['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+
+                elif keyboard.is_pressed('z'):
+                    if not was_pressed:
+                        try:
+                            posXf = devices[current_device]['x'].send("/get pos")
+
+                        except:
+                            posXf = devices[current_device]['x'].device.send("/get pos")
+
+                        try:
+                            posYf = devices[current_device]['y'].send("/get pos")
+                        except:
+                            posYf = devices[current_device]['y'].device.send("/get pos")
+
+                        try:
+                            posZf = devices[current_device]['z'].send("/get pos")
+                        except:
+                            posZf = devices[current_device]['z'].device.send("/get pos")
+
+                        self.gridZs[current_device]['x'] = posXf - touch_z_offset
+                        self.gridZs[current_device]['y'] = posYf - touch_z_offset
+                        self.gridZs[current_device]['z'] = posZf - touch_z_offset
+
+                elif keyboard.is_pressed('n'):
+                    if not was_pressed:
+                        current_roi = str(int(current_roi) + 1)
+                        if int(current_roi) > len(grid[globals.current_device]):
+                            current_roi = '1'
+
+                        k = 'tactile'
+                        movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
+
+                        was_pressed = True
+
+                elif keyboard.is_pressed('b'):
+                    if not was_pressed:
+                        current_roi = str(int(current_roi) - 1)
+                        if int(current_roi) == 0:
+                            current_roi = list(grid.keys())[-1]
+
+                        # for k in ['camera', 'tactile', 'colther']:
+                        k = 'tactile'
+                        movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
+
+                        was_pressed = True
+
+                elif keyboard.is_pressed('a'):
+                    if not was_pressed:
+                        while True:
+                            new_amount = input('Amount to move: ')
+                            try:
+                                globals.amount = int(new_amount)
+                                break
+                            except Exception as e:
+                                errorloc(e)
+
+                        was_pressed = True
+
+                else:
+                    was_pressed = False
+        except Exception as e:
+            errorloc(e)
+
+
+    def gridCon3pantilt(self, devices, ardpantilt, arduino = None, default_pan_tilt_value = globals.default_pantilt, grid = globals.grid, haxes = globals.haxes, touch_z_offset=globals.touch_z_offset):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
             The coordinates of two positions can be saved with 'z' and 'x'
@@ -741,7 +958,7 @@ class Zaber(grabPorts):
 
         was_pressed = False
 
-        if arduino != None:
+        if arduino:
             stimulus = 0
             arduino.arduino.write(struct.pack('>B', stimulus))
 
@@ -797,6 +1014,15 @@ class Zaber(grabPorts):
                         print(self.rois, self.PanTilts)
                         was_pressed = True
 
+
+                # elif keyboard.is_pressed('t'):
+                #     if not was_pressed:
+                #         touch = grid['tactile'][current_roi]['z'] + touch_z_offset
+                #         movetostartZabers(devices, 'tactile', 'z', touch)
+                #         was_pressed = True
+                    
+
+
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:
                         globals.stimulus = 6
@@ -843,6 +1069,7 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('g'):
                     if not was_pressed:
                         print(self.rois)
+                        print(self.PanTilts)
                         was_pressed = True
 
                 elif keyboard.is_pressed('n'):
@@ -856,8 +1083,8 @@ class Zaber(grabPorts):
 
                         for k in ['camera', 'tactile', 'colther']:
                             if k == 'tactile':
-                                print('NO TACTILE!!')
                                 # movetostartZabers(devices, k, list(haxes[k]), pos = grid[k][current_roi])
+                                print('No touch')
                             else:
                                 movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
 
@@ -869,14 +1096,15 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
-                            current_roi = '1'
+                            current_roi = list(grid[['colther'].keys()])[-1]
 
                         moveZabersUp(devices, ['colther'])
-                        moveZabersUp(devices, ['tactile'], 180000)
+                        # moveZabersUp(devices, ['tactile'], 180000)
 
                         for k in ['camera', 'tactile', 'colther']:
                             if k == 'tactile':
-                                movetostartZabers(devices, k, list(haxes[k]), pos = grid[k][current_roi])
+                                # movetostartZabers(devices, k, list(haxes[k]), pos = grid[k][current_roi])
+                                print('No touch')
                             else:
                                 movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
 
@@ -953,7 +1181,7 @@ class Zaber(grabPorts):
 
 
         finally:
-            if arduino != None:
+            if arduino:
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
@@ -2216,6 +2444,22 @@ def z_axis_pos(z_d, step_size):
     z_d_microm = z_d*10000
     z_steps = z_d_microm/step_size
     return round(z_steps)
+
+def z_axis_pos(z_d, step_size):
+    """
+        Function to translate Zaber steps into centimetres
+    """
+    z_d_microm = z_d*10000
+    z_steps = z_d_microm/step_size
+    return round(z_steps)
+
+def steps_to_cm(steps, step_size):
+    """
+        Function to translate Zaber steps into centimetres
+    """
+    microms = steps*step_size
+    d_cm = microms/10000
+    return round(d_cm, 2)
 
 def sineWave(set_point, amplitude, freq, phase = 0, repeats = 1):
 

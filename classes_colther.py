@@ -313,7 +313,8 @@ class Zaber(grabPorts):
 
                 ### TERMINATE
                 elif keyboard.is_pressed('e'):
-                     if all(list(self.vector_coors.values())):
+                    print(all(list(self.vector_coors.values())))
+                    if all(list(self.vector_coors.values())):
                         homingZabers(devices)
                         break
 
@@ -328,21 +329,22 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('z'):
                     if not was_pressed:
                         try:
-                            posX = devices[device].send("/get pos")
+                            posX = devices[device]['x'].send("/get pos")
                         except:
-                            posX = devices[device].device.send("/get pos")
+                            posX = devices[device]['x'].device.send("/get pos")
 
                         try:
-                            posY = devices[device].send("/get pos")
+                            posY = devices[device]['y'].send("/get pos")
                         except:
-                            posY = devices[device].device.send("/get pos")
+                            posY = devices[device]['y'].device.send("/get pos")
 
                         try:
-                            posZ = devices[device].send("/get pos")
+                            posZ = devices[device]['z'].send("/get pos")
                         except:
-                            posZ = devices[device].device.send("/get pos")
+                            posZ = devices[device]['z'].device.send("/get pos")
 
                         self.vector_coors[start_end] = [int(posX.data), int(posY.data), int(posZ.data)]
+                        printme(self.vector_coors)
                         was_pressed = True
 
                 else:
@@ -857,6 +859,9 @@ class Zaber(grabPorts):
         was_pressed = False
         current_roi = '1'
 
+        self.gridZs = grid
+        printme(self.gridZs)
+
         try:
             while True:
                 if keyboard.is_pressed('e'):
@@ -903,13 +908,21 @@ class Zaber(grabPorts):
                         except:
                             posZf = devices[current_device]['z'].device.send("/get pos")
 
-                        self.gridZs[current_device]['x'] = posXf - touch_z_offset
-                        self.gridZs[current_device]['y'] = posYf - touch_z_offset
-                        self.gridZs[current_device]['z'] = posZf - touch_z_offset
+                        # print(int(posXf.data), int(posYf.data), int(posZf.data))
+                        # print(touch_z_offset)
+
+                        self.gridZs[current_device][current_roi]['x'] = int(posXf.data) - touch_z_offset
+                        self.gridZs[current_device][current_roi]['y'] = int(posYf.data) - touch_z_offset
+                        self.gridZs[current_device][current_roi]['z'] = int(posZf.data) - touch_z_offset
+
+                        printme(self.gridZs[current_device])
+
+                        was_pressed = True
 
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
                         current_roi = str(int(current_roi) + 1)
+                        print(len(grid[globals.current_device]))
                         if int(current_roi) > len(grid[globals.current_device]):
                             current_roi = '1'
 
@@ -922,7 +935,8 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
-                            current_roi = list(grid.keys())[-1]
+                            current_roi = str(list(grid[current_device].keys())[-1])
+                            print(current_roi)
 
                         # for k in ['camera', 'tactile', 'colther']:
                         k = 'tactile'
@@ -948,7 +962,7 @@ class Zaber(grabPorts):
             errorloc(e)
 
 
-    def gridCon3pantilt(self, devices, ardpantilt, arduino = None, default_pan_tilt_value = globals.default_pantilt, grid = globals.grid, haxes = globals.haxes, touch_z_offset=globals.touch_z_offset):
+    def gridCon3pantilt(self, devices, ardpantilt, arduino = None, default_pan_tilt_value = globals.default_pantilt, grid = globals.grid, haxes = globals.haxes, touch_z_offset =globals.touch_z_offset):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
             The coordinates of two positions can be saved with 'z' and 'x'
@@ -1014,14 +1028,11 @@ class Zaber(grabPorts):
                         print(self.rois, self.PanTilts)
                         was_pressed = True
 
-
                 # elif keyboard.is_pressed('t'):
                 #     if not was_pressed:
                 #         touch = grid['tactile'][current_roi]['z'] + touch_z_offset
                 #         movetostartZabers(devices, 'tactile', 'z', touch)
                 #         was_pressed = True
-                    
-
 
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:

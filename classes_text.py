@@ -346,9 +346,10 @@ def printme(text):
 def agebyExperimenter():
     while True:
         age = input('\n Ask the participants for their age and input it here: ')
-        print(age)
+        
         try:
-            age = int(age)
+            age = int(age[-2:])
+            print(age)
             break
 
         except:

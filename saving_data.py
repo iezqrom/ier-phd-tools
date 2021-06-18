@@ -327,7 +327,7 @@ def saveGridIndv(file, path, data, zaber):
     of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
-    grid_i = list(np.arange(1, len(data['colther']) + 0.1))
+    grid_i = list(np.arange(1, len(data[zaber]) + 0.1))
     header = [str(int(i)) for i in grid_i]
     header.insert(0, 'Axis')
 

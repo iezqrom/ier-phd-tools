@@ -572,11 +572,11 @@ class Zaber(grabPorts):
                     except:
                         device['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
 
-                elif keyboard.is_pressed('p'):
-                    if not was_pressed:
-                        globals.centreROI = [globals.indx0, globals.indy0]
-                        print(f'Centre of ROI is: {globals.centreROI}')
-                        was_pressed = True
+                # elif keyboard.is_pressed('p'):
+                #     if not was_pressed:
+                #         globals.centreROI = [globals.indx0, globals.indy0]
+                #         print(f'Centre of ROI is: {globals.centreROI}')
+                #         was_pressed = True
 
                 elif keyboard.is_pressed('o'): # Open Arduino shutter
                     if not was_pressed:
@@ -611,7 +611,7 @@ class Zaber(grabPorts):
 
                 #### GET POSITION 
 
-                elif keyboard.is_pressed('z'):
+                elif keyboard.is_pressed('p'):
                     if not was_pressed:
                         try:
                             posX = device['x'].send("/get pos")
@@ -855,7 +855,7 @@ class Zaber(grabPorts):
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
 
-    def gridUpDown(self, devices, current_device, grid = globals.grid, haxes = globals.haxes,rules = globals.rules, touch_z_offset = globals.touch_z_offset):
+    def gridUpDown(self, devices, current_device, home = 'y', grid = globals.grid, haxes = globals.haxes,rules = globals.rules, touch_z_offset = globals.touch_z_offset):
         was_pressed = False
         current_roi = '1'
 
@@ -866,12 +866,15 @@ class Zaber(grabPorts):
             while True:
                 if keyboard.is_pressed('e'):
 
-                    if not any([globals.grid[current_device][x]['z'] == 0 for x in globals.grid[current_device]]):
+                    if not any([globals.grid[current_device][x]['z'] == 0 for x in globals.grid[current_device]]) and home =='y':
                         try:
                             globals.weDone = True
                         except Exception as e:
                             errorloc(e)
                         homingZabers(devices)
+                        break
+                    elif not any([globals.grid[current_device][x]['z'] == 0 for x in globals.grid[current_device]]) and home == 'n':
+                        printme('Terminating Zaber game')
                         break
                     else:
                         print('You are missing something...')
@@ -890,7 +893,7 @@ class Zaber(grabPorts):
                     except:
                         devices[current_device]['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
 
-                elif keyboard.is_pressed('z'):
+                elif keyboard.is_pressed('p'):
                     if not was_pressed:
                         try:
                             posXf = devices[current_device]['x'].send("/get pos")
@@ -927,7 +930,7 @@ class Zaber(grabPorts):
                             current_roi = '1'
 
                         k = 'tactile'
-                        movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
+                        movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = self.gridZs[k][current_roi])
 
                         was_pressed = True
 
@@ -940,7 +943,7 @@ class Zaber(grabPorts):
 
                         # for k in ['camera', 'tactile', 'colther']:
                         k = 'tactile'
-                        movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
+                        movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = self.gridZs[k][current_roi])
 
                         was_pressed = True
 
@@ -2181,8 +2184,28 @@ def threeDD(point1, point2):
     return distance
 
 def angle2lines(point1, point2, point3):
+    # print(point1)
+    # print(point2)
+    # print(point3)
     ba = point2 - point1
     bc = point3 - point1
+
+    print(ba)
+    print(bc)
+
+    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    angle = np.arccos(cosine_angle)
+    return np.degrees(angle)
+
+def angle2lines2D(point1, point2, point3):
+    # print(point1)
+    # print(point2)
+    # print(point3)
+    ba = point2[0:2] - point1[0:2]
+    bc = point3[0:2] - point1[0:2]
+
+    print(ba)
+    print(bc)
 
     cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
     angle = np.arccos(cosine_angle)

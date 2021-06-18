@@ -2174,6 +2174,20 @@ def grid_calculation(zaber, grid_separation, step_size = globals.step_sizes, pos
 
     return grid
 
+def threeDD(point1, point2):
+    sq_dist = (point2[0] - point1[0])**2 + (point2[1] - point1[1])**2 + (point2[2] - point2[2])**2
+    distance = np.sqrt(sq_dist)
+
+    return distance
+
+def angle2lines(point1, point2, point3):
+    ba = point2 - point1
+    bc = point3 - point1
+
+    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    angle = np.arccos(cosine_angle)
+    return np.degrees(angle)
+
 
 def vectorEnd(start, magnitude, angle):
     '''
@@ -2456,13 +2470,6 @@ def z_axis_pos(z_d, step_size):
     z_steps = z_d_microm/step_size
     return round(z_steps)
 
-def z_axis_pos(z_d, step_size):
-    """
-        Function to translate Zaber steps into centimetres
-    """
-    z_d_microm = z_d*10000
-    z_steps = z_d_microm/step_size
-    return round(z_steps)
 
 def steps_to_cm(steps, step_size):
     """

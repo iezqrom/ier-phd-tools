@@ -965,7 +965,7 @@ class Zaber(grabPorts):
             errorloc(e)
 
 
-    def gridCon3pantilt(self, devices, ardpantilt, arduino = None, default_pan_tilt_value = globals.default_pantilt, grid = globals.grid, haxes = globals.haxes, touch_z_offset =globals.touch_z_offset):
+    def gridCon3pantilt(self, devices, ardpantilt, arduino = None, default_pan_tilt_value = globals.default_pantilt, grid = globals.grid, haxes = globals.haxes):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
             The coordinates of two positions can be saved with 'z' and 'x'
@@ -2485,13 +2485,21 @@ def homingZabersConcu(zabers, axes = None, speed = 153600):
         for x in threads_zabers:
             x.join()
 
-def z_axis_pos(z_d, step_size):
+
+def cm_to_steps(z_d, step_size):
     """
         Function to translate centimetres into Zaber steps
     """
     z_d_microm = z_d*10000
     z_steps = z_d_microm/step_size
-    return round(z_steps)
+    return int(round(z_steps))
+
+def z_axis_pos(z_d, step_size):
+    """
+        Function to translate centimetres into Zaber steps
+    """
+    return cm_to_steps(z_d, step_size)
+
 
 
 def steps_to_cm(steps, step_size):

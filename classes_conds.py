@@ -15,7 +15,7 @@ class ConditionsHandler():
 ########################## FUNCTIONS ############################
 #################################################################
 
-def sdt_setup(n_trials, conds):
+def sdt_setup(n_trials, conds, randomised=True):
     """
         Function to set-up trials for a Signal Detection Theory experiment.
         The number of trials will be distributed equally across the number of conditions.
@@ -47,8 +47,8 @@ def sdt_setup(n_trials, conds):
             
             for ap in abs_pres:
                 stimulations.append((u, ap))
-
-        np.random.shuffle(stimulations)
+        if randomised:
+            np.random.shuffle(stimulations)
         stimulations = stimulations[:n_trials]
         
     else:
@@ -64,8 +64,8 @@ def sdt_setup(n_trials, conds):
             
             for ap in abs_pres:
                 stimulations.append((u, ap))
-
-        np.random.shuffle(stimulations)
+        if randomised:
+            np.random.shuffle(stimulations)
 
 
     return stimulations

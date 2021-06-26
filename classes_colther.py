@@ -106,9 +106,10 @@ class Zaber(grabPorts):
         Zaber class developed by Ivan Ezquerra-Romano at the Action & Body lab (2018-2023)
     """
 
-    def __init__(self, n_device, who, usb_port = None, n_modem = None, winPort = None, port = None, head = 14, tail2=0, tail1=1):
+    def __init__(self, n_device, who, surname_serial = 'A104BTL5', usb_port = None, n_modem = None, winPort = None, port = None, head = 14, tail2=0, tail1=1):
         self.ports = grabPorts()
-        self.ports.zaberPort(who, head, tail2, tail1, usb_port, n_modem, winPort)
+        self.ports.zaberPort(who, head, tail2, tail1, surname_serial, usb_port, n_modem, winPort)
+        self.home = False
 
         if n_device == 1: # number 1 device is chosen to lead the Daisy chain
             try:
@@ -509,7 +510,7 @@ class Zaber(grabPorts):
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
-    def manualCon3(self, devices, arduino = None, home='y', rules = globals.rules, amount = globals.amount):
+    def manualCon3(self, devices, arduino = None, home='y', rules = globals.rules, end_button= 'e'):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
             The coordinates of two positions can be saved with 'z' and 'x'
@@ -595,7 +596,7 @@ class Zaber(grabPorts):
                         was_pressed = True
 
                 ### TERMINATE
-                elif keyboard.is_pressed('e'):
+                elif keyboard.is_pressed(f'{end_button}'):
                     vars = [globals.centreROI, globals.positions]
                     if all(v is not None for v in vars) and home =='n':
                         print('Terminating Zaber game \n')
@@ -855,9 +856,8 @@ class Zaber(grabPorts):
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
 
-    def gridUpDown(self, devices, current_device, home = 'y', grid = globals.grid, haxes = globals.haxes,rules = globals.rules, touch_z_offset = globals.touch_z_offset):
+    def gridUpDown(self, devices, current_device, current_roi = '1', home = 'y', grid = globals.grid, haxes = globals.haxes,rules = globals.rules, touch_z_offset = globals.touch_z_offset):
         was_pressed = False
-        current_roi = '1'
 
         self.gridZs = grid
         printme(self.gridZs)
@@ -914,9 +914,9 @@ class Zaber(grabPorts):
                         # print(int(posXf.data), int(posYf.data), int(posZf.data))
                         # print(touch_z_offset)
 
-                        self.gridZs[current_device][current_roi]['x'] = int(posXf.data) - touch_z_offset
-                        self.gridZs[current_device][current_roi]['y'] = int(posYf.data) - touch_z_offset
-                        self.gridZs[current_device][current_roi]['z'] = int(posZf.data) - touch_z_offset
+                        self.gridZs[current_device][current_roi]['x'] = int(posXf.data)
+                        self.gridZs[current_device][current_roi]['y'] = int(posYf.data)
+                        self.gridZs[current_device][current_roi]['z'] = int(posZf.data)
 
                         printme(self.gridZs[current_device])
 
@@ -930,6 +930,7 @@ class Zaber(grabPorts):
                             current_roi = '1'
 
                         k = 'tactile'
+                        moveZabersUp(devices, [k])
                         movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = self.gridZs[k][current_roi])
 
                         was_pressed = True
@@ -943,6 +944,7 @@ class Zaber(grabPorts):
 
                         # for k in ['camera', 'tactile', 'colther']:
                         k = 'tactile'
+                        moveZabersUp(devices, [k])
                         movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = self.gridZs[k][current_roi])
 
                         was_pressed = True
@@ -965,7 +967,7 @@ class Zaber(grabPorts):
             errorloc(e)
 
 
-    def gridCon3pantilt(self, devices, ardpantilt, arduino = None, default_pan_tilt_values = globals.PanTilts, grid = globals.grid, haxes = globals.haxes, rules = globals.rules):
+    def gridCon3pantilt(self, devices, ardpantilt, platformcamera = None, arduino = None, default_pan_tilt_values = globals.PanTilts, grid = globals.grid, haxes = globals.haxes, rules = globals.rules):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
             The coordinates of two positions can be saved with 'z' and 'x'
@@ -974,6 +976,7 @@ class Zaber(grabPorts):
         """
 
         was_pressed = False
+        pantilt_on = True
 
         if arduino:
             stimulus = 0
@@ -993,6 +996,9 @@ class Zaber(grabPorts):
         keydelay = 0.15
         pan, tilt, head = 0, 0, 0
         device = devices['camera']
+        print(default_pan_tilt_values)
+        move_platform_camera = 314961 + 157480
+        backwards_colther = {'1': 10079, '2': 10079, '3': 10079, '4': 10079}
 
         print('\nZaber game activated\n')
 
@@ -1014,6 +1020,7 @@ class Zaber(grabPorts):
                             except Exception as e:
                                 errorloc(e)
                         self.rois[current_roi] = [globals.indx0, globals.indy0]
+                        print(pan, tilt, head)
                         default_pan_tilt_values[current_roi] = [int(pan), int(tilt), int(head)]
 
                         try:
@@ -1034,11 +1041,11 @@ class Zaber(grabPorts):
 
                         print(f'Centre of ROI is: {self.rois[current_roi]}')
                         print(f'Pan/tilt head position is: {pan} {tilt} {head}')
-                        print(f'Position camera: {posXk} {posYk} {posZk}')
+                        print(f'Position camera: {int(posXk.data)} {int(posYk.data)} {int(posZk.data)}')
 
-                        self.gridcamera[current_roi]['x'] = posXk
-                        self.gridcamera[current_roi]['y'] = posYk
-                        self.gridcamera[current_roi]['z'] = posYk
+                        self.gridcamera[current_roi]['x'] = int(posXk.data)
+                        self.gridcamera[current_roi]['y'] = int(posYk.data)
+                        self.gridcamera[current_roi]['z'] = int(posZk.data)
 
                         was_pressed = True
 
@@ -1046,26 +1053,22 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('e'):
                     # print([len(n) < 2 for n in list(self.rois.values())])
                     if not any([len(n) < 2 for n in list(self.rois.values())]):
+                        self.PanTilts = default_pan_tilt_values
                         try:
                             globals.weDone = True
                         except Exception as e:
                             errorloc(e)
-                        homingZabers(devices)
-                        self.PanTilts = default_pan_tilt_values
+                        homingZabersConcu(devices)
+                        # print(default_pan_tilt_values)
                         break
                     else:
                         print('You are missing something...')
                         print(self.rois, self.PanTilts)
                         was_pressed = True
 
-                elif keyboard.is_pressed('t'):
-                    if not was_pressed:
-                        pantilt_on = False
-                        was_pressed = True
-
                 elif keyboard.is_pressed('k'):
                     if not was_pressed:
-                        pantilt_on = True
+                        pantilt_on = not pantilt_on
                         was_pressed = True
 
                 elif keyboard.is_pressed('a'):
@@ -1169,15 +1172,27 @@ class Zaber(grabPorts):
 
                         moveZabersUp(devices, ['colther'])
 
-                        for k in ['camera', 'tactile', 'colther']:
-                            if k == 'tactile':
-                                print('No touch')
-                            else:
-                                movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
+                        try:
+                            devices['colther']['x'].device.move_abs(backwards_colther[current_roi])
+                        except:
+                            devices['colther']['x'].move_abs(backwards_colther[current_roi])
+
+                        next_move = grid['camera'][current_roi].copy()
+                        next_move['z'] = 109974
+                        moveZabersUp(devices, ['camera'], uppos=109974)
 
                         ardpantilt.arduino.write(struct.pack('>B', 8))
                         time.sleep(keydelay)
                         ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
+
+                        if platformcamera:
+                            if current_roi == '2':
+                                platformcamera.device.move_abs(move_platform_camera)
+                            else:
+                                platformcamera.device.move_abs(0)
+
+                        movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = grid['camera'][current_roi])
+                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                         was_pressed = True
 
@@ -1185,19 +1200,34 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
-                            current_roi = list(grid[['colther'].keys()])[-1]
+                            current_roi = list(grid['colther'].keys())[-1]
 
                         moveZabersUp(devices, ['colther'])
+                        try:
+                            devices['colther']['x'].device.move_abs(backwards_colther[current_roi])
+                        except:
+                            devices['colther']['x'].move_abs(backwards_colther[current_roi])
 
-                        for k in ['camera', 'tactile', 'colther']:
-                            if k == 'tactile':
-                                print('No touch')
-                            else:
-                                movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = grid[k][current_roi])
+
+                        next_move = grid['camera'][current_roi].copy()
+                        next_move['z'] = 109974
+                        moveZabersUp(devices, ['camera'], uppos=109974)
 
                         ardpantilt.arduino.write(struct.pack('>B', 8))
                         time.sleep(keydelay)
                         ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
+
+                        # movetostartZabers(devices, 'camera', list(reversed(haxes['camera'])), pos = next_move)
+
+                        movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = grid['camera'][current_roi])
+
+                        if platformcamera:
+                            if current_roi == '2':
+                                platformcamera.device.move_abs(move_platform_camera)
+                            else:
+                                platformcamera.device.move_abs(0)
+
+                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                         was_pressed = True
 
@@ -2425,7 +2455,7 @@ def revDirection(zaber, axis, rule, number):
 
     return number
 
-def homingZabers(zabers, axes = None, speed = 153600):
+def homingZabers(zabers, axes = None, speed = 153600*4):
     """
         This function is to home all zabers in a Zaber object
     """
@@ -2442,10 +2472,18 @@ def homingZabers(zabers, axes = None, speed = 153600):
             print(f'\n Homing {d} axis of {kaxes}\n')
             try:
                 zabers[kaxes][d].device.send('/set maxspeed {}'.format(speed))
-                zabers[kaxes][d].device.home()  
+                if zabers[kaxes][d].home:
+                    zabers[kaxes][d].device.move_abs(0)
+                else:
+                    zabers[kaxes][d].device.home()
+                    zabers[kaxes][d].home = True
             except:
                 zabers[kaxes][d].send('/set maxspeed {}'.format(speed))
-                zabers[kaxes][d].home()
+                if zabers[kaxes][d].home:
+                    zabers[kaxes][d].move_abs(0)
+                else:
+                    zabers[kaxes][d].home()
+                    zabers[kaxes][d].home = True
 
 def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None):
     """
@@ -2526,7 +2564,7 @@ def moveZabersUp(devices, zabers_to_move, uppos = 0):
     for x in threads_zabers:
         x.join()
 
-def homingZabersConcu(zabers, axes = None, speed = 153600):
+def homingZabersConcu(zabers, axes = None, speed = 153600*4):
     """
         This function is to home all zabers in a Zaber object concurrently
     """
@@ -2534,10 +2572,18 @@ def homingZabersConcu(zabers, axes = None, speed = 153600):
         print(f'\n Homing {d} axis of {kaxes}\n')
         try:
             zabers[kaxes][d].device.send('/set maxspeed {}'.format(speed))
-            zabers[kaxes][d].device.home()  
+            if zabers[kaxes][d].home:
+                zabers[kaxes][d].device.move_abs(0)
+            else:
+                zabers[kaxes][d].device.home()
+                zabers[kaxes][d].home = True
         except:
             zabers[kaxes][d].send('/set maxspeed {}'.format(speed))
-            zabers[kaxes][d].home()
+            if zabers[kaxes][d].home:
+                zabers[kaxes][d].move_abs(0)
+            else:
+                zabers[kaxes][d].home()
+                zabers[kaxes][d].home = True
 
     if axes == None:
         axes = {}
@@ -2678,6 +2724,21 @@ def set_up_one_zaber(name_dev, axes, who = 'serial', usb_port = None, n_modem = 
     except Exception as e:
         errorloc(e)
     return zabers
+
+def changeSpeed(zabers, device = None, speed=153600*4):
+
+    if device:
+        for k in zabers[device]:
+            try:
+                zabers[device][k].send(f'set maxspeed {speed}')
+            except:
+                zabers[device][k].device.send(f'set maxspeed {speed}')
+    else:
+        try:
+            zabers.send(f'set maxspeed {speed}')
+        except:
+            zabers.device.send(f'set maxspeed {speed}')
+
 
 ################################################################################################################
 ################################################################################################################

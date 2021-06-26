@@ -16,7 +16,7 @@ class grabPorts(object):
 
 # [s for s in ports  if "usbmodem14{}{}01".format(1, 2) in s][0]
 
-    def zaberPort(self, who, head, tail2, tail1, usb_port = None, n_modem = None, winPort = None):
+    def zaberPort(self, who, head, tail2, tail1, surname_serial = 'A104BTL5', usb_port = None, n_modem = None, winPort = None):
         
         if sys.platform.startswith('win'):
             self.zaber_port = winPort
@@ -26,7 +26,7 @@ class grabPorts(object):
             # print("HELLO")
             # pri
             if who == 'serial':
-                self.zaber_port = [s for s in self.ports if "serial" in s]
+                self.zaber_port = [s for s in self.ports if "serial" and surname_serial in s]
                 
                 # print(self.zaber_port)
 

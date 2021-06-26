@@ -62,13 +62,16 @@ def check_linear(ordered_array, current_chosen, i, coords = None):
     """
         Function to check whether a chosen position is valid in a line
     """
-    previous_chosen = ordered_array[-int(i)]
-    
-    if previous_chosen == current_chosen[0]:
-        # print(f'\nInvalid choice at position {-int(i)}\n')
-        return False
-    else:
-        # print(f'\nValid choice at position {-int(i)}\n')
+    try:
+        previous_chosen = ordered_array[-int(i)]
+        
+        if previous_chosen == current_chosen[0]:
+            # print(f'\nInvalid choice at position {-int(i)}\n')
+            return False
+        else:
+            # print(f'\nValid choice at position {-int(i)}\n')
+            return True
+    except:
         return True
 
 def exp_rand(init_rep, func, restart = 100, coor_cells=None):

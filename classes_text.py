@@ -345,14 +345,15 @@ def printme(text):
 
 def agebyExperimenter():
     while True:
-        age = input('\n Ask the participants for their age and input it here: ')
-        
+        age_input = input('\n Ask the participants for their age and input it here: ')
+        age_no_letters = re.sub(r"\D", "", age_input)
         try:
-            age = int(age[-2:])
+            age = int(age_no_letters[-2:])
             print(age)
             break
 
-        except:
+        except Exception as e:
+            print(e)
             print('\n Only numbers are valid answers \n')
             continue
 

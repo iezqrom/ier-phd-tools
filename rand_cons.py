@@ -64,6 +64,8 @@ def check_linear(ordered_array, current_chosen, i, coords = None):
     """
     try:
         previous_chosen = ordered_array[-int(i)]
+        # print('previous_chosen', previous_chosen)
+        # print('current_chosen', current_chosen)
         
         if previous_chosen == current_chosen[0]:
             # print(f'\nInvalid choice at position {-int(i)}\n')
@@ -80,7 +82,7 @@ def exp_rand(init_rep, func, restart = 100, coor_cells=None):
     """
     while True:
         final_order = []
-        final_order = randomise_constraints(init_rep, final_order, 0, func, restart, coords= coor_cells)
+        final_order = randomise_constraints(init_rep, final_order, 0, func, restart, limit=2, coords= coor_cells)
         if len(final_order) < len(init_rep):
             printme("Didn't converge...")
         else:

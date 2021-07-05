@@ -902,7 +902,7 @@ class TherCam(object):
                 if momen > (total_time_out + pre_shutter_time_in):
                     if not end and shutter_opened:
                         self.shutter_open_time = time.time() - self.shutter_open_time
-                        if stimulus == 2:
+                        if stimulus == 2 or stimulus == 10:
                             self.failed_trial = True
                             print('FAILED stimulation')
                         globals.stimulus = 4
@@ -943,7 +943,7 @@ class TherCam(object):
                     meand_baseline_buffer = np.mean(baseline_buffer)
                     print(f'Meaned baseline {meand_baseline_buffer}')
 
-                if globals.stimulus == 2:
+                if globals.stimulus == 2 or globals.stimulus == 10:
                     buffering_time = time.time() - self.shutter_open_time
 
                     if buffering_time < 0.3:

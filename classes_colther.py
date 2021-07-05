@@ -998,6 +998,7 @@ class Zaber(grabPorts):
         device = devices['camera']
         print(default_pan_tilt_values)
         move_platform_camera = 314961 + 157480
+        move_platform_camera_4 = 131234
         backwards_colther = {'1': 10079, '2': 10079, '3': 10079, '4': 10079}
 
         print('\nZaber game activated\n')
@@ -1160,8 +1161,12 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('g'):
                     if not was_pressed:
+                        print('ROIS')
                         print(self.rois)
-                        print(self.PanTilts)
+                        print('Pan tilt')
+                        print(default_pan_tilt_values)
+                        print('Camera positions')
+                        print(self.gridcamera)
                         was_pressed = True
 
                 elif keyboard.is_pressed('n'):
@@ -1178,8 +1183,7 @@ class Zaber(grabPorts):
                             devices['colther']['x'].move_abs(backwards_colther[current_roi])
 
                         next_move = grid['camera'][current_roi].copy()
-                        next_move['z'] = 109974
-                        moveZabersUp(devices, ['camera'], uppos=109974)
+                        moveZabersUp(devices, ['camera'], uppos=0)
 
                         ardpantilt.arduino.write(struct.pack('>B', 8))
                         time.sleep(keydelay)
@@ -1188,10 +1192,14 @@ class Zaber(grabPorts):
                         if platformcamera:
                             if current_roi == '2':
                                 platformcamera.device.move_abs(move_platform_camera)
+
+                            elif current_roi == '4':
+                                platformcamera.device.move_abs(move_platform_camera_4)
                             else:
                                 platformcamera.device.move_abs(0)
 
-                        movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = grid['camera'][current_roi])
+                        movetostartZabersConcu(devices, 'camera', ['x', 'y'], pos = grid['camera'][current_roi])
+                        movetostartZabersConcu(devices, 'camera', ['z'], pos = grid['camera'][current_roi])
                         movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                         was_pressed = True
@@ -1208,25 +1216,23 @@ class Zaber(grabPorts):
                         except:
                             devices['colther']['x'].move_abs(backwards_colther[current_roi])
 
-
                         next_move = grid['camera'][current_roi].copy()
-                        next_move['z'] = 109974
-                        moveZabersUp(devices, ['camera'], uppos=109974)
+                        moveZabersUp(devices, ['camera'], uppos=0)
 
                         ardpantilt.arduino.write(struct.pack('>B', 8))
                         time.sleep(keydelay)
                         ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
 
-                        # movetostartZabers(devices, 'camera', list(reversed(haxes['camera'])), pos = next_move)
-
-                        movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = grid['camera'][current_roi])
-
                         if platformcamera:
                             if current_roi == '2':
                                 platformcamera.device.move_abs(move_platform_camera)
+                            elif current_roi == '4':
+                                platformcamera.device.move_abs(move_platform_camera_4)
                             else:
                                 platformcamera.device.move_abs(0)
 
+                        movetostartZabersConcu(devices, 'camera', ['x', 'y'], pos = grid['camera'][current_roi])
+                        movetostartZabersConcu(devices, 'camera', ['z'], pos = grid['camera'][current_roi])
                         movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                         was_pressed = True

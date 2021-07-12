@@ -1165,7 +1165,8 @@ class Zaber(grabPorts):
                             current_roi = '1'
 
                         moveZabersUp(devices, [current_device])
-                        movetostartZabersConcu(devices, current_device, list(reversed(haxes[current_device])), pos = self.gridZs[current_device][current_roi])
+                        movetostartZabersConcu(devices, current_device, ['x', 'y'], pos = grid[current_device][current_roi])
+                        movetostartZabersConcu(devices, current_device, ['z'], pos = grid[current_device][current_roi])
 
                         was_pressed = True
 
@@ -1177,7 +1178,8 @@ class Zaber(grabPorts):
                             print(current_roi)
 
                         moveZabersUp(devices, [current_device])
-                        movetostartZabersConcu(devices, current_device, list(reversed(haxes[current_device])), pos = self.gridZs[current_device][current_roi])
+                        movetostartZabersConcu(devices, current_device, ['x', 'y'], pos = grid[current_device][current_roi])
+                        movetostartZabersConcu(devices, current_device, ['z'], pos = grid[current_device][current_roi])
 
                         was_pressed = True
 

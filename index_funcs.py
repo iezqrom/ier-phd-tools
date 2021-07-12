@@ -8,9 +8,9 @@ import argparse
 
 def mkpaths(situ, numdaysubj = None, folder_name = None):
     if situ == 'tb':
-        path_day, path_data, path_figs, path_datalocal = folderChreation(numdaysubj, folder_name)
-        path_videos = folderVhrideos(numdaysubj, folder_name)
-        path_audio = folderArudio(numdaysubj, folder_name)
+        path_day, path_data, path_figs, path_datalocal = folderChreation(numdaysubj, 'n', folder_name)
+        path_videos = folderVhrideos(numdaysubj, 'n', folder_name)
+        path_audio = folderArudio(numdaysubj, 'n', folder_name)
     elif situ == 'ex':
         path_day, path_data, path_figs, path_datalocal = folderChreation(numdaysubj, 'y', folder_name)
         path_videos = folderVhrideos(numdaysubj, 'y', folder_name)

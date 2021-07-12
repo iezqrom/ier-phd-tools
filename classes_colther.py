@@ -1188,6 +1188,10 @@ class Zaber(grabPorts):
 
         was_pressed = False
         pantilt_on = True
+        default_camera = False
+
+        camera_pan_tilt2 = {0: default_pan_tilt_values['2'], 1: []}
+        camera_position_zaber = {0: grid['camera']['2'], 1: {'x': , 'y': , 'z': }}
 
         if arduino:
             stimulus = 0
@@ -1504,6 +1508,21 @@ class Zaber(grabPorts):
                         print('Pan/tilt position')
                         print(red)
                         was_pressed = True
+
+                elif keyboard.is_pressed('2'):
+                    if current_roi == '2':
+                        moveZabersUp(devices, ['colther'])
+                        default_camera = not default_camera
+                        camera_pan_tilt2_current = camera_pan_tilt2[default_camera]
+
+                        ardpantilt.arduino.write(struct.pack('>B', 8))
+                        time.sleep(keydelay)
+                        ardpantilt.arduino.write(struct.pack('>BBB', camera_pan_tilt2_current[0], camera_pan_tilt2_current[1], camera_pan_tilt2_current[2]))
+
+                        movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = camera_position_zaber[default_camera])
+                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
+                        was_pressed = True
+
 
                 else:
                     was_pressed = False

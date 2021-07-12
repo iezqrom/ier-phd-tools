@@ -70,15 +70,18 @@ def setSubjNumDec(age, numdaywithin, situ, file = 'subjs.csv'):
 
     return todaydate, time_now
 
-def getSubjNumDec(file = 'subjs.csv'):
+def getSubjNumDec(file = 'subjs.csv', day = None):
     steps_back = depthToSrc()
 
-    df= pd.read_csv(f"./{steps_back}data/{file}")
-    nums_within = df.loc[:,'NumDayWithin']
+    if day:
+        numdaywithin = None
+    else:
+        df= pd.read_csv(f"./{steps_back}data/{file}")
+        nums_within = df.loc[:,'NumDayWithin']
 
-    numdaywithin = nums_within.to_numpy()[-1]
+        numdaywithin = int(nums_within.to_numpy()[-1])
 
-    return int(numdaywithin)
+    return numdaywithin
 
 ##################################################################
 ###################### Saving data ##############################
@@ -534,23 +537,27 @@ def numberSubjDay(testing = 'n'):
     return numdaysubj + 1
 
 
-def folderTesting(path, testing, numdaysubj):
+def folderTesting(path, testing, numdaysubj = None, existing_folder_name = None):
     """
         Function to check whether the folder to save the data today exists.
         If the folder does't exist it is created automatically
     """
     if testing == 'y':
         head_folder_name = 'test'
-    
+
     elif testing == 'n':
         head_folder_name = 'tb'
 
-    todaydate = date.today().strftime("%d%m%Y")
-    folder_name = head_folder_name + "_" + todaydate + "_" + str(numdaysubj)
-    path = path + "/" + folder_name
+    if not existing_folder_name:
+        todaydate = date.today().strftime("%d%m%Y")
+        folder_name = head_folder_name + "_" + todaydate + "_" + str(numdaysubj)
+        path = path + "/" + folder_name
+    else:
+        folder_name = head_folder_name + "_" + existing_folder_name
+        path = path + "/" + folder_name
 
     path = checkORcreate(path)
-  
+
     return path
 
 def folderDataLocalFigs(path):
@@ -563,14 +570,14 @@ def folderDataLocalFigs(path):
     return [path_figs, path_datalocal]
 
 
-def folderChreation(numdaysubj, testing = 'n'):
+def folderChreation(numdaysubj = None, testing = 'n', folder_name = None):
     """
         Function of functions to check whether we have all the folder architecture in place to save data and figures.
     """
     tbORtesting(testing)
     steps_back = depthToSrc()
     path_data = folderData(steps_back)
-    path_day = folderTesting(path_data, testing, numdaysubj)
+    path_day = folderTesting(path_data, testing, numdaysubj, folder_name)
     path_figs, path_datalocal = folderDataLocalFigs(path_day)
 
     return [path_day, path_data, path_figs, path_datalocal]
@@ -586,13 +593,13 @@ def folderVideos(path):
 
     return path_video
 
-def folderVhrideos(numdaysubj, testing = 'n'):
+def folderVhrideos(numdaysubj, testing = 'n', folder_name = None):
     """
         Function of functions to check whether we have all the folder architecture in place to save videos.
     """
     steps_back = depthToSrc()
     path_data = folderData(steps_back)
-    path_day = folderTesting(path_data, testing, numdaysubj)
+    path_day = folderTesting(path_data, testing, numdaysubj, folder_name)
     path_video = folderVideos(path_day)
     
     return path_video
@@ -608,13 +615,13 @@ def folderAudios(path):
 
     return path_audio
 
-def folderArudio(numdaysubj, testing = 'n'):
+def folderArudio(numdaysubj, testing = 'n', folder_name = None):
     """
         Function of functions to check whether we have all the folder architecture in place to save videos.
     """
     steps_back = depthToSrc()
     path_data = folderData(steps_back)
-    path_day = folderTesting(path_data, testing, numdaysubj)
+    path_day = folderTesting(path_data, testing, numdaysubj, folder_name)
     path_audio = folderAudios(path_day)
     
     return path_audio

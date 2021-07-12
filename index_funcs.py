@@ -6,16 +6,16 @@ from saving_data import *
 
 import argparse
 
-def mkpaths(situ, numdaysubj):
+def mkpaths(situ, numdaysubj = None, folder_name = None):
     if situ == 'tb':
-        path_day, path_data, path_figs, path_datalocal = folderChreation(numdaysubj)
-        path_videos = folderVhrideos(numdaysubj)
-        path_audio = folderArudio(numdaysubj)
+        path_day, path_data, path_figs, path_datalocal = folderChreation(numdaysubj, folder_name)
+        path_videos = folderVhrideos(numdaysubj, folder_name)
+        path_audio = folderArudio(numdaysubj, folder_name)
     elif situ == 'ex':
-        path_day, path_data, path_figs, path_datalocal = folderChreation(numdaysubj, 'y')
-        path_videos = folderVhrideos(numdaysubj, 'y')
-        path_audio = folderArudio(numdaysubj, 'y')
-    
+        path_day, path_data, path_figs, path_datalocal = folderChreation(numdaysubj, 'y', folder_name)
+        path_videos = folderVhrideos(numdaysubj, 'y', folder_name)
+        path_audio = folderArudio(numdaysubj, 'y', folder_name)
+
     return path_day, path_data, path_figs, path_datalocal, path_videos, path_audio
 
 def parsing_situation():

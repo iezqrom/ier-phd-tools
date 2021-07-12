@@ -1135,6 +1135,57 @@ class Zaber(grabPorts):
             errorloc(e)
 
 
+    def gridAround(self, devices, current_device, current_roi = '1', home = 'y', grid = globals.grid, haxes = globals.haxes):
+        was_pressed = False
+
+        try:
+            while True:
+                if keyboard.is_pressed('e'):
+
+                    if not any([globals.grid[current_device][x]['z'] == 0 for x in globals.grid[current_device]]) and home =='y':
+                        try:
+                            globals.weDone = True
+                        except Exception as e:
+                            errorloc(e)
+                        homingZabers(devices)
+                        break
+                    elif not any([globals.grid[current_device][x]['z'] == 0 for x in globals.grid[current_device]]) and home == 'n':
+                        printme('Terminating Zaber game')
+                        break
+                    else:
+                        print('You are missing something...')
+                        print(grid[current_device])
+                        was_pressed = True
+
+                elif keyboard.is_pressed('n'):
+                    if not was_pressed:
+                        current_roi = str(int(current_roi) + 1)
+                        print(len(grid[globals.current_device]))
+                        if int(current_roi) > len(grid[globals.current_device]):
+                            current_roi = '1'
+
+                        moveZabersUp(devices, [current_device])
+                        movetostartZabersConcu(devices, current_device, list(reversed(haxes[current_device])), pos = self.gridZs[current_device][current_roi])
+
+                        was_pressed = True
+
+                elif keyboard.is_pressed('b'):
+                    if not was_pressed:
+                        current_roi = str(int(current_roi) - 1)
+                        if int(current_roi) == 0:
+                            current_roi = str(list(grid[current_device].keys())[-1])
+                            print(current_roi)
+
+                        moveZabersUp(devices, [current_device])
+                        movetostartZabersConcu(devices, current_device, list(reversed(haxes[current_device])), pos = self.gridZs[current_device][current_roi])
+
+                        was_pressed = True
+
+                else:
+                    was_pressed = False
+        except Exception as e:
+            errorloc(e)
+
 
     def gridCon3pantilt(self, devices, ardpantilt, platformcamera = None, arduino = None, default_pan_tilt_values = globals.PanTilts, grid = globals.grid, haxes = globals.haxes, rules = globals.rules):
         """

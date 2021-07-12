@@ -902,7 +902,7 @@ class TherCam(object):
                 if momen > (total_time_out + pre_shutter_time_in):
                     if not end and shutter_opened:
                         self.shutter_open_time = time.time() - self.shutter_open_time
-                        if stimulus == 2:
+                        if stimulus == 2 or stimulus == 10:
                             self.failed_trial = True
                             print('FAILED stimulation')
                         globals.stimulus = 4
@@ -943,7 +943,7 @@ class TherCam(object):
                     meand_baseline_buffer = np.mean(baseline_buffer)
                     print(f'Meaned baseline {meand_baseline_buffer}')
 
-                if globals.stimulus == 2:
+                if globals.stimulus == 2 or globals.stimulus == 10:
                     buffering_time = time.time() - self.shutter_open_time
 
                     if buffering_time < 0.3:
@@ -1165,7 +1165,7 @@ class TherCam(object):
         end = False
         shutter_opened = False
 
-        globals.stimulus = 4
+        globals.stimulus = 0
 
         post_shutter_time_out = 2
         pre_shutter_time_in = 2
@@ -1195,12 +1195,13 @@ class TherCam(object):
                 if end:
                     shutter_closed_time = time.time() - close_shutter_stamp
 
-                if momen > (total_time_out):
+                if momen > (total_time_out) and shutter_opened:
                     globals.stimulus = 0
                     print('Close shutter (camera)')
                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
                     end = True
                     shutter_opened = False
+                    close_shutter_stamp = time.time()
 
                 if momen > pre_shutter_time_in and not end and not shutter_opened:
                     globals.stimulus = stimulus
@@ -1222,6 +1223,7 @@ class TherCam(object):
                         diff_buffer.append(dataC)
                         print('buffering...')
                         print(round(buffering_time, 4))
+                        print(diff_buffer)
                         mean_diff_buffer = np.mean(diff_buffer, axis=0)
                         indxdf, indydf = np.ones((2, 1))
 
@@ -1256,6 +1258,9 @@ class TherCam(object):
 
                     indxdf, indydf = -1, -1
 
+                print(shutter_closed_time)
+                print(end)
+                print(post_shutter_time_out)
                 if end and shutter_closed_time:
                     if shutter_closed_time > post_shutter_time_out:
                         break

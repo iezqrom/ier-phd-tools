@@ -574,6 +574,7 @@ def folderChreation(numdaysubj = None, testing = 'n', folder_name = None):
     """
         Function of functions to check whether we have all the folder architecture in place to save data and figures.
     """
+    print(testing)
     tbORtesting(testing)
     steps_back = depthToSrc()
     path_data = folderData(steps_back)

@@ -337,6 +337,17 @@ class TextIO:
 def findWholeWord(w):
     return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
+def waitForEnter(text):
+    print(text)
+    was_pressed = True
+
+    while True:
+        if keyboard.is_pressed('enter') and not was_pressed:
+            break
+
+        if not keyboard.is_pressed('enter'):
+            was_pressed = False
+
 def printme(text):
     """
         Quick function to print with space at the beginning and end

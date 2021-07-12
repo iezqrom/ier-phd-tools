@@ -20,8 +20,19 @@ def mkpaths(situ, numdaysubj):
 
 def parsing_situation():
     parser = argparse.ArgumentParser(description='Experimental situation: troubleshooting (tb) or experimenting (ex)')
-    parser.add_argument("-s", type=str)
+    parser.add_argument('-s', type=str)
+    parser.add_argument('-p', type=str, default=None)
     args = parser.parse_args()
     situ = args.s
+    part = args.p
 
-    return situ
+    return situ, part
+
+def experiment_part():
+    parser = argparse.ArgumentParser(description='Experiment part: folder name')
+    
+
+    args = parser.parse_args()
+    part = args.p
+
+    return part

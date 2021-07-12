@@ -1004,22 +1004,30 @@ class Zaber(grabPorts):
                     except:
                         devices[current_device]['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
 
-                elif keyboard.is_pressed('left'):
+                elif keyboard.is_pressed('right'):
                     if any(i == current_roi for i in list(arcs.keys())):
                         current_angle_arc[current_roi] = current_angle_arc[current_roi] - 1
+
+                        if current_angle_arc[current_roi] < min(list(arcs[current_roi].keys())) or current_angle_arc[current_roi] > max(list(arcs[current_roi].keys())):
+                            current_angle_arc[current_roi] = current_angle_arc[current_roi] + 1
+
                         current_pos_arc = arcs[current_roi][current_angle_arc[current_roi]]
-                        movetostartZabersConcu(devices, current_device, ['x', 'y'], current_pos_arc)
+                        movetostartZabersConcu(devices, current_device, ['x', 'y'], {'x': current_pos_arc[0], 'y': current_pos_arc[1]})
                         print(current_angle_arc)
                         print(current_pos_arc)
                         was_pressed = True
 
 
-                elif keyboard.is_pressed('right'):
+                elif keyboard.is_pressed('left'):
                     if any(i == current_roi for i in list(arcs.keys())):
                         current_angle_arc[current_roi] = current_angle_arc[current_roi] + 1
+
+                        if current_angle_arc[current_roi] < min(list(arcs[current_roi].keys())) or current_angle_arc[current_roi] > max(list(arcs[current_roi].keys())):
+                            current_angle_arc[current_roi] = current_angle_arc[current_roi] - 1
+
                         current_pos_arc = arcs[current_roi][current_angle_arc[current_roi]]
-                        movetostartZabersConcu(devices, current_device, ['x', 'y'], current_pos_arc)
-                        print(current_angle_arc)
+                        movetostartZabersConcu(devices, current_device, ['x', 'y'], {'x': current_pos_arc[0], 'y': current_pos_arc[1]})
+                        print(current_angle_arc[current_roi])
                         print(current_pos_arc)
                         was_pressed = True
 
@@ -1053,7 +1061,7 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
                         current_roi = str(int(current_roi) + 1)
-                        print(len(grid[globals.current_device]))
+
                         if int(current_roi) > len(grid[globals.current_device]):
                             current_roi = '1'
 
@@ -1067,13 +1075,17 @@ class Zaber(grabPorts):
                                     temp_angle_pos = vectorEnd([self.gridZs[k][previous_roi]['x'], self.gridZs[k][previous_roi]['y']], dist_z, angle)
                                     if all(i > 0 for i in temp_angle_pos):
                                         arcs[current_roi][angle] = [temp_angle_pos[0], temp_angle_pos[1], 180000]
+
+                                self.gridZs[k][current_roi] = {'x': arcs[current_roi][current_angle_arc[current_roi]][0], 'y': arcs[current_roi][current_angle_arc[current_roi]][1], 'z': arcs[current_roi][current_angle_arc[current_roi]][2]}
                             else:
                                 current_roi = str(int(current_roi) + 2)
                                 print(len(grid[globals.current_device]))
                                 if int(current_roi) > len(grid[globals.current_device]):
                                     current_roi = '1'
 
+                        printme(f'Current ROI: {current_roi}')
                         moveZabersUp(devices, [k])
+                        print(self.gridZs[k][current_roi])
                         movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = self.gridZs[k][current_roi])
 
                         was_pressed = True
@@ -1083,7 +1095,6 @@ class Zaber(grabPorts):
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
                             current_roi = str(list(grid[current_device].keys())[-1])
-                            print(current_roi)
 
                         k = 'tactile'
 
@@ -1098,11 +1109,9 @@ class Zaber(grabPorts):
                                     if all(i > 0 for i in temp_angle_pos):
                                         arcs[current_roi][angle] = [temp_angle_pos[0], temp_angle_pos[1], 180000]
                             else:
-                                current_roi = str(int(current_roi) - 1)
-                                print(len(grid[globals.current_device]))
-                                if int(current_roi) > len(grid[globals.current_device]):
-                                    current_roi = '1'
+                                current_roi = '2'
 
+                        printme(f'Current ROI: {current_roi}')
                         moveZabersUp(devices, [k])
                         movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = self.gridZs[k][current_roi])
 
@@ -1157,7 +1166,7 @@ class Zaber(grabPorts):
         pan, tilt, head = 0, 0, 0
         device = devices['camera']
         print(default_pan_tilt_values)
-        move_platform_camera = 314961 + 157480
+        move_platform_camera = 217953
         move_platform_camera_4 = 131234
         backwards_colther = {'1': 10079, '2': 10079, '3': 10079, '4': 10079}
 
@@ -1318,6 +1327,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('h'):
                     homingZabers(devices)
+                    platformcamera.device.home()
 
                 elif keyboard.is_pressed('g'):
                     if not was_pressed:
@@ -2488,7 +2498,11 @@ def vectorEnd(start, magnitude, angle):
     '''
     angle = angle * math.pi/180
     length = magnitude
-
+    print('HERE')
+    print(type(math.cos(angle)))
+    print(type(length))
+    print(type(start[0]))
+    print('HERE')
     return [math.ceil(length * math.cos(angle) + start[0]), math.ceil(length * math.sin(angle) + start[1])]
 
 def addVectorPointGrid(zaber, pos, magnitude, angle, grid = globals.grid):
@@ -3101,4 +3115,4 @@ def changeSpeed(zabers, device = None, speed=153600*4):
 #             globals.shutter = 'close'
 #             break
 
-# %%
+    # %%

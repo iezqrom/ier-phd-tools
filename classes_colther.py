@@ -1201,8 +1201,11 @@ class Zaber(grabPorts):
         pantilt_on = True
         default_camera = False
 
-        camera_pan_tilt2 = {0: default_pan_tilt_values['2'], 1: [93, 31, 39]}
-        camera_position_zaber = {0: grid['camera']['2'], 1: {'x': 376247, 'y': 1030166, 'z': 25039}}
+        camera_pan_tilt2 = {0: default_pan_tilt_values['2'].copy(), 1: [79, 48, 39]}
+        camera_position_zaber = {0: grid['camera']['2'].copy(), 1: {'x': 336247, 'y': 900166, 'z': 25039}}
+
+        # camera_pan_tilt2 = None
+        # camera_position_zaber = None
 
         if arduino:
             stimulus = 0

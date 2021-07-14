@@ -1201,8 +1201,8 @@ class Zaber(grabPorts):
         pantilt_on = True
         default_camera = False
 
-        camera_pan_tilt2 = {0: default_pan_tilt_values['2'].copy(), 1: [79, 48, 39]}
-        camera_position_zaber = {0: grid['camera']['2'].copy(), 1: {'x': 336247, 'y': 900166, 'z': 25039}}
+        camera_pan_tilt2 = {0: default_pan_tilt_values['2'].copy(), 1: [83, 41, 36]}
+        camera_position_zaber = {0: grid['camera']['2'].copy(), 1: {'x': 356247, 'y': 940166, 'z': 23039}}
 
         # camera_pan_tilt2 = None
         # camera_position_zaber = None
@@ -1304,21 +1304,47 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:
                         globals.stimulus = 6
-                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        try:
+                            arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        except Exception as e:
+                            errorloc(e)
+                            os.system('clear')
+                            waitForEnter('\n\n Press enter when Arduino is fixed...')
+                            arduino = ArdUIno(usb_port = 1, n_modem = 1)
+                            arduino.arduino.flushInput()
+
                         time.sleep(0.1)
                         was_pressed = True
 
                 elif keyboard.is_pressed('o'):
                     if not was_pressed:
                         globals.stimulus = 1
-                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+
+                        try:
+                            arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        except Exception as e:
+                            errorloc(e)
+                            os.system('clear')
+                            waitForEnter('\n\n Press enter when Arduino is fixed...')
+                            arduino = ArdUIno(usb_port = 1, n_modem = 1)
+                            arduino.arduino.flushInput()
+
                         time.sleep(0.1)
                         was_pressed = True
 
                 elif keyboard.is_pressed('c'):
                     if not was_pressed:
                         globals.stimulus = 0
-                        arduino.arduino.write(struct.pack('>B', globals.stimulus))
+
+                        try:
+                            arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        except Exception as e:
+                            errorloc(e)
+                            os.system('clear')
+                            waitForEnter('\n\n Press enter when Arduino is fixed...')
+                            arduino = ArdUIno(usb_port = 1, n_modem = 1)
+                            arduino.arduino.flushInput()
+
                         time.sleep(0.1)
                         was_pressed = True
 
@@ -1423,7 +1449,7 @@ class Zaber(grabPorts):
                             os.system('clear')
                             errorloc(e)
                             waitForEnter('\n\n Press enter when Arduino is fixed...')
-                            ardpantilt = ArdUIno(usb_port = 1, n_modem = 23)
+                            ardpantilt = ArdUIno(usb_port = 1, n_modem = 24)
                             ardpantilt.arduino.flushInput()
                             time.sleep(1)
                             ardpantilt.arduino.write(struct.pack('>B', 8))
@@ -1468,7 +1494,7 @@ class Zaber(grabPorts):
                             os.system('clear')
                             errorloc(e)
                             waitForEnter('\n\n Press enter when Arduino is fixed...')
-                            ardpantilt = ArdUIno(usb_port = 1, n_modem = 23)
+                            ardpantilt = ArdUIno(usb_port = 1, n_modem = 24)
                             ardpantilt.arduino.flushInput()
                             time.sleep(1)
                             ardpantilt.arduino.write(struct.pack('>B', 8))
@@ -1558,9 +1584,20 @@ class Zaber(grabPorts):
                         default_camera = not default_camera
                         camera_pan_tilt2_current = camera_pan_tilt2[default_camera]
 
-                        ardpantilt.arduino.write(struct.pack('>B', 8))
-                        time.sleep(keydelay)
-                        ardpantilt.arduino.write(struct.pack('>BBB', camera_pan_tilt2_current[0], camera_pan_tilt2_current[1], camera_pan_tilt2_current[2]))
+                        try:
+                            ardpantilt.arduino.write(struct.pack('>B', 8))
+                            time.sleep(keydelay)
+                            ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
+                        except Exception as e:
+                            os.system('clear')
+                            errorloc(e)
+                            waitForEnter('\n\n Press enter when Arduino is fixed...')
+                            ardpantilt = ArdUIno(usb_port = 1, n_modem = 24)
+                            ardpantilt.arduino.flushInput()
+                            time.sleep(1)
+                            ardpantilt.arduino.write(struct.pack('>B', 8))
+                            time.sleep(globals.keydelay)
+                            ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
 
                         movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = camera_position_zaber[default_camera])
                         movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
@@ -2595,11 +2632,6 @@ def vectorEnd(start, magnitude, angle):
     '''
     angle = angle * math.pi/180
     length = magnitude
-    print('HERE')
-    print(type(math.cos(angle)))
-    print(type(length))
-    print(type(start[0]))
-    print('HERE')
     return [math.ceil(length * math.cos(angle) + start[0]), math.ceil(length * math.sin(angle) + start[1])]
 
 def addVectorPointGrid(zaber, pos, magnitude, angle, grid = globals.grid):

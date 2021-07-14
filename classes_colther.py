@@ -1587,7 +1587,7 @@ class Zaber(grabPorts):
                         try:
                             ardpantilt.arduino.write(struct.pack('>B', 8))
                             time.sleep(keydelay)
-                            ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
+                            ardpantilt.arduino.write(struct.pack('>BBB', camera_pan_tilt2_current[0], camera_pan_tilt2_current[1], camera_pan_tilt2_current[2]))
                         except Exception as e:
                             os.system('clear')
                             errorloc(e)
@@ -1597,7 +1597,7 @@ class Zaber(grabPorts):
                             time.sleep(1)
                             ardpantilt.arduino.write(struct.pack('>B', 8))
                             time.sleep(globals.keydelay)
-                            ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
+                            ardpantilt.arduino.write(struct.pack('>BBB', camera_pan_tilt2_current[0], camera_pan_tilt2_current[1], camera_pan_tilt2_current[2]))
 
                         movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = camera_position_zaber[default_camera])
                         movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])

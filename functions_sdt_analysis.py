@@ -125,3 +125,17 @@ def SDTAprime(hits, misses, fas, crs):
     out['fa_rate'] = fa_rate
     
     return(out)
+
+def correctPercSDT(subtables):
+    present_yes = subtables[0]
+    present_no = subtables[1]
+    absent_yes = subtables[2]
+    absent_no = subtables[3]
+
+    present = [len(present_yes.loc[:, 'responses']), len(present_no.loc[:, 'responses'])]
+    absent = [len(absent_yes.loc[:, 'responses']), len(absent_no.loc[:, 'responses'])]
+
+    correc_present = present[0]/sum(present)
+    correc_absent = absent[1]/sum(absent)
+
+    return present, absent, correc_present, correc_absent

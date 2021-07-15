@@ -1616,6 +1616,8 @@ class Zaber(grabPorts):
                         if not touched:
                             moveZabersUp(devices, ['tactile'])
 
+                    was_pressed = True
+
 
                 else:
                     was_pressed = False

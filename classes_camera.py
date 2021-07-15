@@ -978,16 +978,28 @@ class TherCam(object):
                     globals.temp = round(np.mean(roiC), 2)
 
                     baseline_buffer.append(globals.temp)
-                    
+
                     print('Baseline: ' + str(globals.temp))
                     sROI = 0
-                    
+
                     indxdf, indydf = -1, -1
 
                 if globals.delta > target_delta and not end and shutter_opened and globals.delta < (target_delta + 0.8):
                     self.shutter_open_time = time.time() - self.shutter_open_time
-                    
                     print(f'\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n')
+                    print(f'\nClose shutter (camera)\n')
+
+                    globals.stimulus = 4
+                    arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                    close_shutter_stamp = time.time()
+
+                    event_camera.set()
+                    end = True
+                    shutter_opened = False
+
+                if globals.delta > (target_delta + 0.8) and not end and shutter_opened:
+                    self.shutter_open_time = 0.1
+                    print(f'\nDELTA OVERSHOT\n')
                     print(f'\nClose shutter (camera)\n')
 
                     globals.stimulus = 4
@@ -1000,7 +1012,7 @@ class TherCam(object):
 
                 # print(f"Time since shutter closed: {shutter_closed}")
 
-                if end and shutter_closed_time:  
+                if end and shutter_closed_time:
                     if shutter_closed_time > post_shutter_time_out:
                         break
 

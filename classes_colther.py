@@ -1189,7 +1189,7 @@ class Zaber(grabPorts):
             errorloc(e)
 
 
-    def gridCon3pantilt(self, devices, ardpantilt, platformcamera = None, arduino = None, default_pan_tilt_values = globals.PanTilts, grid = globals.grid, haxes = globals.haxes, rules = globals.rules):
+    def gridCon3pantilt(self, devices, ardpantilt, platformcamera = None, arduino = None, arduino_touch = None, default_pan_tilt_values = globals.PanTilts, grid = globals.grid, haxes = globals.haxes, rules = globals.rules):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
             The coordinates of two positions can be saved with 'z' and 'x'
@@ -1200,6 +1200,7 @@ class Zaber(grabPorts):
         was_pressed = False
         pantilt_on = True
         default_camera = False
+        touched = False
 
         camera_pan_tilt2 = {0: default_pan_tilt_values['2'].copy(), 1: [79, 48, 39]}
         camera_position_zaber = {0: grid['camera']['2'].copy(), 1: {'x': 336247, 'y': 900166, 'z': 25039}}
@@ -1565,6 +1566,18 @@ class Zaber(grabPorts):
                         movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = camera_position_zaber[default_camera])
                         movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
                         was_pressed = True
+
+                elif keyboard.is_pressed('t'):
+                    if arduino_touch:
+                        touched = not touched
+                        if touched:
+                            movetostartZabersConcu(devices, 'tactile', list(reversed(haxes['camera'])), pos = grid['tactile'][current_roi])
+
+                        arduino_touch.arduino.write(struct.pack('>B', touched))
+                        time.sleep(0.1)
+
+                        if not touched:
+                            moveZabersUp(devices, ['tactile'])
 
 
                 else:

@@ -1230,6 +1230,7 @@ class Zaber(grabPorts):
         move_platform_camera = 217953
         move_platform_camera_4 = 131234
         backwards_colther = {'1': 10079, '2': 10079, '3': 10079, '4': 10079}
+        positions_touch = {'1': '2', '2': '1', '3': '4', '4': '3'}
 
         print('\nZaber game activated\n')
 
@@ -1607,14 +1608,25 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('t'):
                     if arduino_touch:
                         touched = not touched
+
                         if touched:
-                            movetostartZabersConcu(devices, 'tactile', list(reversed(haxes['camera'])), pos = grid['tactile'][current_roi])
+                            movetostartZabersConcu(devices, 'tactile', list(reversed(haxes['camera'])), pos = grid['tactile'][positions_touch[current_roi]])
+                            if current_roi == '2':
+                                devices['colther']['x'].device.move_abs(10079)
 
                         arduino_touch.arduino.write(struct.pack('>B', touched))
                         time.sleep(0.1)
 
+                        if not touched and current_roi == '2':
+                            devices['colther']['x'].device.move_abs(10079)
+
+                        if touched and current_roi == '2':
+                            movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
+
                         if not touched:
                             moveZabersUp(devices, ['tactile'])
+                            if current_roi == '2':
+                                movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                     was_pressed = True
 

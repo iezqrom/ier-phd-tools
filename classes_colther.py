@@ -113,6 +113,7 @@ class Zaber(grabPorts):
 
         if n_device == 1: # number 1 device is chosen to lead the Daisy chain
             try:
+                print(self.ports.zaber_port)
                 self.port = zs.AsciiSerial(self.ports.zaber_port)
             except:
                 self.port = zs.AsciiSerial(self.ports.zaber_port[0])

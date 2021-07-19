@@ -538,42 +538,54 @@ class Zaber(grabPorts):
             while True:
                 if keyboard.is_pressed('up'):
                     try:
-                        device['y'].move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
+                        response = device['y'].move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
                     except:
-                        device['y'].device.move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
+                        response = device['y'].device.move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
+
+                    handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('down'):
                     try:
-                        device['y'].move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
+                        response = device['y'].move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
                     except:
-                        device['y'].device.move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
+                        response = device['y'].device.move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
+
+                    handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 #### X axis
 
                 elif keyboard.is_pressed('left'):
                     try:
-                        device['x'].move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
+                        response = device['x'].move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
                     except:
-                        device['x'].device.move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
+                        response = device['x'].device.move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
+
+                    handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('right'):
                     try:
-                        device['x'].move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
+                        response = device['x'].move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
                     except:
-                        device['x'].device.move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
+                        response = device['x'].device.move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
+
+                    handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 ### Z axis
                 elif keyboard.is_pressed('d'):
                     try:
-                        device['z'].move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+                        response = device['z'].move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
                     except:
-                        device['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+                        response = device['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+
+                    handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('u'):
                     try:
-                        device['z'].move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+                        response = device['z'].move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
                     except:
-                        device['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+                        response = device['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+
+                    handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 # elif keyboard.is_pressed('p'):
                 #     if not was_pressed:
@@ -1217,6 +1229,7 @@ class Zaber(grabPorts):
 
         print('\nZaber game activated\n')
 
+        globals.current_device = 'camera'
         try:
             # device = devices[globals.current_device]
             current_roi = '1'
@@ -1339,9 +1352,11 @@ class Zaber(grabPorts):
                         time.sleep(keydelay)
                     else:
                         try:
-                            device['y'].move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
+                            response = device['y'].move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
                         except:
-                            device['y'].device.move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
+                            response = device['y'].device.move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('down'):
                     if pantilt_on:
@@ -1349,9 +1364,11 @@ class Zaber(grabPorts):
                         time.sleep(keydelay)
                     else:
                         try:
-                            device['y'].move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
+                            response = device['y'].move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
                         except:
-                            device['y'].device.move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
+                            response = device['y'].device.move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
 
                 elif keyboard.is_pressed('right'):
@@ -1360,9 +1377,11 @@ class Zaber(grabPorts):
                         time.sleep(keydelay)
                     else:
                         try:
-                            device['x'].move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
+                            response = device['x'].move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
                         except:
-                            device['x'].device.move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
+                            response = device['x'].device.move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('left'):
                     if pantilt_on:
@@ -1370,9 +1389,11 @@ class Zaber(grabPorts):
                         time.sleep(keydelay)
                     else:
                         try:
-                            device['x'].move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
+                            response = device['x'].move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
                         except:
-                            device['x'].device.move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
+                            response = device['x'].device.move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('u'):
                     if pantilt_on:
@@ -1380,9 +1401,11 @@ class Zaber(grabPorts):
                         time.sleep(keydelay)
                     else:
                         try:
-                            device['z'].move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+                            response = device['z'].move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
                         except:
-                            device['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+                            response = device['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
 
                 elif keyboard.is_pressed('d'):
@@ -1391,9 +1414,11 @@ class Zaber(grabPorts):
                         time.sleep(keydelay)
                     else:
                         try:
-                            device['z'].move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+                            response = device['z'].move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
                         except:
-                            device['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+                            response = device['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
 
                 elif keyboard.is_pressed('h'):
@@ -2924,7 +2949,6 @@ def homingZabersConcu(zabers, axes = None, speed = 153600*4):
         for x in threads_zabers:
             x.join()
 
-
 def cm_to_steps(z_d, step_size):
     """
         Function to translate centimetres into Zaber steps
@@ -3004,10 +3028,10 @@ def set_up_big_three(axes):
     camera2 = camera12.device.axis(2)
     camera3 = Zaber(2, port = camera12, who = 'modem', usb_port = globals.usb_port_camera, n_modem = globals.modem_port_camera)
 
-    tactile12 = Zaber(1, who = 'modem', usb_port = globals.usb_port_tactile, n_modem = globals.modem_port_touch, head = 75, tail2=3, tail1=1)
+    tactile12 = Zaber(1, who = 'modem', usb_port = globals.usb_port_tactile, n_modem = globals.modem_port_tactile, head = 75, tail2=3, tail1=1)
     tactile1 = tactile12.device.axis(1)
     tactile2 = tactile12.device.axis(2)
-    tactile3 = Zaber(2, port = tactile12, who = 'modem', usb_port = globals.usb_port_tactile, n_modem = globals.modem_port_touch, head = 75, tail2=3, tail1=1)
+    tactile3 = Zaber(2, port = tactile12, who = 'modem', usb_port = globals.usb_port_tactile, n_modem = globals.modem_port_tactile, head = 75, tail2=3, tail1=1)
 
     colther = {axes['colther'][0]: colther1, axes['colther'][1]: colther2, axes['colther'][2]: colther3}
     camera = {axes['camera'][0]: camera1, axes['camera'][1]: camera2, axes['colther'][2]: camera3}
@@ -3070,6 +3094,28 @@ def changeAmount(key):
                 errorloc(e)
 
     return new_amount
+
+def handleOutOfRange(response, zaber, axis, current_device, amount = globals.amount, models = globals.zaber_models, ends = globals.zaber_models_end):
+
+    try:
+        pos = zaber[axis].send('/get pos')
+    except:
+        pos = zaber[axis].device.send('/get pos')
+
+    if response.data == 'BADDATA':
+        if int(pos.data) < amount:
+            try:
+                zaber[axis].move_abs(0)
+            except:
+                zaber[axis].device.move_abs(0)
+            print('OUT OF START')
+        else:
+            model = models[current_device][axis]
+            try:
+                zaber[axis].move_abs(ends[model])
+            except:
+                zaber[axis].device.move_abs(ends[model])
+            print('OUT OF END')
 
 ################################################################################################################
 ################################################################################################################

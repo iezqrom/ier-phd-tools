@@ -10,6 +10,7 @@ import seaborn as sns
 import math
 import re
 import os
+import itertools
 
 class ParseDirectos(object):
     '''
@@ -26,6 +27,7 @@ class ParseDirectos(object):
         self.readhead.columns = self.stringified_columns
         self.dataframe = self.readhead.set_index('row')
         self.cuadrar = False
+        self.fps = 30
 
     def extractSingle(self, tosingle):
         self.tosingle = tosingle
@@ -215,3 +217,31 @@ def getNames(path, pattern):
 
     names.sort(key=natural_keys)
     return names
+
+def runningMean(signal, window, fps = 30):
+    '''
+        Running mean. Parameters are the size of the window. At each step the window moves one frame.
+        The boundary rules is to create a buffer at the beginning and end. The values in the buffer are the start/end value.
+    '''
+    size_window = window*fps
+
+    if size_window % 2 == 0:
+        size_window += 1
+        print('Even number of frames')
+    else:
+        print('Odd number of frames')
+
+    index_centre_window = math.ceil(size_window/2) - 1
+    size_pad = math.floor(size_window/2)
+
+    start_pad = [signal[0]]*size_pad
+    end_pad = [signal[-1]]*size_pad
+
+    padded_list = list(itertools.chain(start_pad, signal, end_pad))
+
+    runned_list = []
+    for index in range(len(signal)):
+        window_data = padded_list[index:int((size_window + index))]
+        runned_list.append(np.mean(window_data))
+
+    return runned_list

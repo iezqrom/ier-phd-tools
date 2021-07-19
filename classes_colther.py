@@ -3030,7 +3030,7 @@ def set_up_big_three(axes):
     camera = {axes['camera'][0]: camera1, axes['camera'][1]: camera2, axes['colther'][2]: camera3}
     tactile = {axes['tactile'][0]: tactile1, axes['tactile'][1]: tactile2, axes['tactile'][2]: tactile3}
 
-    zabers = {'colther': colther, 'camera': camera, 
+    zabers = {'colther': colther, 'camera': camera,
                 'tactile': tactile}
 
     return zabers

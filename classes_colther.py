@@ -69,6 +69,7 @@ from scipy.interpolate import interp1d
 
 from failing import *
 import re
+from termios import TCIFLUSH, tcflush
 
 ################################################################################################################
 ################################################################################################################
@@ -670,13 +671,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:
-                        while True:
-                            new_amount = input(f'\nAmount to move: ')
-                            try:
-                                globals.amount = int(new_amount)
-                                break
-                            except Exception as e:
-                                errorloc(e)
+                        globals.amount = changeAmount('a')
 
                         was_pressed = True
 
@@ -949,13 +944,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:
-                        while True:
-                            new_amount = input('Amount to move: ')
-                            try:
-                                globals.amount = int(new_amount)
-                                break
-                            except Exception as e:
-                                errorloc(e)
+                        globals.amount = changeAmount('a')
 
                         was_pressed = True
 
@@ -1120,13 +1109,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:
-                        while True:
-                            new_amount = input('Amount to move: ')
-                            try:
-                                globals.amount = int(new_amount)
-                                break
-                            except Exception as e:
-                                errorloc(e)
+                        globals.amount = changeAmount('a')
 
                         was_pressed = True
 
@@ -1134,7 +1117,6 @@ class Zaber(grabPorts):
                     was_pressed = False
         except Exception as e:
             errorloc(e)
-
 
     def gridAround(self, devices, current_device, current_roi = '1', home = 'y', grid = globals.grid, haxes = globals.haxes):
         was_pressed = False
@@ -3017,15 +2999,15 @@ def set_up_big_three(axes):
     colther2 = Zaber(2, port = colther1, who = 'serial')
     colther3 = Zaber(3, port = colther1, who = 'serial')
 
-    camera12 = Zaber(1, who = 'modem', usb_port = 2, n_modem = 1)
+    camera12 = Zaber(1, who = 'modem', usb_port = globals.usb_port_camera, n_modem = globals.modem_port_camera)
     camera1 = camera12.device.axis(1)
     camera2 = camera12.device.axis(2)
-    camera3 = Zaber(2, port = camera12, who = 'modem', usb_port = 2, n_modem = 1)
+    camera3 = Zaber(2, port = camera12, who = 'modem', usb_port = globals.usb_port_camera, n_modem = globals.modem_port_camera)
 
-    tactile12 = Zaber(1, who = 'modem', usb_port = 9, n_modem = 3, head = 75, tail2=3, tail1=1)
+    tactile12 = Zaber(1, who = 'modem', usb_port = globals.usb_port_tactile, n_modem = globals.modem_port_touch, head = 75, tail2=3, tail1=1)
     tactile1 = tactile12.device.axis(1)
     tactile2 = tactile12.device.axis(2)
-    tactile3 = Zaber(2, port = tactile12, who = 'modem', usb_port = 9, n_modem = 3, head = 75, tail2=3, tail1=1)
+    tactile3 = Zaber(2, port = tactile12, who = 'modem', usb_port = globals.usb_port_tactile, n_modem = globals.modem_port_touch, head = 75, tail2=3, tail1=1)
 
     colther = {axes['colther'][0]: colther1, axes['colther'][1]: colther2, axes['colther'][2]: colther3}
     camera = {axes['camera'][0]: camera1, axes['camera'][1]: camera2, axes['colther'][2]: camera3}
@@ -3076,6 +3058,18 @@ def changeSpeed(zabers, device = None, speed=153600*4):
         except:
             zabers.device.send(f'set maxspeed {speed}')
 
+def changeAmount(key):
+    while True:
+        if not keyboard.is_pressed(key):
+            tcflush(sys.stdin, TCIFLUSH)
+            new_amount = input('\n\nAmount to move: ')
+            try:
+                new_amount = int(new_amount)
+                break
+            except Exception as e:
+                errorloc(e)
+
+    return new_amount
 
 ################################################################################################################
 ################################################################################################################

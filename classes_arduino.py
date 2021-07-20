@@ -338,7 +338,7 @@ def tryexceptArduino(ard, signal, name, n_modem, usb_port = 1):
         time.sleep(0.2)
 
 def movePanTilt(ard, trio_array, trigger_move = 8):
-    # print(trio_array[0], trio_array[1], trio_array[2])
+    print(trio_array[0], trio_array[1], trio_array[2])
     try:
         ard.arduino.write(struct.pack('>B', trigger_move))
         time.sleep(globals.keydelay)

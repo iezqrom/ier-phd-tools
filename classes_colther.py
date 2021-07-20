@@ -1015,8 +1015,8 @@ class Zaber(grabPorts):
 
                         current_pos_arc = arcs[current_roi][current_angle_arc[current_roi]]
                         movetostartZabersConcu(devices, current_device, ['x', 'y'], {'x': current_pos_arc[0], 'y': current_pos_arc[1]})
-                        print(current_angle_arc)
-                        print(current_pos_arc)
+                        # print(current_angle_arc)
+                        # print(current_pos_arc)
                         was_pressed = True
 
 
@@ -1029,8 +1029,8 @@ class Zaber(grabPorts):
 
                         current_pos_arc = arcs[current_roi][current_angle_arc[current_roi]]
                         movetostartZabersConcu(devices, current_device, ['x', 'y'], {'x': current_pos_arc[0], 'y': current_pos_arc[1]})
-                        print(current_angle_arc[current_roi])
-                        print(current_pos_arc)
+                        # print(current_angle_arc[current_roi])
+                        # print(current_pos_arc)
                         was_pressed = True
 
 
@@ -1196,8 +1196,8 @@ class Zaber(grabPorts):
         pantilt_on = True
         default_camera = False
         touched = False
-
-        camera_pan_tilt2 = {0: default_pan_tilt_values['2'].copy(), 1: [83, 41, 36]}
+        # print(default_pan_tilt_values)
+        camera_pan_tilt2 = {0: default_pan_tilt_values['2'], 1: (83, 41, 36)}
         camera_position_zaber = {0: grid['camera']['2'].copy(), 1: {'x': 356247, 'y': 940166, 'z': 23039}}
 
         # camera_pan_tilt2 = None
@@ -1221,7 +1221,7 @@ class Zaber(grabPorts):
         keydelay = 0.15
         pan, tilt, head = 0, 0, 0
         device = devices['camera']
-        print(default_pan_tilt_values)
+        # print(default_pan_tilt_values)
         move_platform_camera = 217953
         move_platform_camera_4 = 131234
         backwards_colther = {'1': 10079, '2': 10079, '3': 10079, '4': 10079}
@@ -1286,7 +1286,7 @@ class Zaber(grabPorts):
                             globals.weDone = True
                         except Exception as e:
                             errorloc(e)
-                        homingZabersConcu(devices)
+                        # homingZabersConcu(devices)
                         # print(default_pan_tilt_values)
                         break
                     else:
@@ -1422,8 +1422,7 @@ class Zaber(grabPorts):
 
 
                 elif keyboard.is_pressed('h'):
-                    homingZabers(devices)
-                    platformcamera.device.home()
+                    triggered_exception(zabers = devices, arduino_syringe = arduino, arduino_touch = arduino_touch, arduino_pantilt = ardpantilt)
 
                 elif keyboard.is_pressed('g'):
                     if not was_pressed:
@@ -3116,6 +3115,44 @@ def handleOutOfRange(response, zaber, axis, current_device, amount = globals.amo
             except:
                 zaber[axis].device.move_abs(ends[model])
             print('OUT OF END')
+
+def triggered_exception(zabers = None, path_day = None, path_anal = None, path_data = None, path_videos = None, path_figs = None, arduino_syringe = None, arduino_touch = None, arduino_dimmer = None, arduino_pantilt = None, e = None, outcome = 'failed'):
+
+    if e:
+        errorloc(e)
+    else:
+        print('Keyboard Interrupt')
+
+    if path_data:
+        rootToUser(path_day, path_anal, path_data, path_figs, path_videos)
+        changeNameTempFile(path_data, outcome=outcome)
+
+    if zabers:
+        homingZabersConcu(zabers, {'colther': globals.haxes['colther']})
+        homingZabersConcu(zabers, {'camera': ['z']})
+
+    if arduino_syringe:
+        globals.stimulus = 0
+        arduino_syringe.arduino.write(struct.pack('>B', globals.stimulus))
+        time.sleep(0.1)
+
+    if arduino_touch:
+        globals.touch = 0
+        arduino_touch.arduino.write(struct.pack('>B', globals.touch))
+        time.sleep(0.1)
+
+    if arduino_pantilt:
+        arduino_pantilt.arduino.write(struct.pack('>B', 8))
+        time.sleep(globals.keydelay)
+        arduino_pantilt.arduino.write(struct.pack('>BBB', globals.default_pantilt[0], globals.default_pantilt[1], globals.default_pantilt[2]))
+        time.sleep(0.1)
+
+    if arduino_dimmer:
+        globals.lamp = 0
+        arduino_dimmer.arduino.write(struct.pack('>B', globals.lamp))
+
+    if zabers:
+        homingZabersConcu(zabers, globals.haxes, speed = globals.speed)
 
 ################################################################################################################
 ################################################################################################################

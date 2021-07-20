@@ -319,6 +319,43 @@ def shakeShutter(ard, times):
         printme('Close shutter')
         time.sleep(0.2)
 
+def tryexceptArduino(ard, signal, name, n_modem, usb_port = 1):
+    try:
+        ard.arduino.write(struct.pack('>B', signal))
+        print(f'TALKING TO {name}')
+        # print(signal)
+
+        time.sleep(0.2)
+    except Exception as e:
+        os.system('clear')
+        errorloc(e)
+        waitForEnter(f'\n\n Press enter when Arduino {name} is fixed...')
+        ard = ArdUIno(usb_port = usb_port, n_modem = n_modem)
+        ard.arduino.flushInput()
+        time.sleep(1)
+        ard.arduino.write(struct.pack('>B', signal))
+
+        time.sleep(0.2)
+
+def movePanTilt(ard, trio_array, trigger_move = 8):
+    # print(trio_array[0], trio_array[1], trio_array[2])
+    try:
+        ard.arduino.write(struct.pack('>B', trigger_move))
+        time.sleep(globals.keydelay)
+        ard.arduino.write(struct.pack('>BBB', trio_array[0], trio_array[1], trio_array[2]))
+    except Exception as e:
+        os.system('clear')
+        errorloc(e)
+        waitForEnter(f'\n\n Press enter when Arduino PanTilt is fixed...')
+        ard = ArdUIno(usb_port = globals.usb_port_pantilt, n_modem = globals.modem_port_pantilt)
+        ard.arduino.flushInput()
+        time.sleep(1)
+        ard.arduino.write(struct.pack('>B', trigger_move))
+        time.sleep(globals.keydelay)
+        ard.arduino.write(struct.pack('>BBB', trio_array[0], trio_array[1], trio_array[2]))
+
+    print('TALKING TO PANTILT')
+
 Fs = 20; # sampling freq
 Fc = 2; # cutoff
 [b, a] = signal.butter(2, Fc/(Fs/2))

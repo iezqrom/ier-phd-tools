@@ -50,7 +50,7 @@ except:
     pass
 
 from classes_arduino import ArdUIno
-
+from classes_arduino import *
 from grabPorts import grabPorts
 from pyd import PYD
 from saving_data import *

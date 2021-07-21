@@ -69,7 +69,10 @@ def sayCorrect(guess_is_correct):
 ####################### IBM watson ##############################
 #################################################################
 
-import pyaudio
+try:
+    import pyaudio
+except:
+    pass
 from ibm_watson import SpeechToTextV1
 from ibm_watson.websocket import RecognizeCallback, AudioSource
 from threading import Thread
@@ -175,7 +178,10 @@ def recognize_yes_no_weboscket(speech_to_text, audio_source, text, *args):
 ###############################################
 
 # Variables for recording the speech
-FORMAT = pyaudio.paInt16
+try:
+    FORMAT = pyaudio.paInt16
+except:
+    pass
 CHANNELS = 1
 RATE = 44100
 

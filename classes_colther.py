@@ -965,15 +965,12 @@ class Zaber(grabPorts):
         except Exception as e:
             errorloc(e)
 
-    def gridUpDownArc(self, devices, current_device, arcs, dist_z, current_roi = '1', home = 'y', grid = globals.grid, haxes = globals.haxes,rules = globals.rules, touch_z_offset = globals.touch_z_offset):
+    def gridUpDownArc(self, devices, current_device, arcs, dist_z, current_angle_arc, current_roi = '1', home = 'y', grid = globals.grid, haxes = globals.haxes,rules = globals.rules, touch_z_offset = globals.touch_z_offset):
         was_pressed = False
         current_pos_arc = None
 
         self.gridZs = grid
         printme(self.gridZs)
-
-        current_angle_arc = {'3': 245, '4': 80}
-        
 
         try:
             while True:
@@ -1225,7 +1222,7 @@ class Zaber(grabPorts):
         move_platform_camera = 217953
         move_platform_camera_4 = 131234
         backwards_colther = 10079
-        positions_touch = {'1': '3', '2': '1', '3': '4', '4': '3', '5': '4'}
+        positions_touch = {'1': '3', '2': '4', '3': '1', '4': '2', '5': '4'}
         checked = {'1': True, '2': True, '3': True, '4': True, '5': True}
 
         print('\nZaber game activated\n')
@@ -1292,7 +1289,7 @@ class Zaber(grabPorts):
                         break
                     else:
                         print('You are missing something...')
-                        print(self.rois, self.PanTilts)
+                        print(self.rois, self.PanTilts, checked)
                         was_pressed = True
 
                 elif keyboard.is_pressed('k'):
@@ -1433,10 +1430,14 @@ class Zaber(grabPorts):
                         print(default_pan_tilt_values)
                         print('Camera positions')
                         print(self.gridcamera)
+                        print('Checked Touch')
+                        print(checked)
                         was_pressed = True
 
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
+                        if current_roi == '2' or current_roi == '3':
+                            devices['colther']['x'].device.move_abs(10079)
                         arduino_touch.arduino.write(struct.pack('>B', 0))
                         touched = False
                         current_roi = str(int(current_roi) + 1)
@@ -1452,14 +1453,14 @@ class Zaber(grabPorts):
 
 
                         moveZabersUp(devices, ['camera'], uppos=0)
-
+                        print(default_pan_tilt_values)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
                         if platformcamera:
-                            if current_roi == '2':
+                            if current_roi == '2' or current_roi == '3':
                                 platformcamera.device.move_abs(move_platform_camera)
 
-                            elif current_roi == '4':
+                            elif current_roi == '5':
                                 platformcamera.device.move_abs(move_platform_camera_4)
                             else:
                                 platformcamera.device.move_abs(0)
@@ -1472,6 +1473,8 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
+                        if current_roi == '2' or current_roi == '3':
+                            devices['colther']['x'].device.move_abs(10079)
                         arduino_touch.arduino.write(struct.pack('>B', 0))
                         touched = False
                         current_roi = str(int(current_roi) - 1)
@@ -1488,9 +1491,9 @@ class Zaber(grabPorts):
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
                         if platformcamera:
-                            if current_roi == '2':
+                            if current_roi == '2' or current_roi == '3':
                                 platformcamera.device.move_abs(move_platform_camera)
-                            elif current_roi == '4':
+                            elif current_roi == '5':
                                 platformcamera.device.move_abs(move_platform_camera_4)
                             else:
                                 platformcamera.device.move_abs(0)
@@ -1570,29 +1573,46 @@ class Zaber(grabPorts):
                         default_camera = not default_camera
                         camera_pan_tilt2_current = camera_pan_tilt2[default_camera]
                         movePanTilt(ardpantilt, camera_pan_tilt2_current)
+                        if default_camera:
+                            movetostartZabersConcu(devices, 'camera', ['y'], pos = camera_position_zaber[default_camera])
+                            movetostartZabersConcu(devices, 'camera', ['x', 'z'], pos = camera_position_zaber[default_camera])
+                        elif not default_camera:
+                            movetostartZabersConcu(devices, 'camera', ['x'], pos = camera_position_zaber[default_camera])
+                            movetostartZabersConcu(devices, 'camera', ['y', 'z'], pos = camera_position_zaber[default_camera])
 
-                        movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = camera_position_zaber[default_camera])
                         movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
                         was_pressed = True
+
+                elif keyboard.is_pressed('5'):
+                    if not was_pressed:
+                        if current_roi == '4':
+                            arduino_touch.arduino.write(struct.pack('>B', 0))
+                            touched = False
+
+                            movetostartZabersConcu(devices, 'tactile', list(reversed(haxes['camera'])), pos = grid['tactile']['5'])
+                            arduino_touch.arduino.write(struct.pack('>B', 1))
+
+                            touched = True
 
                 elif keyboard.is_pressed('t'):
                     if arduino_touch:
                         touched = not touched
 
+                        checked[current_roi] = False
+
                         if touched:
                             movetostartZabersConcu(devices, 'tactile', list(reversed(haxes['camera'])), pos = grid['tactile'][positions_touch[current_roi]])
-                            if current_roi == '2':
+                            if current_roi == '2' or current_roi == '3':
                                 time.sleep(0.5)
                                 devices['colther']['x'].device.move_abs(10079)
 
-                        if not touched and current_roi == '2':
+                        if not touched and current_roi == '2' or current_roi == '3':
                             time.sleep(0.5)
                             devices['colther']['x'].device.move_abs(10079)
 
                         arduino_touch.arduino.write(struct.pack('>B', touched))
-                        time.sleep(0.5)
 
-                        if touched and current_roi == '2':
+                        if touched and current_roi == '2' or current_roi == '3':
                             time.sleep(0.5)
                             movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 

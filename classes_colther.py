@@ -1224,8 +1224,9 @@ class Zaber(grabPorts):
         # print(default_pan_tilt_values)
         move_platform_camera = 217953
         move_platform_camera_4 = 131234
-        backwards_colther = {'1': 10079, '2': 10079, '3': 10079, '4': 10079}
+        backwards_colther = 10079
         positions_touch = {'1': '2', '2': '1', '3': '4', '4': '3'}
+        checked_touch = {'1': False, '2': False, '3': False}
 
         print('\nZaber game activated\n')
 
@@ -1445,9 +1446,9 @@ class Zaber(grabPorts):
                         moveZabersUp(devices, ['colther'])
 
                         try:
-                            devices['colther']['x'].device.move_abs(backwards_colther[current_roi])
+                            devices['colther']['x'].device.move_abs(backwards_colther)
                         except:
-                            devices['colther']['x'].move_abs(backwards_colther[current_roi])
+                            devices['colther']['x'].move_abs(backwards_colther)
 
                         next_move = grid['camera'][current_roi].copy()
                         moveZabersUp(devices, ['camera'], uppos=0)
@@ -1492,9 +1493,9 @@ class Zaber(grabPorts):
 
                         moveZabersUp(devices, ['colther'])
                         try:
-                            devices['colther']['x'].device.move_abs(backwards_colther[current_roi])
+                            devices['colther']['x'].device.move_abs(backwards_colther)
                         except:
-                            devices['colther']['x'].move_abs(backwards_colther[current_roi])
+                            devices['colther']['x'].move_abs(backwards_colther)
 
                         next_move = grid['camera'][current_roi].copy()
                         moveZabersUp(devices, ['camera'], uppos=0)
@@ -1626,12 +1627,12 @@ class Zaber(grabPorts):
                                 time.sleep(0.5)
                                 devices['colther']['x'].device.move_abs(10079)
 
-                        arduino_touch.arduino.write(struct.pack('>B', touched))
-                        time.sleep(0.5)
-
                         if not touched and current_roi == '2':
                             time.sleep(0.5)
                             devices['colther']['x'].device.move_abs(10079)
+
+                        arduino_touch.arduino.write(struct.pack('>B', touched))
+                        time.sleep(0.5)
 
                         if touched and current_roi == '2':
                             time.sleep(0.5)

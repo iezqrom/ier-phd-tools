@@ -1198,7 +1198,7 @@ class Zaber(grabPorts):
         touched = False
         # print(default_pan_tilt_values)
         camera_pan_tilt2 = {0: default_pan_tilt_values['2'], 1: (83, 41, 36)}
-        camera_position_zaber = {0: grid['camera']['2'].copy(), 1: {'x': 356247, 'y': 940166, 'z': 23039}}
+        camera_position_zaber = {0: grid['camera']['2'].copy(), 1: {'x': 356247, 'y': 1018906, 'z': 23039}}
 
         # camera_pan_tilt2 = None
         # camera_position_zaber = None
@@ -1436,6 +1436,8 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
+                        arduino_touch.arduino.write(struct.pack('>B', 0))
+                        touched = False
                         current_roi = str(int(current_roi) + 1)
                         if int(current_roi) > len(grid[globals.current_device]):
                             current_roi = '1'
@@ -1482,6 +1484,8 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
+                        arduino_touch.arduino.write(struct.pack('>B', 0))
+                        touched = False
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
                             current_roi = list(grid['colther'].keys())[-1]
@@ -1619,20 +1623,24 @@ class Zaber(grabPorts):
                         if touched:
                             movetostartZabersConcu(devices, 'tactile', list(reversed(haxes['camera'])), pos = grid['tactile'][positions_touch[current_roi]])
                             if current_roi == '2':
+                                time.sleep(0.5)
                                 devices['colther']['x'].device.move_abs(10079)
 
                         arduino_touch.arduino.write(struct.pack('>B', touched))
-                        time.sleep(0.1)
+                        time.sleep(0.5)
 
                         if not touched and current_roi == '2':
+                            time.sleep(0.5)
                             devices['colther']['x'].device.move_abs(10079)
 
                         if touched and current_roi == '2':
+                            time.sleep(0.5)
                             movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                         if not touched:
                             moveZabersUp(devices, ['tactile'])
                             if current_roi == '2':
+                                time.sleep(0.5)
                                 movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                     was_pressed = True

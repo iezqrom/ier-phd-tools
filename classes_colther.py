@@ -1224,8 +1224,9 @@ class Zaber(grabPorts):
         # print(default_pan_tilt_values)
         move_platform_camera = 217953
         move_platform_camera_4 = 131234
-        backwards_colther = {'1': 10079, '2': 10079, '3': 10079, '4': 10079}
-        positions_touch = {'1': '2', '2': '1', '3': '4', '4': '3'}
+        backwards_colther = 10079
+        positions_touch = {'1': '3', '2': '1', '3': '4', '4': '3', '5': '4'}
+        checked = {'1': True, '2': True, '3': True, '4': True, '5': True}
 
         print('\nZaber game activated\n')
 
@@ -1280,7 +1281,7 @@ class Zaber(grabPorts):
                 ### TERMINATE
                 elif keyboard.is_pressed('e'):
                     # print([len(n) < 2 for n in list(self.rois.values())])
-                    if not any([len(n) < 2 for n in list(self.rois.values())]):
+                    if not any([len(n) < 2 for n in list(self.rois.values())]) and not any(list(checked.values())):
                         self.PanTilts = default_pan_tilt_values
                         try:
                             globals.weDone = True
@@ -1445,27 +1446,14 @@ class Zaber(grabPorts):
                         moveZabersUp(devices, ['colther'])
 
                         try:
-                            devices['colther']['x'].device.move_abs(backwards_colther[current_roi])
+                            devices['colther']['x'].device.move_abs(backwards_colther)
                         except:
-                            devices['colther']['x'].move_abs(backwards_colther[current_roi])
+                            devices['colther']['x'].move_abs(backwards_colther)
 
-                        next_move = grid['camera'][current_roi].copy()
+
                         moveZabersUp(devices, ['camera'], uppos=0)
 
-                        try:
-                            ardpantilt.arduino.write(struct.pack('>B', 8))
-                            time.sleep(keydelay)
-                            ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
-                        except Exception as e:
-                            os.system('clear')
-                            errorloc(e)
-                            waitForEnter('\n\n Press enter when Arduino is fixed...')
-                            ardpantilt = ArdUIno(usb_port = 1, n_modem = 24)
-                            ardpantilt.arduino.flushInput()
-                            time.sleep(1)
-                            ardpantilt.arduino.write(struct.pack('>B', 8))
-                            time.sleep(globals.keydelay)
-                            ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
+                        movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
                         if platformcamera:
                             if current_roi == '2':
@@ -1492,27 +1480,12 @@ class Zaber(grabPorts):
 
                         moveZabersUp(devices, ['colther'])
                         try:
-                            devices['colther']['x'].device.move_abs(backwards_colther[current_roi])
+                            devices['colther']['x'].device.move_abs(backwards_colther)
                         except:
-                            devices['colther']['x'].move_abs(backwards_colther[current_roi])
+                            devices['colther']['x'].move_abs(backwards_colther)
 
-                        next_move = grid['camera'][current_roi].copy()
                         moveZabersUp(devices, ['camera'], uppos=0)
-
-                        try:
-                            ardpantilt.arduino.write(struct.pack('>B', 8))
-                            time.sleep(keydelay)
-                            ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
-                        except Exception as e:
-                            os.system('clear')
-                            errorloc(e)
-                            waitForEnter('\n\n Press enter when Arduino is fixed...')
-                            ardpantilt = ArdUIno(usb_port = 1, n_modem = 24)
-                            ardpantilt.arduino.flushInput()
-                            time.sleep(1)
-                            ardpantilt.arduino.write(struct.pack('>B', 8))
-                            time.sleep(globals.keydelay)
-                            ardpantilt.arduino.write(struct.pack('>BBB', default_pan_tilt_values[current_roi][0], default_pan_tilt_values[current_roi][1], default_pan_tilt_values[current_roi][2]))
+                        movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
                         if platformcamera:
                             if current_roi == '2':
@@ -1596,21 +1569,7 @@ class Zaber(grabPorts):
                         moveZabersUp(devices, ['colther'])
                         default_camera = not default_camera
                         camera_pan_tilt2_current = camera_pan_tilt2[default_camera]
-
-                        try:
-                            ardpantilt.arduino.write(struct.pack('>B', 8))
-                            time.sleep(keydelay)
-                            ardpantilt.arduino.write(struct.pack('>BBB', camera_pan_tilt2_current[0], camera_pan_tilt2_current[1], camera_pan_tilt2_current[2]))
-                        except Exception as e:
-                            os.system('clear')
-                            errorloc(e)
-                            waitForEnter('\n\n Press enter when Arduino is fixed...')
-                            ardpantilt = ArdUIno(usb_port = 1, n_modem = 24)
-                            ardpantilt.arduino.flushInput()
-                            time.sleep(1)
-                            ardpantilt.arduino.write(struct.pack('>B', 8))
-                            time.sleep(globals.keydelay)
-                            ardpantilt.arduino.write(struct.pack('>BBB', camera_pan_tilt2_current[0], camera_pan_tilt2_current[1], camera_pan_tilt2_current[2]))
+                        movePanTilt(ardpantilt, camera_pan_tilt2_current)
 
                         movetostartZabersConcu(devices, 'camera', list(reversed(haxes['camera'])), pos = camera_position_zaber[default_camera])
                         movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
@@ -1626,12 +1585,12 @@ class Zaber(grabPorts):
                                 time.sleep(0.5)
                                 devices['colther']['x'].device.move_abs(10079)
 
-                        arduino_touch.arduino.write(struct.pack('>B', touched))
-                        time.sleep(0.5)
-
                         if not touched and current_roi == '2':
                             time.sleep(0.5)
                             devices['colther']['x'].device.move_abs(10079)
+
+                        arduino_touch.arduino.write(struct.pack('>B', touched))
+                        time.sleep(0.5)
 
                         if touched and current_roi == '2':
                             time.sleep(0.5)

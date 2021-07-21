@@ -1603,23 +1603,23 @@ class Zaber(grabPorts):
                         if touched:
                             movetostartZabersConcu(devices, 'tactile', list(reversed(haxes['camera'])), pos = grid['tactile'][positions_touch[current_roi]])
                             if current_roi == '2' or current_roi == '3':
-                                time.sleep(0.5)
+                                # time.sleep(0.5)
                                 devices['colther']['x'].device.move_abs(10079)
 
                         if not touched and current_roi == '2' or current_roi == '3':
-                            time.sleep(0.5)
+                            # time.sleep(0.5)
                             devices['colther']['x'].device.move_abs(10079)
 
                         arduino_touch.arduino.write(struct.pack('>B', touched))
 
                         if touched and current_roi == '2' or current_roi == '3':
-                            time.sleep(0.5)
+                            # time.sleep(0.5)
                             movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                         if not touched:
                             moveZabersUp(devices, ['tactile'])
                             if current_roi == '2':
-                                time.sleep(0.5)
+                                # time.sleep(0.5)
                                 movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
 
                     was_pressed = True

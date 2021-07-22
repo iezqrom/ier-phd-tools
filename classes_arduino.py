@@ -54,11 +54,12 @@ from scipy import signal
 
 class ArdUIno(grabPorts):
 
-    def __init__(self, winPort = None, num_ards = 1, usb_port = None, n_modem = None):
+    def __init__(self, winPort = None, num_ards = 1, usb_port = None, n_modem = None, name = 'Arduino'):
 
         self.ports = grabPorts()
         self.n_modem = n_modem
         self.usb_port = usb_port
+        self.name = name
         self.ports.arduinoPort(winPort, num_ards, usb_port, self.n_modem)
         # printme(f'Arduino port: {print_var_name(self)}')
         print(str(self.ports.arduino_ports))
@@ -323,14 +324,14 @@ def shakeShutter(ard, times):
 def tryexceptArduino(ard, signal, name = 'Arduino', n_modem = None, usb_port = 1):
     try:
         ard.arduino.write(struct.pack('>B', signal))
-        print(f'TALKING TO {name}')
+        print(f'TALKING TO {ard.name}')
         # print(signal)
 
         time.sleep(0.2)
     except Exception as e:
         os.system('clear')
         errorloc(e)
-        waitForEnter(f'\n\n Press enter when {name} is fixed...')
+        waitForEnter(f'\n\n Press enter when {ard.name} is fixed...')
         ard = ArdUIno(usb_port = ard.usb_port, n_modem = ard.n_modem)
         ard.arduino.flushInput()
         time.sleep(1)

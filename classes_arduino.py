@@ -57,9 +57,10 @@ class ArdUIno(grabPorts):
     def __init__(self, winPort = None, num_ards = 1, usb_port = None, n_modem = None):
 
         self.ports = grabPorts()
-        self.ports.arduinoPort(winPort, num_ards, usb_port, n_modem)
-        print(self.ports)
-        printme('Arduino port: ')
+        self.n_modem = n_modem
+        self.usb_port = usb_port
+        self.ports.arduinoPort(winPort, num_ards, usb_port, self.n_modem)
+        # printme(f'Arduino port: {print_var_name(self)}')
         print(str(self.ports.arduino_ports))
 
         if num_ards == 1:
@@ -319,7 +320,7 @@ def shakeShutter(ard, times):
         printme('Close shutter')
         time.sleep(0.2)
 
-def tryexceptArduino(ard, signal, name, n_modem, usb_port = 1):
+def tryexceptArduino(ard, signal, name = 'Arduino', n_modem = None, usb_port = 1):
     try:
         ard.arduino.write(struct.pack('>B', signal))
         print(f'TALKING TO {name}')
@@ -329,8 +330,8 @@ def tryexceptArduino(ard, signal, name, n_modem, usb_port = 1):
     except Exception as e:
         os.system('clear')
         errorloc(e)
-        waitForEnter(f'\n\n Press enter when Arduino {name} is fixed...')
-        ard = ArdUIno(usb_port = usb_port, n_modem = n_modem)
+        waitForEnter(f'\n\n Press enter when {name} is fixed...')
+        ard = ArdUIno(usb_port = ard.usb_port, n_modem = ard.n_modem)
         ard.arduino.flushInput()
         time.sleep(1)
         ard.arduino.write(struct.pack('>B', signal))
@@ -362,6 +363,12 @@ Fc = 2; # cutoff
 
 def smoother(datapoint):
     d_cen_round_filtered = b[0] * data2[-1] + b[1] * data2[-2] + b[2] * data2[-3] - a[1] * df2[-1] - a[2] * df2[-2]
+
+def print_var_name(variable):
+ for name in globals():
+     if eval(name) == variable:
+        print(name)
+
 
 ################ Developing Trash
 # def ardRun(self, save = 'N', subjN = None, trial_counter = None):

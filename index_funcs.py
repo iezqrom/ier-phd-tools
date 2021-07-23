@@ -1,9 +1,11 @@
+### HOMEMADE CODE
 from classes_conds import ConditionsHandler
 from classes_testData import TestingDataHandler
 from failing import *
 from saving_data import *
 
-
+### READY-MADE CODE
+import threading
 import argparse
 
 def mkpaths(situ, numdaysubj = None, folder_name = None):
@@ -30,9 +32,20 @@ def parsing_situation():
 
 def experiment_part():
     parser = argparse.ArgumentParser(description='Experiment part: folder name')
-    
 
     args = parser.parse_args()
     part = args.p
 
     return part
+
+def threadFunctions(funcs):
+    threads_start = []
+    for func in funcs:
+        print(func)
+        threads_start.append(threading.Thread(target = func, args = funcs[func]))
+
+    for x in threads_start:
+        x.start()
+
+    for x in threads_start:
+        x.join()

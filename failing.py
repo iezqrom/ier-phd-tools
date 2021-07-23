@@ -1,5 +1,6 @@
 import os, sys
 import re
+import pickle
 
 ################################################################################
 ############################# FUNCTION #########################################
@@ -29,7 +30,8 @@ def recoverData(path_data, pattern):
 
     return names_data_failed
 
-
+def atoi(text):
+    return int(text) if text.isdigit() else text
 
 def natural_keys(text):
     '''
@@ -38,3 +40,15 @@ def natural_keys(text):
     (See Toothy's implementation in the comments)
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+
+
+def recoverPickleRick(path_data, name_file):
+    backup_file = open(f"{path_data}/{name_file}.pkl", "rb")
+    recoveredPickle = pickle.load(backup_file)
+    backup_file.close()
+    return recoveredPickle
+
+def savePickleRick(path_data, name_file, data):
+    backup_file = open(f"{path_data}/{name_file}.pkl", "wb")
+    pickle.dump(data, backup_file)
+    backup_file.close()

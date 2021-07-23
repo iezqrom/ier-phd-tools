@@ -2839,6 +2839,11 @@ def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None
             zabers[zaber][d].move_abs(math.ceil(posc))
         time.sleep(0.1)
 
+def moveAxisTo(zabers, zaber, axis, amount):
+    try:
+        zabers[zaber][axis].device.move_abs(amount)
+    except:
+        zabers[zaber][axis].move_abs(amount)
 
 def movetostartZabersConcu(zabers, zaber, axes, pos = globals.positions, cond = None):
     """
@@ -3103,7 +3108,7 @@ def handleOutOfRange(response, zaber, axis, current_device, amount = globals.amo
                 zaber[axis].device.move_abs(ends[model])
             print('OUT OF END')
 
-def triggered_exception(zabers = None, path_day = None, path_anal = None, path_data = None, path_videos = None, path_figs = None, arduino_syringe = None, arduino_touch = None, arduino_dimmer = None, arduino_pantilt = None, e = None, outcome = 'failed'):
+def triggered_exception(zabers = None, path_day = None, path_anal = None, path_data = None, path_videos = None, path_figs = None, arduino_syringe = None, arduino_dimmer = None, arduino_pantilt = None, e = None, outcome = 'failed'):
 
     if e:
         errorloc(e)
@@ -3115,17 +3120,16 @@ def triggered_exception(zabers = None, path_day = None, path_anal = None, path_d
         changeNameTempFile(path_data, outcome=outcome)
 
     if zabers:
-        homingZabersConcu(zabers, {'colther': globals.haxes['colther']})
+        homingZabersConcu(zabers, {'colther': ['z']})
+        homingZabersConcu(zabers, {'colther': ['x']})
         homingZabersConcu(zabers, {'camera': ['z']})
+        moveAxisTo(zabers, 'tactile', 'z', 210000)
+        moveAxisTo(zabers, 'tactile', 'x', 533332)
+        homingZabersConcu(zabers, {'tactile': ['y']})
 
     if arduino_syringe:
         globals.stimulus = 0
         arduino_syringe.arduino.write(struct.pack('>B', globals.stimulus))
-        time.sleep(0.1)
-
-    if arduino_touch:
-        globals.touch = 0
-        arduino_touch.arduino.write(struct.pack('>B', globals.touch))
         time.sleep(0.1)
 
     if arduino_pantilt:
@@ -3140,6 +3144,7 @@ def triggered_exception(zabers = None, path_day = None, path_anal = None, path_d
 
     if zabers:
         homingZabersConcu(zabers, globals.haxes, speed = globals.speed)
+
 
 ################################################################################################################
 ################################################################################################################

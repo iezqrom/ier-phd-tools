@@ -40,9 +40,9 @@ def experiment_part():
 
 def threadFunctions(funcs):
     threads_start = []
+
     for func in funcs:
-        print(func)
-        threads_start.append(threading.Thread(target = func, args = funcs[func]))
+        threads_start.append(threading.Thread(target = func[0], args = func[1]))
 
     for x in threads_start:
         x.start()

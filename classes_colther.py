@@ -2849,7 +2849,7 @@ def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None
         time.sleep(0.1)
 
 def moveAxisTo(zabers, zaber, axis, amount):
-    print(amount)
+    # print(amount)
     try:
         zabers[zaber][axis].device.move_abs(amount)
     except:

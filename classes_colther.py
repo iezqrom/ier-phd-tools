@@ -587,11 +587,20 @@ class Zaber(grabPorts):
 
                     handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
-                # elif keyboard.is_pressed('p'):
-                #     if not was_pressed:
-                #         globals.centreROI = [globals.indx0, globals.indy0]
-                #         print(f'Centre of ROI is: {globals.centreROI}')
-                #         was_pressed = True
+                elif keyboard.is_pressed('5'):
+                    if not was_pressed:
+                        globals.amount = 10000
+                        was_pressed = True
+
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 1000
+                        was_pressed = True
+
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 500
+                        was_pressed = True
 
                 elif keyboard.is_pressed('o'): # Open Arduino shutter
                     if not was_pressed:
@@ -1003,6 +1012,21 @@ class Zaber(grabPorts):
                     except:
                         devices[current_device]['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
 
+                elif keyboard.is_pressed('5'):
+                    if not was_pressed:
+                        globals.amount = 10000
+                        was_pressed = True
+
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 1000
+                        was_pressed = True
+
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 500
+                        was_pressed = True
+
                 elif keyboard.is_pressed('right'):
                     if any(i == current_roi for i in list(arcs.keys())):
                         current_angle_arc[current_roi] = current_angle_arc[current_roi] - 1
@@ -1301,16 +1325,22 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('a'):
                     if not was_pressed:
                         globals.stimulus = 6
-                        try:
-                            arduino.arduino.write(struct.pack('>B', globals.stimulus))
-                        except Exception as e:
-                            errorloc(e)
-                            os.system('clear')
-                            waitForEnter('\n\n Press enter when Arduino is fixed...')
-                            arduino = ArdUIno(usb_port = 1, n_modem = 1)
-                            arduino.arduino.flushInput()
+                        tryexceptArduino(arduino, globals.stimulus)
+                        was_pressed = True
 
-                        time.sleep(0.1)
+                elif keyboard.is_pressed('5'):
+                    if not was_pressed:
+                        globals.amount = 10000
+                        was_pressed = True
+
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 1000
+                        was_pressed = True
+
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 500
                         was_pressed = True
 
                 elif keyboard.is_pressed('o'):
@@ -1349,7 +1379,6 @@ class Zaber(grabPorts):
 
                         handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
-
                 elif keyboard.is_pressed('right'):
                     if pantilt_on:
                         ardpantilt.arduino.write(struct.pack('>B', 2))
@@ -1386,7 +1415,6 @@ class Zaber(grabPorts):
 
                         handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
-
                 elif keyboard.is_pressed('d'):
                     if pantilt_on:
                         ardpantilt.arduino.write(struct.pack('>B', 6))
@@ -1398,7 +1426,6 @@ class Zaber(grabPorts):
                             response = device['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
 
                         handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
-
 
                 elif keyboard.is_pressed('h'):
                     triggered_exception(zabers = devices, arduino_syringe = arduino, arduino_pantilt = ardpantilt)

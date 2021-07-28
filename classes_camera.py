@@ -60,6 +60,8 @@ except:
 
 import struct
 
+from classes_colther import *
+
 def py_frame_callback(frame, userptr):
 
   array_pointer = cast(frame.contents.data, POINTER(c_uint16 * (frame.contents.width * frame.contents.height)))
@@ -2670,12 +2672,18 @@ class TherCam(object):
                     ax.add_artist(circles[0])
                     # time.sleep(0.0005)
                     plt.pause(0.0005)
-                    
+
+
+                    # if keyboard.is_pressed('s'):
+                    #     # if not was_pressed:
+                    #     globals.amount = changeAmount('s')
+
+                    #         # was_pressed = True
 
                     if record == 'y':
                         print('Saving info to file')
                         momen = time.time() - start
-                        
+
                         names = ['image', 'shutter_pos', 'fixed_ROI', 'dynamic_ROI', 'time_now']
                         datas = [dataC, [globals.stimulus], [globals.centreROI], [indx[0], indy[0]], [momen]]
 

@@ -10,3 +10,10 @@ chown $username $i;
 chmod a+rx $i;
 done
 
+
+# for i in ./*;
+# do
+# # echo $1
+# chown $username $i;
+# chmod a+rx $i;
+# done

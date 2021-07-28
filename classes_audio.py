@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 
+##### HOMEMADE CODE
+import globals
+
+##### OTHERS' CODE
+import numpy as np
+import time
+import math
+import wave
 try:
     import winsound
 except:
     # print('This is not a Windows device')
     import simpleaudio as sa
-
-import numpy as np
-import time
-import math
-import globals
 
 class Sound(object):
     def __init__(self, freq, duration):
@@ -73,10 +76,18 @@ class Sound(object):
             print(e)
 
 
+################################################################################################################
+################################################################################################################
+############################ FUNCTIONS
+################################################################################################################
+################################################################################################################
 
 
-
-
-
-
-        
+def saveAudioFile(path_audios, name_file, recorded, channels = 1, fs = 44100):
+    audio_file_name = f'{path_audios}/{name_file}.wav'
+    wf = wave.open(audio_file_name, 'wb')
+    wf.setnchannels(channels)
+    wf.setsampwidth(2)
+    wf.setframerate(fs)
+    wf.writeframes(b''.join(recorded))
+    wf.close()

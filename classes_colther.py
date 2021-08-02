@@ -1097,7 +1097,7 @@ class Zaber(grabPorts):
                                 for angle in range_angles:
                                     temp_angle_pos = vectorEnd([self.gridZs[k][previous_roi]['x'], self.gridZs[k][previous_roi]['y']], dist_z, angle)
                                     if all(i > 0 for i in temp_angle_pos):
-                                        arcs[current_roi][angle] = [temp_angle_pos[0], temp_angle_pos[1], 180000]
+                                        arcs[current_roi][angle] = [temp_angle_pos[0], temp_angle_pos[1], 0]
 
                                 self.gridZs[k][current_roi] = {'x': arcs[current_roi][current_angle_arc[current_roi]][0], 'y': arcs[current_roi][current_angle_arc[current_roi]][1], 'z': arcs[current_roi][current_angle_arc[current_roi]][2]}
                             else:
@@ -1130,7 +1130,7 @@ class Zaber(grabPorts):
                                 for angle in range_angles:
                                     temp_angle_pos = vectorEnd([self.gridZs[k][previous_roi]['x'], self.gridZs[k][previous_roi]['y']], dist_z, angle)
                                     if all(i > 0 for i in temp_angle_pos):
-                                        arcs[current_roi][angle] = [temp_angle_pos[0], temp_angle_pos[1], 180000]
+                                        arcs[current_roi][angle] = [temp_angle_pos[0], temp_angle_pos[1], 0]
                             else:
                                 current_roi = '2'
 
@@ -1242,8 +1242,8 @@ class Zaber(grabPorts):
         pan, tilt, head = 0, 0, 0
         device = devices['camera']
         # print(default_pan_tilt_values)
-        move_platform_camera = 217953
-        move_platform_camera_4 = 131234
+        move_platform_camera = globals.move_platform_camera
+        move_platform_camera_4 = globals.move_platform_camera_4
         backwards_colther = 10079
         positions_touch = {'1': '2', '2': '1', '3': '2', '4': '3'}
         checked = {'1': True, '2': True, '3': True, '4': True}
@@ -3145,7 +3145,7 @@ def handleOutOfRange(response, zaber, axis, current_device, amount = globals.amo
                 zaber[axis].device.move_abs(ends[model])
             print('OUT OF END')
 
-def triggered_exception(zabers = None, path_day = None, path_anal = None, path_data = None, path_videos = None, path_figs = None, arduino_syringe = None, arduino_dimmer = None, arduino_pantilt = None, e = None, outcome = 'failed'):
+def triggered_exception(zabers = None, platform = None, path_day = None, path_anal = None, path_data = None, path_videos = None, path_figs = None, arduino_syringe = None, arduino_dimmer = None, arduino_pantilt = None, e = None, outcome = 'failed'):
 
     if e:
         errorloc(e)
@@ -3168,10 +3168,10 @@ def triggered_exception(zabers = None, path_day = None, path_anal = None, path_d
         pos_tactile = [not tactile_x_pos.warning_flag == '--', not tactile_y_pos.warning_flag == '--']
 
         homingZabersConcu(zabers, {'colther': ['z']})
-        print(tactile_x_pos.data)
-        print(tactile_y_pos.data)
-        print(not any(pos_tactile))
-        print(not any(pos_colther))
+        # print(tactile_x_pos.data)
+        # print(tactile_y_pos.data)
+        # print(not any(pos_tactile))
+        # print(not any(pos_colther))
         if not any(pos_tactile) and not any(pos_colther) and int(tactile_x_pos.data) > 1000 and int(tactile_y_pos.data) > 1000:
             moveAxisTo(zabers, 'tactile', 'z', globals.base_touch)
         homingZabersConcu(zabers, {'colther': ['x']})
@@ -3179,6 +3179,8 @@ def triggered_exception(zabers = None, path_day = None, path_anal = None, path_d
         if not any(pos_tactile) and not any(pos_colther) and int(colther_x_pos.data) > 1000 and int(colther_y_pos.data) > 1000:
             moveAxisTo(zabers, 'colther', 'y', globals.dry_ice_pos['y'])
         homingZabersConcu(zabers, {'camera': ['z']})
+        platform.device.move_abs(0)
+
         if not any(pos_tactile) and not any(pos_colther) and int(tactile_x_pos.data) > 1000 and int(tactile_y_pos.data) > 1000:
             moveAxisTo(zabers, 'tactile', 'x', 533332)
         homingZabersConcu(zabers, {'tactile': ['y']})

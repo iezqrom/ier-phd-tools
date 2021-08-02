@@ -873,7 +873,7 @@ class TherCam(object):
 
         self.failed_trial = False
 
-        post_shutter_time_out = 2
+        post_shutter_time_out = 0.01
         pre_shutter_time_in = 2
         touch_time_out = 1
         touch_time_in = 1

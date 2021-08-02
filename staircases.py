@@ -1,3 +1,4 @@
+import time
 import pickle
 
 class Staircase():
@@ -45,13 +46,16 @@ class Staircase():
             Execute tracking algorithm for a stairse X UP / Y DOWN with fixed step sizes (but the length of the steps up and down can be of different size)
         '''
         self.tracker += 1
+        print(self.response)
+
+        time.sleep(1)
 
         if not self.first_ramp:
-            if self.tracker == move_down:
+            if self.tracker == move_down and self.response == 1:
                 self.tracked_stimulation = self.tracked_stimulation - step_down
                 self.tracker = 0
 
-            elif self.tracker == move_up:
+            elif self.tracker == move_up and self.response == 0:
                 self.tracked_stimulation = self.tracked_stimulation + step_up
                 self.tracker = 0
         else:
@@ -60,7 +64,7 @@ class Staircase():
             elif self.direction == 'up' and self.response == 0:
                 self.tracked_stimulation = self.tracked_stimulation  + step_up
 
-    def clampBoundary(self, upper_boundary, lower_boundary):
+    def clampBoundary(self, lower_boundary, upper_boundary):
         '''
             Apply carry-over boundary rule
         '''

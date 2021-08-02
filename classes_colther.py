@@ -657,7 +657,7 @@ class Zaber(grabPorts):
                         globals.positions[globals.current_device]['y'] = int(posY.data)
                         globals.positions[globals.current_device]['z'] = int(posZ.data)
 
-                        printme(globals.positions)
+                        printme(globals.positions[globals.current_device])
                         # logging.info(globals.positions)
                         was_pressed = True
 

@@ -1,6 +1,7 @@
 import os, sys
 import re
 import pickle
+import pandas as pd
 
 ################################################################################
 ############################# FUNCTION #########################################
@@ -52,3 +53,20 @@ def savePickleRick(path_data, name_file, data):
     backup_file = open(f"{path_data}/{name_file}.pkl", "wb")
     pickle.dump(data, backup_file)
     backup_file.close()
+
+def recoveredToTempWriter(names, path_data, data, temp_data_writer):
+    if len(names) > 0:
+        print('\nRecovering data from temporal failed attempt\n')
+        recovered_data = pd.read_csv(f"{path_data}/{names[-1]}.csv")
+        lsrd = recovered_data.to_dict('list')
+        data = {key: lsrd[key] for key, value in lsrd.items()}
+        print(data)
+
+        for di, ds in enumerate(data['subject']):
+            pastTemprow = []
+            # print(ds)
+            keys = data.keys()
+            for k in keys:
+                pastTemprow.append(data[k][di])
+
+            temp_data_writer.writerow(pastTemprow)

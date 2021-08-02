@@ -19,6 +19,9 @@ class Staircase():
         self.total_reversals = total_reversals
         self.name = name
 
+    def __str__(self):
+        return f'Name: {self.name}; Reversals: {self.reversals}; Tracker: {self.tracker}; Stimulation: {self.stimulation}; Tracked stimulation: {self.tracked_stimulation}'
+
     def saveStaircase(self, path_data, name_file):
         '''
             Pickle save your object staircase at each iteration so you can recover it if something fails

@@ -1,26 +1,30 @@
 #!/usr/bin/env python3
+# MY CODE
+try:
+    import globals
+except:
+    pass
+from grabPorts import grabPorts
+from classes_text import *
+from failing import *
+from saving_data import *
 
-#Time
+# OTHER'S CODE
 from datetime import datetime
 import time
 from time import sleep
-
-#System
 try:
     import sys
 except:
     pass
-
 try:
     import tty
 except:
     pass
-
 try:
     import termios
 except:
     pass
-
 import zaber.serial as zs
 import glob
 import keyboard
@@ -29,22 +33,10 @@ try:
     import winsound
 except:
     pass
-
 try:
     import os
 except:
     pass
-
-# My stuff
-try:
-    import globals
-except:
-    pass
-from grabPorts import grabPorts
-from classes_text import *
-from failing import *
-
-# Maths
 import numpy as np
 import pandas as pd
 import curses
@@ -325,9 +317,8 @@ def tryexceptArduino(ard, signal, name = 'Arduino', n_modem = None, usb_port = 1
     try:
         ard.arduino.write(struct.pack('>B', signal))
         print(f'TALKING TO {ard.name}')
-        # print(signal)
+        time.sleep(0.1)
 
-        time.sleep(0.2)
     except Exception as e:
         os.system('clear')
         errorloc(e)
@@ -336,8 +327,14 @@ def tryexceptArduino(ard, signal, name = 'Arduino', n_modem = None, usb_port = 1
         ard.arduino.flushInput()
         time.sleep(1)
         ard.arduino.write(struct.pack('>B', signal))
+        time.sleep(0.1)
 
-        time.sleep(0.2)
+    if signal == 6:
+        file_name = './data/pusher_counter'
+        file = open(file_name)
+        old_value = int(file.read())
+        old_value += 1
+        writeValue('./data/pusher_counter', old_value)
 
 def movePanTilt(ard, trio_array, trigger_move = 8):
     printme(f'Sending to PanTilt x: {trio_array[0]}, y: {trio_array[1]}, z: {trio_array[2]}')

@@ -87,6 +87,11 @@ def getSubjNumDec(file = 'subjs.csv', day = None):
 ###################### Saving data ##############################
 ################################################################
 
+def writeValue(name, value):
+    of = open(f'{name}', 'w')
+    of.write(str(value))
+    of.close()
+
 def tempSaving(path, header, temp_file_name = 'temp_data'):
     """
         Function to initiliase temporary file to store data in case the

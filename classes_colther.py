@@ -2828,8 +2828,8 @@ def homingZabers(zabers, axes = None, speed = 153600*4):
     if axes == None:
         axes = {}
         for kzabers, vzabers in zabers.items():
-            axes[kzabers] = ['x', 'y', 'z']
-        print('\n Homing to default axes order [x, y, z] \n')
+            axes[kzabers] = ['z', 'y', 'x']
+        print('\n Homing to default axes order [z, y, x] \n')
 
     speed = str(speed)
     # print(axes)
@@ -2960,8 +2960,8 @@ def homingZabersConcu(zabers, axes = None, speed = 153600*4):
     if axes == None:
         axes = {}
         for kzabers, vzabers in zabers.items():
-            axes[kzabers] = ['x', 'y', 'z']
-        print('\n Homing to default axes order [x, y, z] \n')
+            axes[kzabers] = ['z', 'y', 'x']
+        print('\n Homing to default axes order [z, y, x] \n')
 
     speed = str(speed)
     # print(axes)

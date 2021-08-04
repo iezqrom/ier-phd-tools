@@ -58,9 +58,9 @@ class Staircase():
             self.reversals += 1
             self.reversed_bool= True
             self.first_ramp = False
+            self.reversal_values.append(self.stimulation)
             if not self.first_ramp and self.reversals == 1:
                 print('\nTracking algorithm triggered\n')
-                self.reversal_values.append(self.stimulation)
 
     def XupYdownFixedStepSizesTrackingAlgorithm(self, move_down, move_up, step_down, step_up):
         '''

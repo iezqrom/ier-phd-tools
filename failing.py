@@ -73,3 +73,13 @@ def recoveredToTempWriter(names, path_data, data, temp_data_writer):
 
 
     return temp_data_writer, data
+
+def pusherWarning(n_pushes = 2000):
+    file_name = './data/pusher_counter'
+    file = open(file_name)
+    old_value = int(file.read())
+
+    if old_value > n_pushes:
+        os.system('clear')
+        print(old_value)
+        input('WARNING: PUSHER HAS PERFORMED MORE THAN 2000 PUSHES. CONSIDER REPLACING IT. Press enter to continue')

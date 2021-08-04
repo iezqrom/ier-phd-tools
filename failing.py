@@ -70,3 +70,6 @@ def recoveredToTempWriter(names, path_data, data, temp_data_writer):
                 pastTemprow.append(data[k][di])
 
             temp_data_writer.writerow(pastTemprow)
+
+
+    return temp_data_writer, data

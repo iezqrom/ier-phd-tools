@@ -4,6 +4,7 @@
 from datetime import datetime
 from glob import glob
 from os import pread
+from sys import platform
 import time
 from time import sleep
 import logging
@@ -1428,7 +1429,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('h'):
-                    triggered_exception(zabers = devices, arduino_syringe = arduino, arduino_pantilt = ardpantilt)
+                    triggered_exception(zabers = devices, platform = platformcamera, arduino_syringe = arduino, arduino_pantilt = ardpantilt)
 
                 elif keyboard.is_pressed('g'):
                     if not was_pressed:

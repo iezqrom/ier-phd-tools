@@ -2851,7 +2851,7 @@ def homingZabers(zabers, axes = None, speed = 153600*4):
                     zabers[kaxes][d].home()
                     zabers[kaxes][d].home = True
 
-def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None):
+def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None, speed = 153600*4):
     """
         This function is to move one set of Zabers to a defined positions (pos)
     """
@@ -2870,19 +2870,22 @@ def movetostartZabers(zabers, zaber, axes, pos = globals.positions, event = None
         print(f'\n Moving axis {d} of {zaber} to {posc}')
 
         try:
+            zabers[zaber][d].device.send('/set maxspeed {}'.format(speed))
             zabers[zaber][d].device.move_abs(math.ceil(posc))
         except:
+            zabers[zaber][d].send('/set maxspeed {}'.format(speed))
             zabers[zaber][d].move_abs(math.ceil(posc))
         time.sleep(0.1)
 
-def moveAxisTo(zabers, zaber, axis, amount):
-    # print(amount)
+def moveAxisTo(zabers, zaber, axis, amount, speed = 153600*4):
     try:
+        zabers[zaber][axis].device.send('/set maxspeed {}'.format(speed))
         zabers[zaber][axis].device.move_abs(amount)
     except:
+        zabers[zaber][axis].send('/set maxspeed {}'.format(speed))
         zabers[zaber][axis].move_abs(amount)
 
-def movetostartZabersConcu(zabers, zaber, axes, pos = globals.positions, cond = None):
+def movetostartZabersConcu(zabers, zaber, axes, pos = globals.positions, speed = 153600*4):
     """
         This function is to move one set of Zabers to a defined positions (pos)
     """
@@ -2891,17 +2894,17 @@ def movetostartZabersConcu(zabers, zaber, axes, pos = globals.positions, cond = 
             posc = pos[d]
         else:
             posc = pos
-  
         if posc < 0:
             posc = 0
 
         print(f'\n Moving axis {d} of {zaber} to {posc}\n')
 
         try:
+            zabers[zaber][d].device.send('/set maxspeed {}'.format(speed))
             zabers[zaber][d].device.move_abs(math.ceil(posc))
         except:
+            zabers[zaber][d].send('/set maxspeed {}'.format(speed))
             zabers[zaber][d].move_abs(math.ceil(posc))
-    
     threads_zabers = []
 
     for d in axes:

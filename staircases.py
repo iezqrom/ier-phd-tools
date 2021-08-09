@@ -19,6 +19,7 @@ class Staircase():
         self.direction = direction
         self.total_reversals = total_reversals
         self.name = name
+        self.block = 1
 
         self.reversal_values = []
         self.estimated_point = None

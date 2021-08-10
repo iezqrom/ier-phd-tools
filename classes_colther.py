@@ -1784,9 +1784,7 @@ class Zaber(grabPorts):
 
         was_pressed = False
         pantilt_on = True
-        default_camera = False
-        touched = False
-        three_reversed = False
+        touched = {'2': False, '3': False, '4': False}
         # print(default_pan_tilt_values)
 
         camera_position_zaber = {0: grid['camera']['2'].copy(), 1: {'x': 356247, 'y': 1018906, 'z': 23039}}
@@ -2137,62 +2135,68 @@ class Zaber(grabPorts):
                         was_pressed = True
 
                 elif keyboard.is_pressed('2'):
-                    if not was_pressed and not touched and current_roi == '1':
+                    if not was_pressed and not touched['2'] and current_roi == '1':
                         devices['colther']['z'].device.move_abs(0)
                         movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
                         moveAxisTo(devices, 'tactile', 'y', grid['tactile']['2']['y'])
                         moveAxisTo(devices, 'tactile', 'x', grid['tactile']['2']['x'])
                         moveAxisTo(devices, 'tactile', 'z', grid['tactile']['2']['z'])
                         moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                        for i in touched:
+                            touched[i] = False
 
-                    elif not was_pressed and touched and current_roi == '1':
+                    elif not was_pressed and touched['2'] and current_roi == '1':
                         devices['colther']['z'].device.move_abs(0)
                         movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
                         moveAxisTo(devices, 'tactile', 'x', globals.tactile_x_save)
                         moveAxisTo(devices, 'tactile', 'y', globals.tactile_y_save)
                         moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                    touched = not touched
+                    touched['2'] = not touched['2']
                     checked['2'] = False
                     was_pressed = True
 
                 elif keyboard.is_pressed('3'):
-                    if not was_pressed and not touched and current_roi == '1':
+                    if not was_pressed and not touched['3'] and current_roi == '1':
                         devices['colther']['z'].device.move_abs(0)
                         movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
                         moveAxisTo(devices, 'tactile', 'y', grid['tactile']['3']['y'])
                         moveAxisTo(devices, 'tactile', 'x', grid['tactile']['3']['x'])
                         moveAxisTo(devices, 'tactile', 'z', grid['tactile']['3']['z'])
                         moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                        for i in touched:
+                            touched[i] = False
 
-                    elif not was_pressed and touched and current_roi == '1':
+                    elif not was_pressed and touched['3'] and current_roi == '1':
                         devices['colther']['z'].device.move_abs(0)
                         movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
                         moveAxisTo(devices, 'tactile', 'x', globals.tactile_x_save)
                         moveAxisTo(devices, 'tactile', 'y', globals.tactile_y_save)
                         moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                    touched = not touched
+                    touched['3'] = not touched['3']
                     checked['3'] = False
                     was_pressed = True
 
                 elif keyboard.is_pressed('4'):
-                    if not was_pressed and not touched and current_roi == '1':
+                    if not was_pressed and not touched['4'] and current_roi == '1':
                         devices['colther']['z'].device.move_abs(0)
                         movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
                         moveAxisTo(devices, 'tactile', 'y', grid['tactile']['4']['y'])
                         moveAxisTo(devices, 'tactile', 'x', grid['tactile']['4']['x'])
                         moveAxisTo(devices, 'tactile', 'z', grid['tactile']['4']['z'])
                         moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                        for i in touched:
+                            touched[i] = False
 
-                    elif not was_pressed and touched and current_roi == '1':
+                    elif not was_pressed and touched['4'] and current_roi == '1':
                         devices['colther']['z'].device.move_abs(0)
                         movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
                         moveAxisTo(devices, 'tactile', 'x', globals.tactile_x_save)
                         moveAxisTo(devices, 'tactile', 'y', globals.tactile_y_save)
                         moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                    touched = not touched
+                    touched['4'] = not touched['4']
                     checked['4'] = False
                     was_pressed = True
 

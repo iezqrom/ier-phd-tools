@@ -998,6 +998,9 @@ class TherCam(object):
                     event_camera.set()
                     end = True
                     shutter_opened = False
+                    if event_touch:
+                        event_touch.set()
+                        touched = False
 
                 if globals.delta > (target_delta + 0.8) and not end and shutter_opened:
                     self.shutter_open_time = 0.1
@@ -1011,6 +1014,9 @@ class TherCam(object):
                     event_camera.set()
                     end = True
                     shutter_opened = False
+                    if event_touch:
+                        event_touch.set()
+                        touched = False
 
                 # print(f"Time since shutter closed: {shutter_closed}")
 

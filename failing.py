@@ -2,6 +2,7 @@ import os, sys
 import re
 import pickle
 import pandas as pd
+import csv
 
 ################################################################################
 ############################# FUNCTION #########################################
@@ -54,8 +55,11 @@ def savePickleRick(path_data, name_file, data):
     pickle.dump(data, backup_file)
     backup_file.close()
 
-def recoveredToTempWriter(names, path_data, data, temp_data_writer):
+def recoveredToTempWriter(names, path_data, data, temp_data_writer, temp_file_name = 'temp_data'):
     if len(names) > 0:
+        temp_file = open(f'{path_data}/{temp_file_name}.csv', 'a')
+        temp_data_writer = csv.writer(temp_file)
+
         print('\nRecovering data from temporal failed attempt\n')
         recovered_data = pd.read_csv(f"{path_data}/{names[-1]}.csv")
         lsrd = recovered_data.to_dict('list')
@@ -70,6 +74,8 @@ def recoveredToTempWriter(names, path_data, data, temp_data_writer):
                 pastTemprow.append(data[k][di])
 
             temp_data_writer.writerow(pastTemprow)
+
+        temp_file.close()
 
 
     return temp_data_writer, data

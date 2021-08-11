@@ -100,6 +100,7 @@ def tempSaving(path, header, temp_file_name = 'temp_data'):
     temp_file = open(f'{path}/{temp_file_name}.csv', 'w')
     temp_data_writer = csv.writer(temp_file)
     temp_data_writer.writerow(header)
+    temp_file.close()
     return [temp_data_writer, temp_file, temp_file_name]
 
 def findTempFiles(path):

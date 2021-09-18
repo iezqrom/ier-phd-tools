@@ -35,17 +35,17 @@ class Staircase():
         return f'Name: {self.name}; Reversals: {self.reversals}; Tracker: {self.tracker}; Stimulation: {self.stimulation}; Tracked stimulation: {self.tracked_stimulation}'
 
     def saveStaircase(self, path_data, name_file):
-        '''
+        """
             Pickle save your object staircase at each iteration so you can recover it if something fails
-        '''
+        """
         backup_file = open(f"{path_data}/{name_file}.pkl", "wb")
         pickle.dump(self, backup_file)
         backup_file.close()
 
     def reversal(self, response):
-        '''
+        """
             Check whether there's a reversal in the staircase after the last response
-        '''
+        """
         self.response = response
         self.reversed_bool = False
 
@@ -65,9 +65,9 @@ class Staircase():
                 print('\nTracking algorithm triggered\n')
 
     def XupYdownFixedStepSizesTrackingAlgorithm(self, move_down, move_up, step_down, step_up):
-        '''
+        """
             Execute tracking algorithm for a stairse X UP / Y DOWN with fixed step sizes (but the length of the steps up and down can be of different size)
-        '''
+        """
         self.tracker += 1
 
         if not self.first_ramp:
@@ -85,9 +85,9 @@ class Staircase():
                 self.tracked_stimulation = self.tracked_stimulation  + step_up
 
     def clampBoundary(self, lower_boundary, upper_boundary):
-        '''
+        """
             Apply carry-over boundary rule
-        '''
+        """
         if self.tracked_stimulation > upper_boundary:
             self.stimulation = upper_boundary
         elif self.tracked_stimulation < lower_boundary:
@@ -96,15 +96,15 @@ class Staircase():
             self.stimulation = self.tracked_stimulation
 
     def estimateValue(self, drop_reversals = 3):
-        '''
+        """
             Estimate the value based on the self.reversal_values list
-        '''
+        """
         self.estimated_point = sum(self.reversal_values[drop_reversals:])/len(self.reversal_values[drop_reversals:])
 
     def plotStaircase(self, path_figs, name, ylabel, ylim, fig = None, ax = None):
-        '''
+        """
             Plot staircase
-        '''
+        """
 
         if not fig and not ax:
             fig, ax = plt.subplots(1)

@@ -18,29 +18,25 @@ def tableTosdtDoble(table, num_sdt):
 
     return present_yes, present_no, absent_yes, absent_no
 
-def correctPercSDT(present_yes, present_no, absent_yes, absent_no):
-    present = [len(present_yes.loc[:, 'responses']), len(present_no.loc[:, 'responses'])]
-    absent = [len(absent_yes.loc[:, 'responses']), len(absent_no.loc[:, 'responses'])]
-
-    correc_present = present[0]/sum(present)
-    correc_absent = absent[1]/sum(absent)
-
-    return correc_present, correc_absent
-
 
 def correctPercSDT(subtables):
+    out = {}
+
     present_yes = subtables[0]
     present_no = subtables[1]
     absent_yes = subtables[2]
     absent_no = subtables[3]
 
-    present = [len(present_yes.loc[:, 'responses']), len(present_no.loc[:, 'responses'])]
-    absent = [len(absent_yes.loc[:, 'responses']), len(absent_no.loc[:, 'responses'])]
+    out['hits'] = len(present_yes.loc[:, 'responses'])
+    out['misses'] = len(present_no.loc[:, 'responses'])
 
-    correc_present = present[0]/sum(present)
-    correc_absent = absent[1]/sum(absent)
+    out['fas'] = len(absent_yes.loc[:, 'responses'])
+    out['crs'] = len(absent_no.loc[:, 'responses'])
 
-    return present, absent, correc_present, correc_absent
+    out['correc_present'] = out['hits']/sum([out['hits'], out['misses']])
+    out['correc_absent'] = out['crs']/sum([out['crs'], out['fas']])
+
+    return out
 
 
 def SDTextremes(hits, misses, fas, crs):
@@ -48,25 +44,25 @@ def SDTextremes(hits, misses, fas, crs):
     # Floors an ceilings are replaced by half hits and half FA's
     half_hit = 0.5 / (hits + misses)
     half_fa = 0.5 / (fas + crs)
- 
+
     # Calculate hit_rate and avoid d' infinity
     hit_rate = hits / (hits + misses)
-    if hit_rate == 1: 
+    if hit_rate == 1:
         hit_rate = 1 - half_hit
-    if hit_rate == 0: 
+    if hit_rate == 0:
         hit_rate = half_hit
- 
+
     # Calculate false alarm rate and avoid d' infinity
     fa_rate = fas / (fas + crs)
     # print(fa_rate)
-    if fa_rate == 1: 
+    if fa_rate == 1:
         fa_rate = 1 - half_fa
-    if fa_rate == 0: 
+    if fa_rate == 0:
         fa_rate = half_fa
 
     # print(hit_rate)
     # print(fa_rate)
- 
+
     # Return d', beta, c and Ad'
     out = {}
     out['d'] = Z(hit_rate) - Z(fa_rate) # Hint: normalise the centre of each curvey and subtract them (find the distance between the normalised centre
@@ -75,8 +71,8 @@ def SDTextremes(hits, misses, fas, crs):
     out['Ad'] = norm.cdf(out['d'] / math.sqrt(2))
     out['hit_rate'] = hit_rate
     out['fa_rate'] = fa_rate
-    
-    return(out)
+
+    return out
 
 
 def SDTloglinear(hits, misses, fas, crs):
@@ -100,11 +96,11 @@ def SDTloglinear(hits, misses, fas, crs):
     out['Ad'] = norm.cdf(out['d'] / math.sqrt(2))
     out['hit_rate'] = hit_rate
     out['fa_rate'] = fa_rate
-    
-    return(out)
+
+    return out
 
 def SDTAprime(hits, misses, fas, crs):
-    """ 
+    """
         Original equation: Pollack & Norman, 1979
         Adapted: Stanislaw and Todorov
     """
@@ -123,19 +119,5 @@ def SDTAprime(hits, misses, fas, crs):
     out['Aprime'] = 0.5 + (np.sign(hit_rate - fa_rate) * (((hit_rate - fa_rate)**2 + abs(hit_rate - fa_rate))/(4*max(hit_rate, fa_rate) - 4*hit_rate*fa_rate)))  # adapted 
     out['hit_rate'] = hit_rate
     out['fa_rate'] = fa_rate
-    
-    return(out)
 
-def correctPercSDT(subtables):
-    present_yes = subtables[0]
-    present_no = subtables[1]
-    absent_yes = subtables[2]
-    absent_no = subtables[3]
-
-    present = [len(present_yes.loc[:, 'responses']), len(present_no.loc[:, 'responses'])]
-    absent = [len(absent_yes.loc[:, 'responses']), len(absent_no.loc[:, 'responses'])]
-
-    correc_present = present[0]/sum(present)
-    correc_absent = absent[1]/sum(absent)
-
-    return present, absent, correc_present, correc_absent
+    return out

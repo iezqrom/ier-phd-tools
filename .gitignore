@@ -2,3 +2,4 @@ __pycache__/
 username
 .vscode/
 *.pyc
+.python-version

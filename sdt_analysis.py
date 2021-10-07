@@ -71,6 +71,7 @@ def SDTextremes(hits, misses, fas, crs):
     out['Ad'] = norm.cdf(out['d'] / math.sqrt(2))
     out['hit_rate'] = hit_rate
     out['fa_rate'] = fa_rate
+    out['correct'] = (out['hits'] + out['crs'])/(out['hits'] + out['misses'] + out['fas'] + out['crs'])
 
     return out
 
@@ -96,6 +97,7 @@ def SDTloglinear(hits, misses, fas, crs):
     out['Ad'] = norm.cdf(out['d'] / math.sqrt(2))
     out['hit_rate'] = hit_rate
     out['fa_rate'] = fa_rate
+    out['correct'] = (hits + crs)/(hits + misses + fas + crs)
 
     return out
 

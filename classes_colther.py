@@ -963,12 +963,15 @@ class Zaber(grabPorts):
 
                         was_pressed = True
 
-                elif keyboard.is_pressed('a'):
+                elif keyboard.is_pressed('5'):
                     if not was_pressed:
-                        globals.amount = changeAmount('a')
-
+                        globals.amount = 10000
                         was_pressed = True
 
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 1000
+                        was_pressed = True
                 else:
                     was_pressed = False
         except Exception as e:

@@ -706,6 +706,227 @@ class Zaber(grabPorts):
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
 
+    def manualCon3PanTilt(self, devices, ardpantilt, arduino = None, home='y', rules = globals.rules, end_button= 'e'):
+        """
+            Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
+            The coordinates of two positions can be saved with 'z' and 'x'
+            This method was created and it is specific to the experiment in which we measure cold 
+            thresholds with and without touch
+        """
+        was_pressed = False
+        pantilt_on = True
+
+        if home not in ('y', 'n'):
+            print("Invalid value for 'home', only 'y' and 'n' are valid values")
+            print("'y' selected by default")
+            home = 'y'
+
+        if arduino:
+            stimulus = 0
+            arduino.arduino.write(struct.pack('>B', stimulus))
+
+        keydelay = 0.15
+        print('Zaber game activated')
+
+        try:
+            device = devices[globals.current_device]
+
+            while True:
+                if keyboard.is_pressed('up'):
+                    if pantilt_on:
+                        ardpantilt.arduino.write(struct.pack('>B', 3))
+                        time.sleep(keydelay)
+                    else:
+                        try:
+                            response = device['y'].move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
+                        except:
+                            response = device['y'].device.move_rel(0 - revDirection(globals.current_device, 'y', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
+
+                elif keyboard.is_pressed('down'):
+                    if pantilt_on:
+                        ardpantilt.arduino.write(struct.pack('>B', 4))
+                        time.sleep(keydelay)
+                    else:
+                        try:
+                            response = device['y'].move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
+                        except:
+                            response = device['y'].device.move_rel(0 + revDirection(globals.current_device, 'y', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
+
+                elif keyboard.is_pressed('right'):
+                    if pantilt_on:
+                        ardpantilt.arduino.write(struct.pack('>B', 2))
+                        time.sleep(keydelay)
+                    else:
+                        try:
+                            response = device['x'].move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
+                        except:
+                            response = device['x'].device.move_rel(0 + revDirection(globals.current_device, 'x', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
+
+                elif keyboard.is_pressed('left'):
+                    if pantilt_on:
+                        ardpantilt.arduino.write(struct.pack('>B', 1))
+                        time.sleep(keydelay)
+                    else:
+                        try:
+                            response = device['x'].move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
+                        except:
+                            response = device['x'].device.move_rel(0 - revDirection(globals.current_device, 'x', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
+
+                elif keyboard.is_pressed('u'):
+                    if pantilt_on:
+                        ardpantilt.arduino.write(struct.pack('>B', 5))
+                        time.sleep(keydelay)
+                    else:
+                        try:
+                            response = device['z'].move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+                        except:
+                            response = device['z'].device.move_rel(0 - revDirection(globals.current_device, 'z', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
+
+                elif keyboard.is_pressed('d'):
+                    if pantilt_on:
+                        ardpantilt.arduino.write(struct.pack('>B', 6))
+                        time.sleep(keydelay)
+                    else:
+                        try:
+                            response = device['z'].move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+                        except:
+                            response = device['z'].device.move_rel(0 + revDirection(globals.current_device, 'z', rules, globals.amount))
+
+                        handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
+
+                elif keyboard.is_pressed('5'):
+                    if not was_pressed:
+                        globals.amount = 10000
+                        was_pressed = True
+
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 1000
+                        was_pressed = True
+
+                elif keyboard.is_pressed('6'):
+                    if not was_pressed:
+                        globals.amount = 500
+                        was_pressed = True
+
+                elif keyboard.is_pressed('o'): # Open Arduino shutter
+                    if not was_pressed:
+                        globals.stimulus = 1
+                        if arduino:
+                            arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        time.sleep(0.1)
+                        was_pressed = True
+
+                elif keyboard.is_pressed('c'): # Close Arduino shutter
+                    if not was_pressed:
+                        globals.stimulus = 0
+                        if arduino:
+                            arduino.arduino.write(struct.pack('>B', globals.stimulus))
+                        time.sleep(0.1)
+                        was_pressed = True
+
+                elif keyboard.is_pressed('k'):
+                    if not was_pressed:
+                        pantilt_on = not pantilt_on
+                        was_pressed = True
+
+                ### TERMINATE
+                elif keyboard.is_pressed(f'{end_button}'):
+                    vars = [globals.centreROI, globals.positions]
+                    if all(v is not None for v in vars) and home =='n':
+                        print('Terminating Zaber game \n')
+                        break
+
+                    elif all(v is not None for v in vars) and home =='y':
+                        homingZabers(devices)
+                        break
+                    else:
+                        print('You are missing something...')
+                        print(globals.centreROI, globals.positions)
+
+
+                #### GET POSITION
+                elif keyboard.is_pressed('p'):
+                    if not was_pressed:
+                        try:
+                            posX = device['x'].send("/get pos")
+
+                        except:
+                            posX = device['x'].device.send("/get pos")
+
+                        try:
+                            posY = device['y'].send("/get pos")
+                        except:
+                            posY = device['y'].device.send("/get pos")
+
+                        try:
+                            posZ = device['z'].send("/get pos")
+                        except:
+                            posZ = device['z'].device.send("/get pos")
+
+                        globals.positions[globals.current_device]['x'] = int(posX.data)
+                        globals.positions[globals.current_device]['y'] = int(posY.data)
+                        globals.positions[globals.current_device]['z'] = int(posZ.data)
+
+                        printme(globals.positions[globals.current_device])
+                        # logging.info(globals.positions)
+                        was_pressed = True
+
+                # Press letter h and Zaber will home, first z axis, then y and finally x
+                # Control
+
+                elif keyboard.is_pressed('h'):
+                    homingZabers(devices)
+
+                #### Triple
+
+                elif keyboard.is_pressed('k'):
+                    if not was_pressed:
+                        device = devices['camera']
+                        globals.current_device = 'camera'
+                        print(f"Controlling CAMERA zabers")
+                        was_pressed = True
+
+                elif keyboard.is_pressed('f'):
+                    if not was_pressed:
+                        device = devices['colther']
+                        globals.current_device = 'colther'
+                        print(f"Controlling COLTHER zabers")
+                        was_pressed = True
+
+                elif keyboard.is_pressed('t'):
+                    if not was_pressed:
+                        device = devices['tactile']
+                        globals.current_device = 'tactile'
+                        print(f"Controlling TACTILE zabers")
+                        was_pressed = True
+
+                elif keyboard.is_pressed('a'):
+                    if not was_pressed:
+                        globals.amount = changeAmount('a')
+
+                        was_pressed = True
+
+                else:
+                    was_pressed = False
+                    continue
+
+
+        finally:
+            if arduino:
+                stimulus = 0
+                arduino.arduino.write(struct.pack('>B', stimulus))
+
     def gridCon2(self, devices, arduino = None, home='y', grid = globals.grid, rois = globals.ROIs, rules = globals.rules, amount = globals.amount, haxes = globals.haxes):
         """
             Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
@@ -871,7 +1092,6 @@ class Zaber(grabPorts):
             if arduino != None:
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
-
 
     def gridUpDown(self, devices, current_device, current_roi = '1', home = 'y', grid = globals.grid, haxes = globals.haxes,rules = globals.rules):
         was_pressed = False

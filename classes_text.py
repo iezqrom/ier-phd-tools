@@ -37,6 +37,7 @@ import re
 # Maths
 import numpy as np
 import curses
+from termios import TCIFLUSH, tcflush
 
 class TextIO:
     def __init__(self):
@@ -376,6 +377,7 @@ def scale_reponse(question, start = 0, end = 11):
     """
     time_response_start = time.time()
     while True:
+        tcflush(sys.stdin, TCIFLUSH)
         response = input(question)
         print('input', response)
         if response in [f'{i}' for i in range(start, end)]:
@@ -397,6 +399,7 @@ def binary_response(question, values = {'0': 'no', '1':'yes'}):
     """
     time_response_start = time.time()
     while True:
+        tcflush(sys.stdin, TCIFLUSH)
         response = input(question)
         print('input', response)
         if response in list(values.values()):

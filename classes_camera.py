@@ -104,6 +104,7 @@ class TherCam(object):
         dev = POINTER(uvc_device)()
         devh = POINTER(uvc_device_handle)()
         ctrl = uvc_stream_ctrl()
+        print(ctrl.__dict__)
 
         res = libuvc.uvc_init(byref(ctx), 0)
         if res < 0:
@@ -136,6 +137,7 @@ class TherCam(object):
                     frame_formats[0].wWidth, frame_formats[0].wHeight, int(1e7 / frame_formats[0].dwDefaultFrameInterval))
 
                 res = libuvc.uvc_start_streaming(devh, byref(ctrl), PTR_PY_FRAME_CALLBACK, None, 0)
+                print(devh.__dict__)
                 print('RES')
                 print(res)
                 if res < 0:
@@ -874,9 +876,9 @@ class TherCam(object):
         self.failed_trial = False
 
         post_shutter_time_out = 0.01
-        pre_shutter_time_in = 2
+        pre_shutter_time_in = 1.01
         touch_time_out = 1
-        touch_time_in = 1
+        touch_time_in = 0.01
         self.shutter_open_time = None
         xs = np.arange(0, 160)
         ys = np.arange(0, 120)

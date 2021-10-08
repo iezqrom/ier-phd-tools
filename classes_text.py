@@ -401,15 +401,15 @@ def binary_response(question, values = {'0': 'no', '1':'yes'}):
     while True:
         tcflush(sys.stdin, TCIFLUSH)
         response = input(question)
-        print('input', type(response))
+        # print('input', type(response))
         if response in list(values.keys()):
             break
         else:
-            print(response)
+            # print(response)
             printme(f"\n Try again. Only {list(values.keys())} are accepted responses\n")
             continue
 
-    print(response)
+    # print(response)
     time_response_end = time.time() - time_response_start
 
     return response, time_response_end

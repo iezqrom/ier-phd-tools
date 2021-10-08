@@ -2669,59 +2669,44 @@ class Zaber(grabPorts):
                         # moveAxisTo(devices, 'tactile', 'y', 1)
 
 
-                        touched = False
-                        three_reversed = False
+                        # touched = False
+                        # three_reversed = False
 
                         current_roi = str(int(current_roi) + 1)
                         if int(current_roi) > len(grid[globals.current_device]):
                             current_roi = '1'
 
-                        moveZabersUp(devices, ['colther'])
-
-                        try:
-                            devices['colther']['x'].device.move_abs(backwards_colther)
-                        except:
-                            devices['colther']['x'].move_abs(backwards_colther)
-
-
-                        moveZabersUp(devices, ['camera'], uppos=0)
-                        print(default_pan_tilt_values)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
-
-                        movetostartZabersConcu(devices, 'camera', ['x', 'y'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'camera', ['z'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
+                        funcs = [
+                            [movetostartZabersConcu, [devices, 'camera', ['x', 'y', 'z'], grid['camera'][current_roi]]],
+                            [movetostartZabersConcu, [devices, 'colther', list(reversed(haxes['colther'])), grid['colther'][current_roi]]],
+                        ]
+                        threadFunctions(funcs)
 
                         was_pressed = True
 
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
-
                         devices['colther']['z'].device.move_abs(0)
                         # movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
                         # moveAxisTo(devices, 'tactile', 'x', 533332)
                         # moveAxisTo(devices, 'tactile', 'y', 1)
 
-                        touched = False
-                        three_reversed = False
+                        # touched = False
+                        # three_reversed = False
 
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
                             current_roi = list(grid['colther'].keys())[-1]
 
-                        moveZabersUp(devices, ['colther'])
-                        try:
-                            devices['colther']['x'].device.move_abs(backwards_colther)
-                        except:
-                            devices['colther']['x'].move_abs(backwards_colther)
-
-                        moveZabersUp(devices, ['camera'], uppos=0)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
-                        movetostartZabersConcu(devices, 'camera', ['x', 'y'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'camera', ['z'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
+                        funcs = [
+                            [movetostartZabersConcu, [devices, 'camera', ['x', 'y', 'z'], grid['camera'][current_roi]]],
+                            [movetostartZabersConcu, [devices, 'colther', list(reversed(haxes['colther'])), grid['colther'][current_roi]]],
+                        ]
+                        threadFunctions(funcs)
 
                         was_pressed = True
 
@@ -2818,8 +2803,6 @@ class Zaber(grabPorts):
             if arduino:
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
-
-
 
     def manualCon3OneCon(self, devices, amount, arduino = None):
 

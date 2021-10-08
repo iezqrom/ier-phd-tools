@@ -2444,10 +2444,10 @@ class Zaber(grabPorts):
         was_pressed = False
         pantilt_on = True
 
-        touched = False
-        three_reversed = False
+        # touched = False
+        # three_reversed = False
 
-        pre_touch = grid['tactile']['4']['z'] - globals.touch_z_offset
+        # pre_touch = grid['tactile']['4']['z'] - globals.touch_z_offset
 
         if arduino:
             stimulus = 0
@@ -2469,8 +2469,8 @@ class Zaber(grabPorts):
         device = devices['camera']
 
         backwards_colther = 10079
-        positions_touch = {'1': '2', '2': '1', '3': '2', '4': '3'}
-        checked = {'1': True, '2': True, '3': True, '4': True}
+        # positions_touch = {'1': '2', '2': '1', '3': '2', '4': '3'}
+        # checked = {'1': False, '2': False, '3': False, '4': False}
 
         movetostartZabersConcu(devices, 'tactile', ['z'], pos = globals.base_touch)
         moveAxisTo(devices, 'tactile', 'x', 533332)
@@ -2527,7 +2527,7 @@ class Zaber(grabPorts):
                 ### TERMINATE
                 elif keyboard.is_pressed('e'):
                     # print([len(n) < 2 for n in list(self.rois.values())])
-                    if not any([len(n) < 2 for n in list(self.rois.values())]) and not any(list(checked.values())):
+                    if not any([len(n) < 2 for n in list(self.rois.values())]): #and not any(list(checked.values())):
                         self.PanTilts = default_pan_tilt_values
                         try:
                             globals.weDone = True
@@ -2536,7 +2536,7 @@ class Zaber(grabPorts):
                         break
                     else:
                         print('You are missing something...')
-                        print(self.rois, self.PanTilts, checked)
+                        # print(self.rois, self.PanTilts, checked)
                         was_pressed = True
 
                 elif keyboard.is_pressed('k'):
@@ -2661,15 +2661,15 @@ class Zaber(grabPorts):
                         print('Camera positions')
                         print(self.gridcamera)
                         print('Checked Touch')
-                        print(checked)
+                        # print(checked)
                         was_pressed = True
 
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
                         devices['colther']['z'].device.move_abs(0)
-                        movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                        moveAxisTo(devices, 'tactile', 'x', 533332)
-                        moveAxisTo(devices, 'tactile', 'y', 1)
+                        # movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                        # moveAxisTo(devices, 'tactile', 'x', 533332)
+                        # moveAxisTo(devices, 'tactile', 'y', 1)
 
 
                         touched = False
@@ -2702,9 +2702,9 @@ class Zaber(grabPorts):
                     if not was_pressed:
 
                         devices['colther']['z'].device.move_abs(0)
-                        movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                        moveAxisTo(devices, 'tactile', 'x', 533332)
-                        moveAxisTo(devices, 'tactile', 'y', 1)
+                        # movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                        # moveAxisTo(devices, 'tactile', 'x', 533332)
+                        # moveAxisTo(devices, 'tactile', 'y', 1)
 
                         touched = False
                         three_reversed = False
@@ -2791,26 +2791,26 @@ class Zaber(grabPorts):
                         print(red)
                         was_pressed = True
 
-                elif keyboard.is_pressed('t'):
-                    if not was_pressed:
-                        if not touched:
-                            devices['colther']['z'].device.move_abs(0)
-                            movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                            moveAxisTo(devices, 'tactile', 'y', grid['tactile'][positions_touch[current_roi]]['y'])
-                            moveAxisTo(devices, 'tactile', 'x', grid['tactile'][positions_touch[current_roi]]['x'])
-                            moveAxisTo(devices, 'tactile', 'z', grid['tactile'][positions_touch[current_roi]]['z'])
-                            moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                # elif keyboard.is_pressed('t'):
+                #     if not was_pressed:
+                #         if not touched:
+                #             devices['colther']['z'].device.move_abs(0)
+                #             movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                #             moveAxisTo(devices, 'tactile', 'y', grid['tactile'][positions_touch[current_roi]]['y'])
+                #             moveAxisTo(devices, 'tactile', 'x', grid['tactile'][positions_touch[current_roi]]['x'])
+                #             moveAxisTo(devices, 'tactile', 'z', grid['tactile'][positions_touch[current_roi]]['z'])
+                #             moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                        elif touched:
-                            devices['colther']['z'].device.move_abs(0)
-                            movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                            moveAxisTo(devices, 'tactile', 'x', 533332)
-                            moveAxisTo(devices, 'tactile', 'y', 1)
-                            moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                #         elif touched:
+                #             devices['colther']['z'].device.move_abs(0)
+                #             movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                #             moveAxisTo(devices, 'tactile', 'x', 533332)
+                #             moveAxisTo(devices, 'tactile', 'y', 1)
+                #             moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                        touched = not touched
-                        checked[current_roi] = False
-                        was_pressed = True
+                #         touched = not touched
+                #         checked[current_roi] = False
+                #         was_pressed = True
 
 
                 else:

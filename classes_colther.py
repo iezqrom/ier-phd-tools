@@ -733,7 +733,7 @@ class Zaber(grabPorts):
 
             while True:
                 if keyboard.is_pressed('up'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 3))
                         time.sleep(keydelay)
                     else:
@@ -745,7 +745,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('down'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 4))
                         time.sleep(keydelay)
                     else:
@@ -757,7 +757,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('right'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 2))
                         time.sleep(keydelay)
                     else:
@@ -769,7 +769,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('left'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 1))
                         time.sleep(keydelay)
                     else:
@@ -781,7 +781,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('u'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 5))
                         time.sleep(keydelay)
                     else:
@@ -793,7 +793,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('d'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 6))
                         time.sleep(keydelay)
                     else:
@@ -835,10 +835,6 @@ class Zaber(grabPorts):
                         time.sleep(0.1)
                         was_pressed = True
 
-                elif keyboard.is_pressed('k'):
-                    if not was_pressed:
-                        pantilt_on = not pantilt_on
-                        was_pressed = True
 
                 ### TERMINATE
                 elif keyboard.is_pressed(f'{end_button}'):
@@ -892,6 +888,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('k'):
                     if not was_pressed:
+                        pantilt_on = not pantilt_on
                         device = devices['camera']
                         globals.current_device = 'camera'
                         print(f"Controlling CAMERA zabers")
@@ -2672,59 +2669,44 @@ class Zaber(grabPorts):
                         # moveAxisTo(devices, 'tactile', 'y', 1)
 
 
-                        touched = False
-                        three_reversed = False
+                        # touched = False
+                        # three_reversed = False
 
                         current_roi = str(int(current_roi) + 1)
                         if int(current_roi) > len(grid[globals.current_device]):
                             current_roi = '1'
 
-                        moveZabersUp(devices, ['colther'])
-
-                        try:
-                            devices['colther']['x'].device.move_abs(backwards_colther)
-                        except:
-                            devices['colther']['x'].move_abs(backwards_colther)
-
-
-                        moveZabersUp(devices, ['camera'], uppos=0)
-                        print(default_pan_tilt_values)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
-
-                        movetostartZabersConcu(devices, 'camera', ['x', 'y'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'camera', ['z'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
+                        funcs = [
+                            [movetostartZabersConcu, [devices, 'camera', ['x', 'y', 'z'], grid['camera'][current_roi]]],
+                            [movetostartZabersConcu, [devices, 'colther', list(reversed(haxes['colther'])), grid['colther'][current_roi]]],
+                        ]
+                        threadFunctions(funcs)
 
                         was_pressed = True
 
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
-
                         devices['colther']['z'].device.move_abs(0)
                         # movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
                         # moveAxisTo(devices, 'tactile', 'x', 533332)
                         # moveAxisTo(devices, 'tactile', 'y', 1)
 
-                        touched = False
-                        three_reversed = False
+                        # touched = False
+                        # three_reversed = False
 
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
                             current_roi = list(grid['colther'].keys())[-1]
 
-                        moveZabersUp(devices, ['colther'])
-                        try:
-                            devices['colther']['x'].device.move_abs(backwards_colther)
-                        except:
-                            devices['colther']['x'].move_abs(backwards_colther)
-
-                        moveZabersUp(devices, ['camera'], uppos=0)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
-                        movetostartZabersConcu(devices, 'camera', ['x', 'y'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'camera', ['z'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
+                        funcs = [
+                            [movetostartZabersConcu, [devices, 'camera', ['x', 'y', 'z'], grid['camera'][current_roi]]],
+                            [movetostartZabersConcu, [devices, 'colther', list(reversed(haxes['colther'])), grid['colther'][current_roi]]],
+                        ]
+                        threadFunctions(funcs)
 
                         was_pressed = True
 
@@ -2821,8 +2803,6 @@ class Zaber(grabPorts):
             if arduino:
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
-
-
 
     def manualCon3OneCon(self, devices, amount, arduino = None):
 

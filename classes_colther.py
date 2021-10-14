@@ -2033,7 +2033,7 @@ class Zaber(grabPorts):
         move_platform_camera_4 = globals.move_platform_camera_4
         backwards_colther = 10079
 
-        checked = {'2': True, '3': True, '4': True}
+        checked = {'2': False, '3': False, '4': False}
 
         funcs = [[movetostartZabersConcu, [devices, 'tactile', ['z'], globals.base_touch]], [moveAxisTo, [devices, 'tactile', 'x', globals.tactile_x_save]]]
         threadFunctions(funcs)

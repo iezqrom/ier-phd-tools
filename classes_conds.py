@@ -15,6 +15,7 @@ class ConditionsHandler():
 ########################## FUNCTIONS ############################
 #################################################################
 
+
 def sdt_setup(n_trials, conds, randomised=True):
     """
         Function to set-up trials for a Signal Detection Theory experiment.
@@ -26,6 +27,12 @@ def sdt_setup(n_trials, conds, randomised=True):
         Stimulus absent and present are coded with 0s (absent) and 1s (present), respectively.
         Conditions are coded from 0-n.
         Condition and stimulus absent/present come in tuples.
+
+        position 0: condition
+        position 1: catch trial
+        position 2: touch
+        position 3: reverse
+        position 4: fake
     """
 
     stimulations = []

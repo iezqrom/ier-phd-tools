@@ -733,7 +733,7 @@ class Zaber(grabPorts):
 
             while True:
                 if keyboard.is_pressed('up'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 3))
                         time.sleep(keydelay)
                     else:
@@ -745,7 +745,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('down'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 4))
                         time.sleep(keydelay)
                     else:
@@ -757,7 +757,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('right'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 2))
                         time.sleep(keydelay)
                     else:
@@ -769,7 +769,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('left'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 1))
                         time.sleep(keydelay)
                     else:
@@ -781,7 +781,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'x', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('u'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 5))
                         time.sleep(keydelay)
                     else:
@@ -793,7 +793,7 @@ class Zaber(grabPorts):
                         handleOutOfRange(response, device, 'z', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
                 elif keyboard.is_pressed('d'):
-                    if pantilt_on:
+                    if pantilt_on and globals.current_device == 'camera':
                         ardpantilt.arduino.write(struct.pack('>B', 6))
                         time.sleep(keydelay)
                     else:
@@ -835,10 +835,6 @@ class Zaber(grabPorts):
                         time.sleep(0.1)
                         was_pressed = True
 
-                elif keyboard.is_pressed('k'):
-                    if not was_pressed:
-                        pantilt_on = not pantilt_on
-                        was_pressed = True
 
                 ### TERMINATE
                 elif keyboard.is_pressed(f'{end_button}'):
@@ -892,6 +888,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('k'):
                     if not was_pressed:
+                        pantilt_on = not pantilt_on
                         device = devices['camera']
                         globals.current_device = 'camera'
                         print(f"Controlling CAMERA zabers")
@@ -2444,10 +2441,10 @@ class Zaber(grabPorts):
         was_pressed = False
         pantilt_on = True
 
-        touched = False
-        three_reversed = False
+        # touched = False
+        # three_reversed = False
 
-        pre_touch = grid['tactile']['4']['z'] - globals.touch_z_offset
+        # pre_touch = grid['tactile']['4']['z'] - globals.touch_z_offset
 
         if arduino:
             stimulus = 0
@@ -2469,8 +2466,8 @@ class Zaber(grabPorts):
         device = devices['camera']
 
         backwards_colther = 10079
-        positions_touch = {'1': '2', '2': '1', '3': '2', '4': '3'}
-        checked = {'1': True, '2': True, '3': True, '4': True}
+        # positions_touch = {'1': '2', '2': '1', '3': '2', '4': '3'}
+        # checked = {'1': False, '2': False, '3': False, '4': False}
 
         movetostartZabersConcu(devices, 'tactile', ['z'], pos = globals.base_touch)
         moveAxisTo(devices, 'tactile', 'x', 533332)
@@ -2527,7 +2524,7 @@ class Zaber(grabPorts):
                 ### TERMINATE
                 elif keyboard.is_pressed('e'):
                     # print([len(n) < 2 for n in list(self.rois.values())])
-                    if not any([len(n) < 2 for n in list(self.rois.values())]) and not any(list(checked.values())):
+                    if not any([len(n) < 2 for n in list(self.rois.values())]): #and not any(list(checked.values())):
                         self.PanTilts = default_pan_tilt_values
                         try:
                             globals.weDone = True
@@ -2536,7 +2533,7 @@ class Zaber(grabPorts):
                         break
                     else:
                         print('You are missing something...')
-                        print(self.rois, self.PanTilts, checked)
+                        # print(self.rois, self.PanTilts, checked)
                         was_pressed = True
 
                 elif keyboard.is_pressed('k'):
@@ -2661,70 +2658,55 @@ class Zaber(grabPorts):
                         print('Camera positions')
                         print(self.gridcamera)
                         print('Checked Touch')
-                        print(checked)
+                        # print(checked)
                         was_pressed = True
 
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
                         devices['colther']['z'].device.move_abs(0)
-                        movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                        moveAxisTo(devices, 'tactile', 'x', 533332)
-                        moveAxisTo(devices, 'tactile', 'y', 1)
+                        # movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                        # moveAxisTo(devices, 'tactile', 'x', 533332)
+                        # moveAxisTo(devices, 'tactile', 'y', 1)
 
 
-                        touched = False
-                        three_reversed = False
+                        # touched = False
+                        # three_reversed = False
 
                         current_roi = str(int(current_roi) + 1)
                         if int(current_roi) > len(grid[globals.current_device]):
                             current_roi = '1'
 
-                        moveZabersUp(devices, ['colther'])
-
-                        try:
-                            devices['colther']['x'].device.move_abs(backwards_colther)
-                        except:
-                            devices['colther']['x'].move_abs(backwards_colther)
-
-
-                        moveZabersUp(devices, ['camera'], uppos=0)
-                        print(default_pan_tilt_values)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
-
-                        movetostartZabersConcu(devices, 'camera', ['x', 'y'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'camera', ['z'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
+                        funcs = [
+                            [movetostartZabersConcu, [devices, 'camera', ['x', 'y', 'z'], grid['camera'][current_roi]]],
+                            [movetostartZabersConcu, [devices, 'colther', list(reversed(haxes['colther'])), grid['colther'][current_roi]]],
+                        ]
+                        threadFunctions(funcs)
 
                         was_pressed = True
 
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
-
                         devices['colther']['z'].device.move_abs(0)
-                        movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                        moveAxisTo(devices, 'tactile', 'x', 533332)
-                        moveAxisTo(devices, 'tactile', 'y', 1)
+                        # movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                        # moveAxisTo(devices, 'tactile', 'x', 533332)
+                        # moveAxisTo(devices, 'tactile', 'y', 1)
 
-                        touched = False
-                        three_reversed = False
+                        # touched = False
+                        # three_reversed = False
 
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
                             current_roi = list(grid['colther'].keys())[-1]
 
-                        moveZabersUp(devices, ['colther'])
-                        try:
-                            devices['colther']['x'].device.move_abs(backwards_colther)
-                        except:
-                            devices['colther']['x'].move_abs(backwards_colther)
-
-                        moveZabersUp(devices, ['camera'], uppos=0)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
-                        movetostartZabersConcu(devices, 'camera', ['x', 'y'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'camera', ['z'], pos = grid['camera'][current_roi])
-                        movetostartZabersConcu(devices, 'colther', list(reversed(haxes['colther'])), pos = grid['colther'][current_roi])
+                        funcs = [
+                            [movetostartZabersConcu, [devices, 'camera', ['x', 'y', 'z'], grid['camera'][current_roi]]],
+                            [movetostartZabersConcu, [devices, 'colther', list(reversed(haxes['colther'])), grid['colther'][current_roi]]],
+                        ]
+                        threadFunctions(funcs)
 
                         was_pressed = True
 
@@ -2791,26 +2773,26 @@ class Zaber(grabPorts):
                         print(red)
                         was_pressed = True
 
-                elif keyboard.is_pressed('t'):
-                    if not was_pressed:
-                        if not touched:
-                            devices['colther']['z'].device.move_abs(0)
-                            movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                            moveAxisTo(devices, 'tactile', 'y', grid['tactile'][positions_touch[current_roi]]['y'])
-                            moveAxisTo(devices, 'tactile', 'x', grid['tactile'][positions_touch[current_roi]]['x'])
-                            moveAxisTo(devices, 'tactile', 'z', grid['tactile'][positions_touch[current_roi]]['z'])
-                            moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                # elif keyboard.is_pressed('t'):
+                #     if not was_pressed:
+                #         if not touched:
+                #             devices['colther']['z'].device.move_abs(0)
+                #             movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                #             moveAxisTo(devices, 'tactile', 'y', grid['tactile'][positions_touch[current_roi]]['y'])
+                #             moveAxisTo(devices, 'tactile', 'x', grid['tactile'][positions_touch[current_roi]]['x'])
+                #             moveAxisTo(devices, 'tactile', 'z', grid['tactile'][positions_touch[current_roi]]['z'])
+                #             moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                        elif touched:
-                            devices['colther']['z'].device.move_abs(0)
-                            movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                            moveAxisTo(devices, 'tactile', 'x', 533332)
-                            moveAxisTo(devices, 'tactile', 'y', 1)
-                            moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                #         elif touched:
+                #             devices['colther']['z'].device.move_abs(0)
+                #             movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                #             moveAxisTo(devices, 'tactile', 'x', 533332)
+                #             moveAxisTo(devices, 'tactile', 'y', 1)
+                #             moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                        touched = not touched
-                        checked[current_roi] = False
-                        was_pressed = True
+                #         touched = not touched
+                #         checked[current_roi] = False
+                #         was_pressed = True
 
 
                 else:
@@ -2821,8 +2803,6 @@ class Zaber(grabPorts):
             if arduino:
                 stimulus = 0
                 arduino.arduino.write(struct.pack('>B', stimulus))
-
-
 
     def manualCon3OneCon(self, devices, amount, arduino = None):
 
@@ -4360,199 +4340,17 @@ def triggered_exception(zabers = None, platform = None, path_day = None, path_an
         homingZabersConcu(zabers, globals.haxes, speed = globals.speed)
 
 
-################################################################################################################
-################################################################################################################
-############################ TRASH 
-################################################################################################################
-################################################################################################################
+def reducegrid(dictionary, list_to_remove):
+    """
+        Function to remove a given keys froma dictionary and redefine the keys from '1' upwards
+    """
 
-# def rampCold(self, amount, duration, devices, amplitude):
-#
-#     globals.trial = 'on'
-#     globals.time_limit = duration
-#     globals.shutter = 'open'
-#
-#     start = time.time()
-#
-#     while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit and globals.status == 'active' and globals.temp > 25:
-#         startRamp = time.time()
-#
-#         while startRamp <= 1:
-#
-#             if globals.temp < globals.temp - amplitude:   #negative is up
-#
-#                 devices[2].device.move_rel(-amount)
-#
-#                 end = time.time()
-#                 globals.elapsed = end - start
-#
-#             elif globals.temp > globals.temp + amplitude:
-#
-#                 devices[2].device.move_rel(amount)  #positive is down
-#
-#                 end = time.time()
-#                 globals.elapsed = end - start
-#
-#         low_bound -= 0.3
-#         high_bound -= 0.3
-#
-#
-#
-#     globals.status = 'inactive'
-#     globals.shutter = 'close'
-#
-# def rampColdOpen(self, amount, devices):
-#
-#         globals.trial = 'on'
-#         globals.shutter = 'open'
-#
-#         start = time.time()
-#
-#         sleep(2)
-#
-#         while globals.distance > globals.distance_limit and globals.status == 'active' and globals.temp > 0:
-#
-#             devices[2].device.move_rel(amount)  #positive is down
-#             # print(globals.status)
-#
-#
-#         globals.status = 'inactive'
-#         globals.shutter = 'close'
-#         # print('ramp dead')
+    for i in list_to_remove:
+        del dictionary[i]
 
-# def plotLive(self, vminT, vmaxT):
-#     import matplotlib as mpl
-#     mpl.rc('image', cmap='hot')
-#
-#     global dev
-#     global devh
-#     global tiff_frame
-#
-#     # plt.ion()
-#
-#     fig = plt.figure()
-#     ax = plt.axes()
-#
-#     fig.tight_layout()
-#
-#     dummy = np.zeros([120, 160])
-#
-#     img = ax.imshow(dummy, interpolation='nearest', vmin = vminT, vmax = vmaxT, animated = True)
-#     fig.colorbar(img)
-#
-#     current_cmap = plt.cm.get_cmap()
-#     current_cmap.set_bad(color='black')
-#
-#     try:
-#         while True:
-#             # time.sleep(0.01)
-#             data = q.get(True, 500)
-#             if data is None:
-#                 print('Data is none')
-#                 exit(1)
-#
-#             # We save the data
-#             minimoK = np.min(data)
-#             minimo = (minimoK - 27315) / 100
-#             # print('Minimo: ' + str(minimo))
-#             globals.temp = minimo
-#
-#             data = (data - 27315) / 100
-#
-#             # under_threshold_indices = data < 5
-#             # data[under_threshold_indices] = np.nan
-#             # super_threshold_indices = data > 60
-#             # data[super_threshold_indices] = np.nan
-#             # fig.clear()
-#
-#             # img.set_data(data)
-#             ax.clear()
-#             ax.set_xticks([])
-#             ax.set_yticks([])
-#
-#             ax.spines['top'].set_visible(False)
-#             ax.spines['right'].set_visible(False)
-#             ax.spines['left'].set_visible(False)
-#             ax.spines['bottom'].set_visible(False)
-#             ax.imshow(data, vmin = vminT, vmax = vmaxT)
-#             # print(data)
-#             plt.pause(0.0005)
-#
-#             #
-#             # if cv2.waitKey(1) & 0xFF == ord('e'):
-#             #     cv2.destroyAllWindows()
-#             #     frame = 1
-#             #     print('We are done')
-#             #     exit(1)
-#
-#             if cv2.waitKey(1) & keyboard.is_pressed('e'):
-#                 cv2.destroyAllWindows()
-#                 frame = 1
-#                 # print('We are done')
-#                 break
-#
-#     except:
-#         pass
-#     #     # print('Stop streaming')
-#     #     libuvc.uvc_stop_streaming(devh)
+    reduced_grid = {}
 
-# def rampColdStopFam(self, amount, duration, devices, amplitude):
-#
-#     globals.trial = 'on'
-#     globals.time_limit = duration
-#     globals.shutter = 'open'
-#     globals.status = 'active'
-#     globals.fam = 'solo'
-#
-#     start = time.time()
-#     # First we ramp the temperature
-#
-#     while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit and globals.status == 'active' and globals.temp > 27:
-#         startRamp = time.time()
-#
-#         while startRamp <= 1:
-#
-#             if globals.temp < globals.temp - amplitude:   #negative is up
-#
-#                 devices[2].device.move_rel(-amount)
-#
-#                 end = time.time()
-#                 globals.elapsed = end - start
-#
-#             elif globals.temp > globals.temp + amplitude:
-#
-#                 devices[2].device.move_rel(amount)  #positive is down
-#
-#                 end = time.time()
-#                 globals.elapsed = end - start
-#
-#         low_bound -= 0.3
-#         high_bound -= 0.3
-#
-#     # Second we maintain the temperature
-#     while globals.distance > globals.distance_limit and globals.elapsed < globals.time_limit:
-#
-#         if globals.status == 'active':
-#
-#                 if globals.temp < 27 - amplitude:   #negative is up
-#
-#                     devices[2].device.move_rel(-amount)
-#
-#                     end = time.time()
-#                     globals.elapsed = end - start
-#
-#                 elif globals.temp > 27 + amplitude:
-#
-#                     devices[2].device.move_rel(amount)  #positive is down
-#
-#                     end = time.time()
-#                     globals.elapsed = end - start
-#
-#                 elif keyboard.is_pressed('c'):
-#                     globals.fam = 'tgi'
-#
-#         elif globals.status == 'inactive':
-#             globals.shutter = 'close'
-#             break
+    for i, v in enumerate(dictionary.values()):
+        reduced_grid[f"{i+1}"] = v
 
-    # %%
+    return reduced_grid

@@ -3,6 +3,7 @@ import re
 import pickle
 import pandas as pd
 import csv
+import shutil
 
 ################################################################################
 ############################# FUNCTION #########################################
@@ -89,3 +90,13 @@ def pusherWarning(n_pushes = 2000):
         os.system('clear')
         print(old_value)
         input('WARNING: PUSHER HAS PERFORMED MORE THAN 2000 PUSHES. CONSIDER REPLACING IT. Press enter to continue')
+
+
+def spaceLeftWarning():
+    _, _, free = shutil.disk_usage("/")
+
+    free_human = (free // (2**30))
+
+    if free_human < 3:
+        os.system('clear')
+        input(f"WARNING: THERE ARE ONLY {free_human} GiB LEFT IN YOUR HARD DRIVE. YOU MIGHT NOT BE ABLE TO FINISH THE EXPERIMENT AND LOSE DATA. CONSIDER REMOVING FILES. Press enter to continue")

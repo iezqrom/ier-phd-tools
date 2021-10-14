@@ -401,8 +401,8 @@ def binary_response(question, values = {'0': 'no', '1':'yes'}):
     while True:
         tcflush(sys.stdin, TCIFLUSH)
         response = input(question)
-        print('input', response)
-        if response in list(values.values()):
+        print('input', type(response))
+        if response in list(values.keys()):
             break
         else:
             print(response)

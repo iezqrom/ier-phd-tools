@@ -63,7 +63,7 @@ import struct
 from classes_colther import *
 
 def py_frame_callback(frame, userptr):
-
+  
   array_pointer = cast(frame.contents.data, POINTER(c_uint16 * (frame.contents.width * frame.contents.height)))
   data = np.frombuffer(
     array_pointer.contents, dtype=np.dtype(np.uint16)
@@ -113,20 +113,23 @@ class TherCam(object):
 
         try:
             res = libuvc.uvc_find_device(ctx, byref(dev), PT_USB_VID, PT_USB_PID, 0)
+            print(res)
             if res < 0:
                 print("uvc_find_device error")
                 exit(1)
 
             try:
                 res = libuvc.uvc_open(dev, byref(devh))
+                print(res)
                 if res < 0:
                     print("uvc_open error")
                     exit(1)
 
                 print("device opened!")
 
-        #   print_device_info(devh)
-        #   print_device_formats(devh)
+                # print(devh)
+                # print_device_info(devh)
+                # print_device_formats(devh)
 
                 frame_formats = uvc_get_frame_formats_by_guid(devh, VS_FMT_GUID_Y16)
                 if len(frame_formats) == 0:
@@ -137,9 +140,6 @@ class TherCam(object):
                     frame_formats[0].wWidth, frame_formats[0].wHeight, int(1e7 / frame_formats[0].dwDefaultFrameInterval))
 
                 res = libuvc.uvc_start_streaming(devh, byref(ctrl), PTR_PY_FRAME_CALLBACK, None, 0)
-                print(devh.__dict__)
-                print('RES')
-                print(res)
                 if res < 0:
                     print("uvc_start_streaming failed: {0}".format(res))
                     exit(1)
@@ -632,7 +632,7 @@ class TherCam(object):
                     if event_touch:
                         event_touch.set()
                         touched = True
-                        
+
                     break
 
                 if self.shutter_open_time and touched and end and shutter_closed:
@@ -676,7 +676,7 @@ class TherCam(object):
                         touched = False
                     break
 
-                if end and shutter_closed:  
+                if end and shutter_closed:
                     if shutter_closed > post_shutter_time_out:
                         break
 
@@ -727,7 +727,6 @@ class TherCam(object):
 
         try:
             while True:
-                
                 dataK = q.get(True, 500)
                 if dataK is None:
                     print('Data is none')

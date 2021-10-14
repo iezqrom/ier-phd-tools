@@ -37,6 +37,7 @@ import re
 # Maths
 import numpy as np
 import curses
+from termios import TCIFLUSH, tcflush
 
 class TextIO:
     def __init__(self):
@@ -369,3 +370,46 @@ def agebyExperimenter():
             continue
 
     return age
+
+def scale_reponse(question, start = 0, end = 11):
+    """
+        Read participant responses for a scaling experiment
+    """
+    time_response_start = time.time()
+    while True:
+        tcflush(sys.stdin, TCIFLUSH)
+        response = input(question)
+        print('input', response)
+        if response in [f'{i}' for i in range(start, end)]:
+            break
+        else:
+            print(response)
+            printme(f"\n Try again. Only {[f'{i}' for i in range(start, end)]} are accepted responses\n")
+            continue
+
+    print(response)
+    time_response_end = time.time() - time_response_start
+
+    return response, time_response_end
+
+
+def binary_response(question, values = {'0': 'no', '1':'yes'}):
+    """
+        Read participant responses for a scaling experiment
+    """
+    time_response_start = time.time()
+    while True:
+        tcflush(sys.stdin, TCIFLUSH)
+        response = input(question)
+        print('input', response)
+        if response in list(values.values()):
+            break
+        else:
+            print(response)
+            printme(f"\n Try again. Only {list(values.keys())} are accepted responses\n")
+            continue
+
+    print(response)
+    time_response_end = time.time() - time_response_start
+
+    return response, time_response_end

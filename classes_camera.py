@@ -140,7 +140,6 @@ class TherCam(object):
                     frame_formats[0].wWidth, frame_formats[0].wHeight, int(1e7 / frame_formats[0].dwDefaultFrameInterval))
 
                 res = libuvc.uvc_start_streaming(devh, byref(ctrl), PTR_PY_FRAME_CALLBACK, None, 0)
-
                 if res < 0:
                     print("uvc_start_streaming failed: {0}".format(res))
                     exit(1)
@@ -633,7 +632,7 @@ class TherCam(object):
                     if event_touch:
                         event_touch.set()
                         touched = True
-                        
+
                     break
 
                 if self.shutter_open_time and touched and end and shutter_closed:
@@ -677,7 +676,7 @@ class TherCam(object):
                         touched = False
                     break
 
-                if end and shutter_closed:  
+                if end and shutter_closed:
                     if shutter_closed > post_shutter_time_out:
                         break
 
@@ -728,7 +727,6 @@ class TherCam(object):
 
         try:
             while True:
-                
                 dataK = q.get(True, 500)
                 if dataK is None:
                     print('Data is none')
@@ -877,9 +875,9 @@ class TherCam(object):
         self.failed_trial = False
 
         post_shutter_time_out = 0.01
-        pre_shutter_time_in = 2
+        pre_shutter_time_in = 1.01
         touch_time_out = 1
-        touch_time_in = 1
+        touch_time_in = 0.01
         self.shutter_open_time = None
         xs = np.arange(0, 160)
         ys = np.arange(0, 120)

@@ -2004,8 +2004,8 @@ class Zaber(grabPorts):
 
         was_pressed = False
         pantilt_on = True
-        touched = {'2': False, '3': False, '4': False}
-        checked = {'2': True, '3': True, '4': True}
+        touched = {'1': False, '2': False, '3': False, '4': False}
+        checked = {'1': True, '2': True, '3': True, '4': True}
 
         if arduino:
             stimulus = 0
@@ -2338,6 +2338,35 @@ class Zaber(grabPorts):
                         print('Pan/tilt position')
                         print(red)
                         was_pressed = True
+
+
+                elif keyboard.is_pressed('1'):
+                    if not was_pressed and not touched['1'] and current_roi == '2':
+                        funcs = [
+                            [moveZabersUp, [devices, ["colther"]]],
+                            [movetostartZabersConcu, [devices, 'tactile', ['z'], (grid['tactile']['1']['z'] - globals.touch_z_offset*globals.up_modifier_touch_height)]],
+                        ]
+
+                        threadFunctions(funcs)
+
+                        movetostartZabersConcu(devices, 'tactile', ['x', 'y'], grid['tactile']['1'])
+                        touch = globals.grid["tactile"]['1']["z"] + round(globals.touch_z_offset*globals.down_modifier_touch_height)
+                        moveAxisTo(devices, 'tactile', 'z', touch)
+
+                        moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+
+                        for i in touched:
+                            touched[i] = False
+
+                    elif not was_pressed and touched['1'] and current_roi == '2':
+                        devices['colther']['z'].device.move_abs(0)
+                        movetostartZabersConcu(devices, 'tactile', ['z'], (grid['tactile']['1']['z'] - globals.touch_z_offset*globals.up_modifier_touch_height))
+                        moveAxisTo(devices, 'tactile', 'x', globals.tactile_x_save)
+                        moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+
+                    touched['1'] = not touched['1']
+                    checked['1'] = False
+                    was_pressed = True
 
                 elif keyboard.is_pressed('2'):
                     if not was_pressed and not touched['2'] and current_roi == '1':

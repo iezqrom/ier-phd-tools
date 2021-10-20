@@ -39,6 +39,9 @@ import numpy as np
 import curses
 from termios import TCIFLUSH, tcflush
 
+
+delta_temperatre_T = u'ΔT'
+
 class TextIO:
     def __init__(self):
         pass

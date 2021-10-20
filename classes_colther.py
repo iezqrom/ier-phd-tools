@@ -1482,7 +1482,7 @@ class Zaber(grabPorts):
                         current_roi = str(int(current_roi) + 1)
 
                         if int(current_roi) > len(grid[globals.current_device]):
-                            current_roi = '1'
+                            current_roi = '2'
 
                         k = 'tactile'
                         self.gridZs[k][current_roi] = {'x': arcs[current_roi][current_angle_arc[current_roi]][0], 'y': arcs[current_roi][current_angle_arc[current_roi]][1], 'z': arcs[current_roi][current_angle_arc[current_roi]][2]}
@@ -1497,7 +1497,7 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
                         current_roi = str(int(current_roi) - 1)
-                        if int(current_roi) == 0:
+                        if int(current_roi) == 0 or int(current_roi) == 1:
                             current_roi = str(list(grid[current_device].keys())[-1])
 
                         k = 'tactile'
@@ -2033,7 +2033,7 @@ class Zaber(grabPorts):
         move_platform_camera_4 = globals.move_platform_camera_4
         backwards_colther = 10079
 
-        checked = {'2': False, '3': False, '4': False}
+        checked = {'2': True, '3': True, '4': True}
 
         funcs = [[movetostartZabersConcu, [devices, 'tactile', ['z'], globals.base_touch]], [moveAxisTo, [devices, 'tactile', 'x', globals.tactile_x_save]]]
         threadFunctions(funcs)
@@ -2233,13 +2233,14 @@ class Zaber(grabPorts):
                         moveAxisTo(devices, 'tactile', 'y', globals.tactile_y_save)
                         moveAxisTo(devices, 'tactile', 'x', globals.tactile_x_save)
 
-                        touched = False
+                        for i in touched:
+                            touched[i] = False
 
                         current_roi = str(int(current_roi) + 1)
                         if int(current_roi) > len(grid[globals.current_device]):
                             current_roi = '1'
 
-                        moveZabersUp(devices, ['camera'], uppos=0)
+                        # moveZabersUp(devices, ['camera'], uppos=0)
                         print(default_pan_tilt_values)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
@@ -2264,7 +2265,8 @@ class Zaber(grabPorts):
                         moveAxisTo(devices, 'tactile', 'y', globals.tactile_y_save)
                         moveAxisTo(devices, 'tactile', 'x', globals.tactile_x_save)
 
-                        touched = False
+                        for i in touched:
+                            touched[i] = False
 
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
@@ -2275,7 +2277,7 @@ class Zaber(grabPorts):
                         except:
                             devices['colther']['x'].move_abs(backwards_colther)
 
-                        moveZabersUp(devices, ['camera'], uppos=0)
+                        # moveZabersUp(devices, ['camera'], uppos=0)
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
                         if platformcamera:
@@ -4315,7 +4317,8 @@ def triggered_exception(zabers = None, platform = None, path_day = None, path_an
         if not any(pos_tactile) and not any(pos_colther) and int(colther_x_pos.data) > 1000 and int(colther_y_pos.data) > 1000:
             moveAxisTo(zabers, 'colther', 'y', globals.dry_ice_pos['y'])
         homingZabersConcu(zabers, {'camera': ['z']})
-        platform.device.move_abs(0)
+        if platform:
+            platform.device.move_abs(0)
 
         if not any(pos_tactile) and not any(pos_colther) and int(tactile_x_pos.data) > 1000 and int(tactile_y_pos.data) > 1000:
             moveAxisTo(zabers, 'tactile', 'x', 533332)

@@ -2224,7 +2224,7 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         funcs = [
                             [moveZabersUp, [devices, ["colther"]]],
-                            [movetostartZabersConcu, [devices, 'tactile', ['z'], (grid['tactile'][current_roi]['z'] - globals.touch_z_offset)]],
+                            [movetostartZabersConcu, [devices, 'tactile', ['z'], (grid['tactile'][[k for k, v in touched.items() if v][0]]['z'] - globals.touch_z_offset*1.3)]],
                             [moveAxisTo, [devices, 'tactile', 'x', globals.tactile_x_save]],
                             [moveAxisTo, [devices, 'camera', 'x', 70000]],
                         ]
@@ -2249,7 +2249,7 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         funcs = [
                             [moveZabersUp, [devices, ["colther"]]],
-                            [movetostartZabersConcu, [devices, 'tactile', ['z'], (grid['tactile'][current_roi]['z'] - globals.touch_z_offset)]],
+                            [movetostartZabersConcu, [devices, 'tactile', ['z'], (grid['tactile'][[k for k, v in touched.items() if v][0]]['z'] - globals.touch_z_offset*1.3)]],
                             [moveAxisTo, [devices, 'tactile', 'x', globals.tactile_x_save]],
                             [moveAxisTo, [devices, 'camera', 'x', 70000]],
                         ]
@@ -2433,7 +2433,7 @@ class Zaber(grabPorts):
 
                         threadFunctions(funcs)
 
-                        movetostartZabersConcu(devices, 'tactile', ['x', 'y'], grid['camera']['4'])
+                        movetostartZabersConcu(devices, 'tactile', ['x', 'y'], grid['tactile']['4'])
                         touch = globals.grid["tactile"]['4']["z"] + round(globals.touch_z_offset*globals.down_modifier_touch_height)
                         moveAxisTo(devices, 'tactile', 'z', touch)
 

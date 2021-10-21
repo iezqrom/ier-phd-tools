@@ -964,14 +964,14 @@ class TherCam(object):
 
                         maxdif = np.max(dif)
                         indxdf, indydf = np.where(dif == maxdif)
-                        # print(indxdf[0], indydf[0])
+                        print(indxdf[0], indydf[0])
 
                         mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
                         roiC = dataC[mask]
                         globals.temp = round(np.mean(roiC), 2)
 
                         globals.delta = meand_baseline_buffer - globals.temp
-                        # print('Delta: ' + str(round(globals.delta, 2)))
+                        print('Delta: ' + str(round(globals.delta, 2)))
 
                     sROI = 1
 
@@ -1007,6 +1007,7 @@ class TherCam(object):
                     self.shutter_open_time = 0.1
                     print(f'\nDELTA OVERSHOT\n')
                     print(f'\nClose shutter (camera)\n')
+                    self.failed_trial = True
 
                     globals.stimulus = 4
                     arduino.arduino.write(struct.pack('>B', globals.stimulus))

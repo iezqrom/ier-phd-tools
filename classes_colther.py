@@ -1096,6 +1096,8 @@ class Zaber(grabPorts):
         self.gridZs = grid
         printme(self.gridZs)
 
+        roi_selector = 0
+
         try:
             while True:
                 if keyboard.is_pressed('e'):
@@ -1155,10 +1157,14 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
-                        current_roi = str(int(current_roi) + 1)
+                        roi_selector += 1
+
                         print(len(grid[globals.current_device]))
-                        if int(current_roi) > len(grid[globals.current_device]):
-                            current_roi = '1'
+                        if (roi_selector + 1) > len(grid[globals.current_device]):
+                            roi_selector = 0
+
+                        print(roi_selector)
+                        current_roi = str(list(globals.grid[globals.current_device].keys())[roi_selector])
 
                         k = 'tactile'
                         moveZabersUp(devices, [k])
@@ -1168,12 +1174,15 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
-                        current_roi = str(int(current_roi) - 1)
-                        if int(current_roi) == 0:
-                            current_roi = str(list(grid[current_device].keys())[-1])
-                            print(current_roi)
+                        roi_selector -= 1
+                        if roi_selector == -1:
+                            roi_selector = (len(list(grid[current_device].keys())) - 1)
 
-                        # for k in ['camera', 'tactile', 'colther']:
+                            current_roi = str(list(grid[current_device].keys())[-1])
+
+                        print(roi_selector)
+                        current_roi = str(list(globals.grid[globals.current_device].keys())[roi_selector])
+
                         k = 'tactile'
                         moveZabersUp(devices, [k])
                         movetostartZabersConcu(devices, k, list(reversed(haxes[k])), pos = self.gridZs[k][current_roi])

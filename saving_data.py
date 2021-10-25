@@ -336,8 +336,7 @@ def saveGridIndv(file, path, data, zaber):
     of1 = open(f'{path}/{file}.csv', 'w')
     data_writer = csv.writer(of1)
 
-    grid_i = list(np.arange(1, len(data[zaber]) + 0.1))
-    header = [str(int(i)) for i in grid_i]
+    header = [str(int(i)) for i in list(data[zaber].keys())]
     header.insert(0, 'Axis')
 
     data_writer.writerow(header)
@@ -345,7 +344,7 @@ def saveGridIndv(file, path, data, zaber):
 
     for i, r in enumerate(rows):
         rowToWrite = [r]
-        rowToWrite.extend([data[zaber][str(int(x))][r] for x in grid_i])
+        rowToWrite.extend([data[zaber][str(int(x))][r] for x in list(data[zaber].keys())])
         data_writer.writerow(rowToWrite)
 
     of1.close()

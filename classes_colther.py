@@ -2228,7 +2228,7 @@ class Zaber(grabPorts):
                         funcs = [
                             [moveZabersUp, [devices, ["colther"]]],
                             [moveAxisTo, [devices, 'tactile', 'x', globals.tactile_x_save]],
-                            [moveAxisTo, [devices, 'camera', 'x', 70000]],
+                            [moveAxisTo, [devices, 'camera', 'x', globals.camera_back]],
                         ]
 
                         threadFunctions(funcs)
@@ -2255,7 +2255,7 @@ class Zaber(grabPorts):
                         funcs = [
                             [moveZabersUp, [devices, ["colther"]]],
                             [moveAxisTo, [devices, 'tactile', 'x', globals.tactile_x_save]],
-                            [moveAxisTo, [devices, 'camera', 'x', 70000]],
+                            [moveAxisTo, [devices, 'camera', 'x', globals.camera_back]],
                         ]
 
                         threadFunctions(funcs)

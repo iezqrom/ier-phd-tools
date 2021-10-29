@@ -679,7 +679,7 @@ def txtToVar(path, file):
     with open(f"{path}/{file}.txt", "r") as f:
         var = f.readline()
     return var
-    
+
 #################################################################
 ######################## Reading from CSV #######################
 #################################################################
@@ -706,7 +706,6 @@ def csvToDictPanTiltsAll(path, file = 'temp_PanTilts.csv'):
         Transforming csv of all ROIs to a dictionary
     """
     df= pd.read_csv(f"{path}/{file}", index_col='Axis')
-    
     PanTilts = df.to_dict()
 
     for i in PanTilts:
@@ -722,6 +721,14 @@ def csvToDictROI(path, file = 'temp_ROI.csv'):
     cd = df.to_dict()
     centreROI = cd['1']['x'], cd['1']['y']
     return centreROI
+
+def getAge(path, file = 'age.csv'):
+    """
+        Get single value age from csv file
+    """
+    age_dataframe = pd.read_csv(f"{path}/{file}", header=None)
+    age = age_dataframe[1][0]
+    return age
 
 def csvToDictGridAll(path, file_pattern = 'temp_grid_(.*).csv'):
 

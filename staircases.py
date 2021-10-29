@@ -83,10 +83,18 @@ class Staircase:
                 self.tracked_stimulation = self.tracked_stimulation + step_up
                 self.tracker = 0
         else:
-            if self.direction == "down" and self.response == 1:
-                self.tracked_stimulation = self.tracked_stimulation - step_down
-            elif self.direction == "up" and self.response == 0:
-                self.tracked_stimulation = self.tracked_stimulation + step_up
+            if self.direction == "down":
+                if self.response == 1:
+                    self.tracked_stimulation = self.tracked_stimulation - step_down
+                elif self.response == 0:
+                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                    self.first_ramp = False
+            elif self.direction == "up":
+                if self.response == 0:
+                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                elif self.response == 1:
+                    self.tracked_stimulation = self.tracked_stimulation - step_down
+                    self.first_ramp = False
 
     def clampBoundary(self, lower_boundary, upper_boundary):
         """

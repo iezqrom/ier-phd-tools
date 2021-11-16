@@ -483,6 +483,9 @@ def plotShuTemp(self, output, minY, max):
 #########################################################################
 
 
+def get_folders(path, pattern):
+    return [f for f in os.listdir(path) if re.match(pattern, f)]
+
 def GrabNamesOrder(pattern, folder):
     ''' Get the file names with a given pattern in order
     

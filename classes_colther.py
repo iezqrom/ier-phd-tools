@@ -2275,12 +2275,6 @@ class Zaber(grabPorts):
                         if int(current_roi) == 0:
                             current_roi = list(grid['colther'].keys())[-1]
 
-                        try:
-                            devices['colther']['x'].device.move_abs(backwards_colther)
-                        except:
-                            devices['colther']['x'].move_abs(backwards_colther)
-
-
                         movePanTilt(ardpantilt, default_pan_tilt_values[current_roi])
 
                         movetostartZabersConcu(devices, 'camera', ['y', 'z'], pos = grid['camera'][current_roi])
@@ -2352,17 +2346,17 @@ class Zaber(grabPorts):
                         print(red)
                         was_pressed = True
 
-
                 elif keyboard.is_pressed('1'):
                     if not was_pressed and not touched['1'] and current_roi == '2':
                         funcs = [
                             [moveZabersUp, [devices, ["colther"]]],
-                            [movetostartZabersConcu, [devices, 'tactile', ['z'], (grid['tactile']['1']['z'] - globals.touch_z_offset*globals.up_modifier_touch_height)]],
+                            [movetostartZabersConcu, [devices, 'tactile', ['z'], (grid['tactile']['4']['z'] - globals.touch_z_offset*globals.up_modifier_touch_height)]],
                         ]
 
                         threadFunctions(funcs)
 
-                        movetostartZabersConcu(devices, 'tactile', ['x', 'y'], grid['tactile']['1'])
+                        movetostartZabersConcu(devices, 'tactile', ['y'], grid['tactile']['1'])
+                        movetostartZabersConcu(devices, 'tactile', ['x'], grid['tactile']['1'])
                         touch = globals.grid["tactile"]['1']["z"] + round(globals.touch_z_offset*globals.down_modifier_touch_height)
                         moveAxisTo(devices, 'tactile', 'z', touch)
 

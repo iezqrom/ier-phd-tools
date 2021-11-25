@@ -483,6 +483,7 @@ def depthToSrc():
     backwards = '../'
     while True:
         splitted = os.path.split(path)
+        print(splitted)
         if splitted[1] == 'src_testing':
             break
         elif splitted[0] == '/':

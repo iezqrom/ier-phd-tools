@@ -46,6 +46,12 @@ import os
 
 delta_temperatre_T = u'ΔT'
 
+if sys.platform.startswith('win'):
+    to_clear = "cls"
+
+elif sys.platform.startswith('darwin'):
+    to_clear = "clear"
+
 class TextIO:
     def __init__(self):
         pass
@@ -388,6 +394,7 @@ def scale_reponse(question, start = 0, end = 11):
             tcflush(sys.stdin, TCIFLUSH)
         except:
             printme('\n Could not flush the input buffer \n')
+            os.system(to_clear)
         response = input(question)
         print('input', response)
         if response in [f'{i}' for i in range(start, end)]:
@@ -413,9 +420,9 @@ def binary_response(question, values = {'0': 'no', '1':'yes'}):
             tcflush(sys.stdin, TCIFLUSH)
         except:
             printme('\n Could not flush the input buffer \n')
-            os.system("cls")
+            os.system(to_clear)
         response = input(question)
-        # print('input', type(response))
+
         if response in list(values.keys()):
             break
         else:

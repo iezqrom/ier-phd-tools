@@ -15,12 +15,13 @@ class Staircase:
         self.tracked_stimulation = initial
         self.reversed_bool = False
         self.last_response = None
-        self.trial = 1
+        self.trial = 0
         self.direction = direction
         self.total_reversals = total_reversals
         self.name = name
         self.block = 1
-        self.within_block_counter = 1
+        self.within_block_counter = 0
+        self.within_block_successful_counter = 0
 
         self.reversal_values = []
         self.estimated_point = None

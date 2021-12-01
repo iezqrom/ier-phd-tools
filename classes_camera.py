@@ -885,6 +885,8 @@ class TherCam(object):
         diff_buffer = []
         baseline_buffer = []
 
+        globals.delta = 0
+
         try:
             while True:
                 dataK = q.get(True, 500)

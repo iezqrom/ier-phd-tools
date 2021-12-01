@@ -2490,7 +2490,7 @@ class Zaber(grabPorts):
             arduino.arduino.write(struct.pack('>B', stimulus))
 
         # Build dictionary of rois
-        r_zaber = random.choice(list(grid))
+        r_zaber = "camera"
 
         self.rois = {}
         self.PanTilts = {}

@@ -24,11 +24,13 @@ def parsing_situation():
     parser = argparse.ArgumentParser(description='Experimental situation: troubleshooting (tb) or experimenting (ex)')
     parser.add_argument('-s', type=str)
     parser.add_argument('-p', type=str, default=None)
+    parser.add_argument('-ns', type=str, default=None)
     args = parser.parse_args()
     situ = args.s
     part = args.p
+    n_staircase = args.ns
 
-    return situ, part
+    return situ, part, n_staircase
 
 def experiment_part():
     parser = argparse.ArgumentParser(description='Experiment part: folder name')

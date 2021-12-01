@@ -961,7 +961,7 @@ class TherCam(object):
                     elif buffering_time >= 0.3:
                         dif = mean_diff_buffer - dataC
 
-                        dif[dataC <= 24] = 0
+                        dif[dataC <= 18] = 0
                         dif[dif <= (0.1)] = 0
 
                         maxdif = np.max(dif)

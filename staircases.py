@@ -155,3 +155,6 @@ class Staircase:
         plt.savefig(f"{path_figs}/{name}.png")
 
         plt.show()
+
+    def __round__(self):
+        return str(round(self.stimulation * 100))

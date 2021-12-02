@@ -392,8 +392,9 @@ def sexbyExperimenter():
 
     text_choice = "Sex of participant "
     sex = handle_menu(text_choice, menu_options)
-    
+
     return sex
+
 
 def print_menu(menu_options):
     printme("\nMenu Options:")

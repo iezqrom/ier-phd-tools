@@ -764,7 +764,7 @@ def csvToDictGridIndv(path, file):
         Transforming csv of one Grid to a dictionary
     """
     df= pd.read_csv(f"{path}/{file}", index_col='Axis')
-    
+
     grid_indv = df.to_dict()
     return grid_indv
 
@@ -773,7 +773,7 @@ def csvToDictROIAll(path, file = 'temp_ROIs.csv'):
         Transforming csv of all ROIs to a dictionary
     """
     df= pd.read_csv(f"{path}/{file}", index_col='Axis')
-    
+
     ROIs = df.to_dict()
 
     for i in ROIs:
@@ -786,13 +786,17 @@ def csvToDictHaxes(path, file = 'temp_haxes.csv'):
         Transforming csv of haxes to a dictionary
     """
     df=  pd.read_csv(f"{path}/{file}", index_col='Position')
-    
+
     haxes = df.to_dict()
 
     for i in haxes:
         haxes[i] = [haxes[i][1], haxes[i][2], haxes[i][3]]
 
     return haxes
+
+def check_file_path_save(path, file_name, variable, subject_n, format = "csv"):
+    if not os.path.exists(f"{path}/{file_name}.{format}"):
+        apendSingle("age", path, subject_n, variable)
 
 #################################################################
 ######################## Deleting ###############################
@@ -806,7 +810,7 @@ def delTempFiles(path):
 
     for i, n in enumerate(names):
         os.remove(f"{path}/{n[0]}.{n[1]}")
-        
+
     print("Temporary data file Removed!")
 
 ###### OLD TRASH

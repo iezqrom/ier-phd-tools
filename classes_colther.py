@@ -2610,7 +2610,7 @@ class Zaber(grabPorts):
                         tryexceptArduino(arduino, globals.stimulus)
                         was_pressed = True
 
-                elif keyboard.is_pressed('up'):
+                elif keyboard.is_pressed('up') and not keyboard.is_pressed('i') and not keyboard.is_pressed('l'):
                     if pantilt_on:
                         ardpantilt.arduino.write(struct.pack('>B', 3))
                         time.sleep(keydelay)
@@ -2622,7 +2622,7 @@ class Zaber(grabPorts):
 
                         handleOutOfRange(response, device, 'y', globals.current_device, globals.amount, globals.zaber_models, globals.zaber_models_end)
 
-                elif keyboard.is_pressed('down'):
+                elif keyboard.is_pressed('down') and not keyboard.is_pressed('i') and not keyboard.is_pressed('l'):
                     if pantilt_on:
                         ardpantilt.arduino.write(struct.pack('>B', 4))
                         time.sleep(keydelay)

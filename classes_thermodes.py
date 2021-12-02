@@ -52,6 +52,8 @@ try:
 except:
     pass
 
+default_rate = 100
+default_dev = 'Dev10'
 
 class Thermode(object):
 
@@ -79,7 +81,7 @@ class Thermode(object):
         # We stack the data
         self.temp_volt = np.stack((self.range_temp, self.range_volt))
 
-    def readTemp(self, Ai, samples = 100, rate = globals.rate_NI, dev = globals.dev):
+    def readTemp(self, Ai, samples = 100, rate = default_rate, dev = default_dev):
         """
             Method of Zaber (object) to obtain the current temperature.
             Important created attributes: self.temp_current (current temperature) & self.volt_current (voltage equivalent of current temperature).
@@ -148,7 +150,7 @@ class Thermode(object):
         elif target_temp > start_temp:
             self.volt = np.arange(self.volt_ref_start, self.volt_ref_target, self.volt_ref_target/1000)
 
-    def IO_thermode(self, Ai, Ao, rate = globals.rate_NI, dev = globals.dev, voltI = None): #Ai ai8 // Ao ao0
+    def IO_thermode(self, Ai, Ao, rate = default_rate, dev = default_dev, voltI = None): #Ai ai8 // Ao ao0
         """
             Method of Zaber (object) to write voltage to and read data (voltage) from thermode.
             The attribute self.volt is written if one (voltI) is not given.
@@ -210,7 +212,7 @@ class Thermode(object):
         # print('Time taken: {}'.format(self.end_TT))
         self.rate = rate
 
-    def method_of_limits(self, Ai, Ao, direction, rate = globals.rate_NI, temp_rate = 0.2 , amount = 1, dev = globals.dev):
+    def method_of_limits(self, Ai, Ao, direction, rate = default_rate, temp_rate = 0.2 , amount = 1, dev = default_dev):
         """
             Method of Zaber (object) to find thresholds with method of limits strategy.
 
@@ -324,7 +326,7 @@ class Gethermodes(object):
             self.array_thermodes = [('ai24', 'ao2'), ('ai8', 'ao0')]
             self.n_channels = 2
 
-    def InputChannels(self, data, dev = globals.dev, rate = globals.rate_NI):
+    def InputChannels(self, data, dev = default_dev, rate = default_rate):
 
         if self.n_channels != 2 and self.n_channels != 3:
             print('Wrong number of channels')
@@ -338,7 +340,7 @@ class Gethermodes(object):
 
         self.tisk.timing.cfg_samp_clk_timing(rate = rate, samps_per_chan = len(data), sample_mode = NC.AcquisitionType.FINITE)
 
-    def OutputChannels(self, data, dev = globals.dev, rate = globals.rate_NI):
+    def OutputChannels(self, data, dev = default_dev, rate = default_rate):
 
         if self.n_channels != 2 and self.n_channels != 3:
             print('Wrong number of channels')
@@ -384,7 +386,7 @@ class Gethermodes(object):
         globals.total -= 1
 
     def PlotScreen(self, repeats):
-        self.duration = int(1000*1/globals.rate_NI)
+        self.duration = int(1000*1/default_rate)
         self.duration = self.duration * repeats
         self.time = np.arange(0, self.duration, self.duration/(1000*repeats))
 
@@ -424,9 +426,9 @@ class Oscillation(Thermode, Gethermodes):
         self.volt = self.A * np.sin(self.w * self.t + self.phi) + (max(self.range_volt) + min(self.range_volt))/2
 
         # self.volt = np.tile(self.volt, repeats)
-        self.duration = int(1000 * repeats/globals.rate_NI) # duration of sound
+        self.duration = int(1000 * repeats/default_rate) # duration of sound
 
-    def IO_osc(self, IaT, OaT, rate = globals.rate_NI):
+    def IO_osc(self, IaT, OaT, rate = default_rate):
 
         self.start_osc = datetime.now()
 
@@ -446,7 +448,7 @@ class Oscillation(Thermode, Gethermodes):
 
 
     def plotSingleSine(self, name_save = None, path_save = None, save = 'Y'):
-        self.durationSine = int(1000*1/globals.rate_NI) # duration of sound
+        self.durationSine = int(1000*1/default_rate) # duration of sound
         fig, ax = plt.subplots(1,1)
         self.timePlotSine = np.arange(0, self.durationSine, self.durationSine/1000)
         plt.plot(self.timePlotSine, self.data_osc, label = 'Voltage from Thermode')
@@ -483,10 +485,10 @@ class Constant(Thermode, Gethermodes):
         self.volt_ref = self.volt_ref[0, 1]
         self.volt = np.repeat(self.volt_ref, length)
         # print(len(self.volt))
-        self.durationCons = int(1000 * repeats/globals.rate_NI) # duration of sound
+        self.durationCons = int(1000 * repeats/default_rate) # duration of sound
         self.repeats = repeats
 
-    def IO_constant(self, IaT, OaT, rate = globals.rate_NI):
+    def IO_constant(self, IaT, OaT, rate = default_rate):
 
         thermode.IO_thermode(self, rate, IaT, OaT)
         self.data_cons = self.data
@@ -525,7 +527,7 @@ class Constant(Thermode, Gethermodes):
             else:
                 continue
 
-    # def IO_cons(self, IaT, OaT, time, cons_dummy = 0.001, rate = globals.rate_NI):
+    # def IO_cons(self, IaT, OaT, time, cons_dummy = 0.001, rate = default_rate):
     #     self.start_cons = datetime.now()
     #     self.elapsed_cons = 0
     #     self.data_target = []
@@ -545,7 +547,7 @@ class Constant(Thermode, Gethermodes):
     #
     #     self.data_target = np.asarray(list(itertools.chain(*self.data_target)))
 
-    # def IO_constantTrio(self, data, ref_dummy = 0.01, rate = globals.rate_NI):
+    # def IO_constantTrio(self, data, ref_dummy = 0.01, rate = default_rate):
     #     self.start_ref = datetime.now()
     #     self.data_target = []
     #
@@ -585,7 +587,7 @@ class Target(Thermode, Gethermodes):
         self.volt_ref = self.volt_ref[0, 1]
         self.volt = np.repeat(self.volt_ref, 2)
 
-    def IO_referenceSingle(self, IaT, OaT, ref_dummy = 0.01, rate = globals.rate_NI):
+    def IO_referenceSingle(self, IaT, OaT, ref_dummy = 0.01, rate = default_rate):
         self.start_ref = datetime.now()
         self.data_target = []
 
@@ -603,7 +605,7 @@ class Target(Thermode, Gethermodes):
                 self.data_target.append(self.data)
                 continue
 
-    def IO_referenceTrio(self, ref_dummy = 0.01, rate = globals.rate_NI):
+    def IO_referenceTrio(self, ref_dummy = 0.01, rate = default_rate):
         self.start_ref = datetime.now()
         self.data_target = []
 
@@ -653,7 +655,7 @@ class Target(Thermode, Gethermodes):
 
         plt.close()
 
-    def IO_targetTrio(self, data, ref_dummy = 0.01, rate = globals.rate_NI):
+    def IO_targetTrio(self, data, ref_dummy = 0.01, rate = default_rate):
         self.start_ref = datetime.now()
         self.data_target = [] # hola
 

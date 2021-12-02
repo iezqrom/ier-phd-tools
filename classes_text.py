@@ -384,6 +384,41 @@ def agebyExperimenter():
 
     return age
 
+def sexbyExperimenter():
+    menu_options = {
+        1: "female",
+        2: "male"
+    }
+
+    text_choice = "Sex of participant "
+    sex = handle_menu(text_choice, menu_options)
+    
+    return sex
+
+def print_menu(menu_options):
+    printme("\nMenu Options:")
+    for key, value in menu_options.items():
+        print(f"{key}: {value}")
+
+def check_input(user_input, menu_options):
+    if user_input in menu_options.keys():
+        return True
+    else:
+        return False
+
+def handle_menu(text_choice, menu_options):
+    while True:
+        print_menu(menu_options)
+        option = int(input(f"\n{text_choice} "))
+        checked_input = check_input(option, menu_options)
+        if checked_input:
+            break
+        else:
+            print("\nInvalid option. Please try again.")
+            continue
+
+    return option
+
 def scale_reponse(question, start = 0, end = 11):
     """
         Read participant responses for a scaling experiment
@@ -434,3 +469,4 @@ def binary_response(question, values = {'0': 'no', '1':'yes'}):
     time_response_end = time.time() - time_response_start
 
     return response, time_response_end
+

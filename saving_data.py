@@ -113,7 +113,7 @@ def findTempFiles(path):
 
     for filename in os.listdir(f"{path}"):
         if patternc.match(filename):
-            print(filename)
+            # print(filename)
             name, form = filename.split('.')
             names.append((name, form))
         else:
@@ -464,7 +464,6 @@ def checkORcreate(path):
         Function to check whether a folder exists.
         If it does NOT exist, it is created
     """
-    print(path)
     folder_name = os.path.split(path)[1]
     if not os.path.isdir(path):
         print(f"\nFolder '{folder_name}' does NOT exist, creating it for you...\n")
@@ -472,6 +471,12 @@ def checkORcreate(path):
     else:
         print(f"\nFolder '{folder_name}' exists, ready to continue...\n")
     return path
+
+def substring_exists(substring, string):
+    if substring in string:
+        return True
+    else:
+        return False
 
 def depthToSrc():
     """
@@ -483,13 +488,15 @@ def depthToSrc():
     backwards = '../'
     while True:
         splitted = os.path.split(path)
-        print(splitted)
         if splitted[1] == 'src_testing':
+            backwards = '../'
             break
         elif splitted[0] == '/':
             backwards = './'
             break
-            # raise Exception("Can't find folder 'src_testing' in folder tree")
+        elif substring_exists('expt', splitted[-1]):
+            backwards = ''
+            break
         else:
             backwards = backwards + backwardsUnit
             path = splitted[0]

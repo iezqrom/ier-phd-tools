@@ -2508,9 +2508,6 @@ class Zaber(grabPorts):
         # positions_touch = {'1': '2', '2': '1', '3': '2', '4': '3'}
         # checked = {'1': False, '2': False, '3': False, '4': False}
 
-        movetostartZabersConcu(devices, 'tactile', ['z'], pos = globals.base_touch)
-        moveAxisTo(devices, 'tactile', 'x', 533332)
-
         print('\nZaber game activated\n')
 
         globals.current_device = 'camera'

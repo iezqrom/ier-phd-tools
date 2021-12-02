@@ -2671,11 +2671,11 @@ class TherCam(object):
                     ax.add_artist(circles[0])
                     plt.pause(0.0005)
 
-                    if not was_pressed and keyboard.is_pressed('h') and keyboard.is_pressed('up'):
+                    if not was_pressed and keyboard.is_pressed('i') and keyboard.is_pressed('up'):
                         self.vmaxT += 1
                         print(self.vminT, self.vmaxT)
                         was_pressed = True
-                    elif not was_pressed and keyboard.is_pressed('h') and keyboard.is_pressed('down'):
+                    elif not was_pressed and keyboard.is_pressed('i') and keyboard.is_pressed('down'):
                         self.vmaxT -= 1
                         print(self.vminT, self.vmaxT)
                         was_pressed = True

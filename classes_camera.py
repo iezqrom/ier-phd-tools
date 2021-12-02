@@ -2577,8 +2577,6 @@ class TherCam(object):
 
         finally:
             print('Stop streaming')
-            # libuvc.uvc_stop_streaming(devh)
-            # sys.exit()
             pass
 
 
@@ -2610,8 +2608,8 @@ class TherCam(object):
 
         img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
-        # fig.canvas.mpl_connect('close_event', lambda _: fig.canvas.manager.window.destroy()) 
-        # plt.show(block=False)
+
+        was_pressed = False
 
         try:
             while True:
@@ -2627,41 +2625,32 @@ class TherCam(object):
                     if c_w == 'c':
                         subdataK = dataK[edgey:edgey + (120 - edgey*2), edgexl:(160 - edgexr)]
                         subdataC = (subdataK - 27315)/100
-                        # print([subdataC <= 28.5])
-                        # subdataC[subdataC <= 28.5] = 100
+
                         minimoC = np.min(subdataC)
-                        # print(minimoK)
-                        
+
                     elif c_w == 'w':
                         subdataK = dataK[edgey:edgey + (120 - edgey*2), edgexl:(160 - edgexr)]
 
                     dataC = (dataK - 27315) / 100
-                    
-                    # print(f'min: {minimoC}')
-                    
                     xs = np.arange(0, 160)
                     ys = np.arange(0, 120)
 
                     globals.temp = minimoC
 
-                    # print(indx, ind)
-
                     try:
-                        # print('HERE')
                         indy, indx = np.where(subdataC == minimoC)
-                        # print(indy[0], indx[0])
+
                         indx, indy = indy + edgey, indx + edgexl
                         mask = (xs[np.newaxis,:]-indy[0])**2 + (ys[:,np.newaxis]-indx[0])**2 < r**2
                     except:
                         continue
-                    
+
                     roiC = dataC[mask]
                     mean = round(np.mean(roiC), 2)
                     print(f'Mean: {mean}')
 
                     circles = []
 
-                    # print(indx, indy)
                     for a, j in zip(indx, indy):
                         cirD = plt.Circle((j, a), r, color='b', fill = False)
                         circles.append(cirD)
@@ -2678,15 +2667,25 @@ class TherCam(object):
                     ax.spines['bottom'].set_visible(False)
                     ax.imshow(dataC, vmin = self.vminT, vmax = self.vmaxT)
                     ax.add_artist(circles[0])
-                    # time.sleep(0.0005)
                     plt.pause(0.0005)
 
+                    if not was_pressed and keyboard.is_pressed('h') and keyboard.is_pressed('up'):
+                        self.vmaxT += 1
+                        was_pressed = True
+                    elif not was_pressed and keyboard.is_pressed('h') and keyboard.is_pressed('down'):
+                        self.vmaxT -= 1
+                        was_pressed = True
+                    elif not was_pressed and keyboard.is_pressed('l') and keyboard.is_pressed('up'):
+                        self.vminT += 1
+                        was_pressed = True
+                    elif not was_pressed and keyboard.is_pressed('l') and keyboard.is_pressed('down'):
+                        self.vminT -= 1
+                        was_pressed = True
+                    else:
+                        was_pressed = False
 
-                    # if keyboard.is_pressed('s'):
-                    #     # if not was_pressed:
-                    #     globals.amount = changeAmount('s')
-
-                    #         # was_pressed = True
+                    if self.vmaxT <= self.vminT:
+                        self.vmaxT = self.vminT + 1
 
                     if record == 'y':
                         print('Saving info to file')
@@ -2697,7 +2696,6 @@ class TherCam(object):
 
                         saveh5py(names, datas, tiff_frameLOCAL, f)
                         tiff_frameLOCAL += 1
-                        # print(tiff_frameLOCAL)
 
                     if keyboard.is_pressed('r'):
                         print('Manual FFC')
@@ -2705,13 +2703,10 @@ class TherCam(object):
                         print_shutter_info(devh)
 
                     if keyboard.is_pressed('e'):
-                        # print(weDone)
                         if globals.weDone:
                             print('We are done')
                             plt.close('all')
                             plt.clf()
-                            # fig.gcf()
-                            # print(plt.get_fignums())
                             break
 
         except Exception as e:

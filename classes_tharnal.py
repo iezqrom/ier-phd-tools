@@ -482,6 +482,10 @@ def plotShuTemp(self, output, minY, max):
 ############ Functions Miscellaneous
 #########################################################################
 
+def get_delta(list_splitted, delta):
+    for i in range(len(list_splitted)):
+        if list_splitted[i].startswith(delta):
+            return list_splitted[i]
 
 def get_folders(path, pattern):
     return [f for f in os.listdir(path) if re.match(pattern, f)]

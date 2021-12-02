@@ -2671,15 +2671,19 @@ class TherCam(object):
 
                     if not was_pressed and keyboard.is_pressed('h') and keyboard.is_pressed('up'):
                         self.vmaxT += 1
+                        print(self.vminT, self.vmaxT)
                         was_pressed = True
                     elif not was_pressed and keyboard.is_pressed('h') and keyboard.is_pressed('down'):
                         self.vmaxT -= 1
+                        print(self.vminT, self.vmaxT)
                         was_pressed = True
                     elif not was_pressed and keyboard.is_pressed('l') and keyboard.is_pressed('up'):
                         self.vminT += 1
+                        print(self.vminT, self.vmaxT)
                         was_pressed = True
                     elif not was_pressed and keyboard.is_pressed('l') and keyboard.is_pressed('down'):
                         self.vminT -= 1
+                        print(self.vminT, self.vmaxT)
                         was_pressed = True
                     else:
                         was_pressed = False

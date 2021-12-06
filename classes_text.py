@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
 #Time
-from datetime import datetime
 import time
-from time import sleep
 #System
 try:
     import sys
@@ -35,13 +33,12 @@ except:
 import re
 
 # Maths
-import numpy as np
-import curses
 try:
     from termios import TCIFLUSH, tcflush
 except:
     pass
 import os
+from saving_data import getValue, numberSubjDay
 
 
 delta_temperatre_T = u'ΔT'
@@ -471,3 +468,29 @@ def binary_response(question, values = {'0': 'no', '1':'yes'}):
 
     return response, time_response_end
 
+
+def getOrAsk(func, path, file_name):
+    if os.path.exists(f"{path}/{file_name}.csv"):
+        value = getValue(path, file=f"{file_name}")
+    else:
+        value = func()
+
+    return value
+
+def getAgeSex(situ, path):
+    if situ == "tb":
+        age = 1
+        sex = 0
+    elif situ == "ex":
+        age = getOrAsk(agebyExperimenter, path, "age")
+        sex = getOrAsk(sexbyExperimenter, path, "sex")
+
+    return age, sex
+
+def getSubjNum(situ):
+    if situ == "tb":
+        subject_n = numberSubjDay()
+    elif situ == "ex":
+        subject_n = numberSubjDay("y")
+
+    return subject_n

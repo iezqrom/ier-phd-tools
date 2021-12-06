@@ -3,7 +3,7 @@ import pickle
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from classes_text import delta_temperatre_T
-import random
+import time
 
 
 def power_law(x, a, b):
@@ -152,3 +152,11 @@ class Anchoring:
         backup_file = open(f"{path_data}/{name_file}.pkl", "wb")
         pickle.dump(self, backup_file)
         backup_file.close()
+
+
+def delay_stimulus_offset_response(lower_bound_delay, higher_bound_delay):
+    delay = np.random.uniform(
+        lower_bound_delay, higher_bound_delay
+    )
+    time.sleep(delay)
+    return delay

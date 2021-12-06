@@ -1,6 +1,7 @@
 import pickle
 import matplotlib.pyplot as plt
-
+import time
+import numpy as np
 
 class Staircase:
     """
@@ -158,3 +159,10 @@ class Staircase:
 
     def __round__(self):
         return str(round(self.stimulation * 100))
+
+def delay_stimulus_offset_response(lower_bound_delay, higher_bound_delay):
+    delay = np.random.uniform(
+        lower_bound_delay, higher_bound_delay
+    )
+    time.sleep(delay)
+    return delay

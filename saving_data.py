@@ -8,6 +8,7 @@ import subprocess
 import re
 import shutil
 from classes_text import *
+import copy
 
 ##################################################################
 ###################### Storing data ##############################
@@ -23,6 +24,12 @@ def buildDict(*keys):
         data[list_llaves[i]] = []
 
     return data
+
+def copyDict(data):
+    """
+        Function to copy dictionary
+    """
+    return copy.deepcopy(data)
 
 def appendDataDict(data, tempdata):
     """
@@ -424,6 +431,16 @@ def saveHaxesAll(path, data, file = 'temp_haxes'):
 
     print(f'\nHaxes saved\n')
 
+
+def handle_iti_save(temp_row, data, path, file_name):
+    data = appendDataDict(data, temp_row)
+    temp_file = open(f"{path}/{file_name}.csv", "a")
+    temp_data_writer = csv.writer(temp_file)
+    temp_data_writer.writerow(temp_row)
+    temp_file.close()
+
+    return data
+
 ########################################################
 ################## PERMISSIONS #########################
 ########################################################
@@ -640,6 +657,12 @@ def folderArudio(numdaysubj, testing = 'n', folder_name = None):
     
     return path_audio
 
+def rm_mk_folder_name(path_day):
+    if os.path.exists(f"./src_testing/temp_folder_name.txt"):
+        os.remove(f"./src_testing/temp_folder_name.txt")
+
+    saveIndvVar("./src_testing/", path_day, "temp_folder_name")
+
 #################################################################
 ########## Pipeline to set subject number & others ##############
 #################################################################
@@ -730,13 +753,13 @@ def csvToDictROI(path, file = 'temp_ROI.csv'):
     centreROI = cd['1']['x'], cd['1']['y']
     return centreROI
 
-def getAge(path, file = 'age.csv'):
+def getValue(path, file = 'age.csv'):
     """
         Get single value age from csv file
     """
-    age_dataframe = pd.read_csv(f"{path}/{file}", header=None)
-    age = age_dataframe[1][0]
-    return age
+    dataframe = pd.read_csv(f"{path}/{file}", header=None)
+    value = dataframe[1][0]
+    return value
 
 def csvToDictGridAll(path, file_pattern = 'temp_grid_(.*).csv'):
 

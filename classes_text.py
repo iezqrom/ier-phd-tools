@@ -38,16 +38,18 @@ try:
 except:
     pass
 import os
-from saving_data import getValue, numberSubjDay
-
 
 delta_temperatre_T = u'ΔT'
 
-if sys.platform.startswith('win'):
-    to_clear = "cls"
+def to_clear_os():
+    if sys.platform.startswith('win'):
+        to_clear = "cls"
 
-elif sys.platform.startswith('darwin'):
-    to_clear = "clear"
+    elif sys.platform.startswith('darwin'):
+        to_clear = "clear"
+    return to_clear
+
+to_clear = to_clear_os()
 
 class TextIO:
     def __init__(self):
@@ -405,6 +407,8 @@ def check_input(user_input, menu_options):
         return False
 
 def handle_menu(text_choice, menu_options):
+    to_clear = to_clear_os()
+    os.system(to_clear)
     while True:
         print_menu(menu_options)
         option = int(input(f"\n{text_choice} "))
@@ -469,28 +473,3 @@ def binary_response(question, values = {'0': 'no', '1':'yes'}):
     return response, time_response_end
 
 
-def getOrAsk(func, path, file_name):
-    if os.path.exists(f"{path}/{file_name}.csv"):
-        value = getValue(path, file=f"{file_name}")
-    else:
-        value = func()
-
-    return value
-
-def getAgeSex(situ, path):
-    if situ == "tb":
-        age = 1
-        sex = 0
-    elif situ == "ex":
-        age = getOrAsk(agebyExperimenter, path, "age")
-        sex = getOrAsk(sexbyExperimenter, path, "sex")
-
-    return age, sex
-
-def getSubjNum(situ):
-    if situ == "tb":
-        subject_n = numberSubjDay()
-    elif situ == "ex":
-        subject_n = numberSubjDay("y")
-
-    return subject_n

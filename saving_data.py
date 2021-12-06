@@ -7,7 +7,7 @@ import pandas as pd
 import subprocess
 import re
 import shutil
-from classes_text import *
+from classes_text import printme, agebyExperimenter, sexbyExperimenter
 import copy
 
 ##################################################################
@@ -59,6 +59,9 @@ def setSubjNumDec(age, numdaywithin, situ, file = 'subjs.csv'):
         Function to save subject date, time, valid and age
     """
     steps_back = depthToSrc()
+    path = f"{steps_back}data/{file}"
+    if not open(path):
+        subjFile(path)
     sf = open(f'./{steps_back}data/{file}', 'a')
     data_writer = csv.writer(sf)
 
@@ -89,6 +92,24 @@ def getSubjNumDec(file = 'subjs.csv', day = None):
         numdaywithin = int(nums_within.to_numpy()[-1])
 
     return numdaywithin
+
+def getAgeSex(situ, path):
+    if situ == "tb":
+        age = 1
+        sex = 0
+    elif situ == "ex":
+        age = getOrAsk(agebyExperimenter, path, "age")
+        sex = getOrAsk(sexbyExperimenter, path, "sex")
+
+    return age, sex
+
+def getSubjNum(situ):
+    if situ == "tb":
+        subject_n = numberSubjDay()
+    elif situ == "ex":
+        subject_n = numberSubjDay("y")
+
+    return subject_n
 
 ##################################################################
 ###################### Saving data ##############################
@@ -723,6 +744,15 @@ def create_temp_name(name):
 ######################## Reading from CSV #######################
 #################################################################
 
+def getOrAsk(func, path, file_name):
+    if os.path.exists(f"{path}/{file_name}.csv"):
+        value = getValue(path, file=f"{file_name}")
+    else:
+        value = func()
+
+    return value
+
+
 def csvtoDictZaber(path, file = 'temp_zaber_pos.csv'):
     """
         Transforming csv of one set of  Zabers to dictionary
@@ -827,7 +857,7 @@ def csvToDictHaxes(path, file = 'temp_haxes.csv'):
 
 def check_file_path_save(path, file_name, variable, subject_n, format = "csv"):
     if not os.path.exists(f"{path}/{file_name}.{format}"):
-        apendSingle("age", path, subject_n, variable)
+        apendSingle(file_name, path, subject_n, variable)
 
 #################################################################
 ######################## Deleting ###############################

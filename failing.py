@@ -4,6 +4,7 @@ import pickle
 import pandas as pd
 import csv
 import shutil
+import time
 
 ################################################################################
 ############################# FUNCTION #########################################
@@ -15,7 +16,7 @@ def errorloc(e):
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
     print(exc_type, fname, exc_tb.tb_lineno)
 
-def recoverData(path_data, pattern):
+def getNames(path_data, pattern):
     pattern_data_failed = pattern
     patternc_data_failed = re.compile(pattern_data_failed)
     names_data_failed = []
@@ -56,8 +57,24 @@ def savePickleRick(path_data, name_file, data):
     pickle.dump(data, backup_file)
     backup_file.close()
 
+def recoverData(names, path_data, data):
+    if len(names) > 0:
+        recovered_data = pd.read_csv(f"{path_data}/{names[-1]}.csv")
+        lsrd = recovered_data.to_dict('list')
+        data = {key: lsrd[key] for key, value in lsrd.items()}
+        print(data)
+        time.sleep(2)
+        return data
+    else:
+        return data
+
 def recoveredToTempWriter(names, path_data, data, temp_data_writer, temp_file_name = 'temp_data'):
     if len(names) > 0:
+        try:
+            temp_file_name = names[-1]
+        except:
+            temp_file_name = temp_file_name
+
         temp_file = open(f'{path_data}/{temp_file_name}.csv', 'a')
         temp_data_writer = csv.writer(temp_file)
 

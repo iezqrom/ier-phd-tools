@@ -2,6 +2,7 @@ import pickle
 import matplotlib.pyplot as plt
 import time
 import numpy as np
+import random
 
 class Staircase:
     """
@@ -166,3 +167,13 @@ def delay_stimulus_offset_response(lower_bound_delay, higher_bound_delay):
     )
     time.sleep(delay)
     return delay
+
+def choose_staircase(staircases):
+    valid_choice = False
+    while not valid_choice:
+        trial_staircase = random.choice(list(staircases.keys()))
+        if staircases[trial_staircase].reversals == staircases[trial_staircase].total_reversals:
+            continue
+        else:
+            valid_choice = True
+        return trial_staircase

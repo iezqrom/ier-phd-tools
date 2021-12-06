@@ -688,6 +688,14 @@ def txtToVar(path, file):
         var = f.readline()
     return var
 
+def create_temp_name(name):
+    t = time.localtime()
+    time_now = time.strftime("%H_%M_%S", t)
+    todaydate = date.today().strftime("%d%m%Y")
+    name_temp_file = f"{name}_temp_{time_now}_{todaydate}"
+    return name_temp_file
+
+
 #################################################################
 ######################## Reading from CSV #######################
 #################################################################

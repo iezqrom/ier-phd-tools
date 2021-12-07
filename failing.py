@@ -59,9 +59,6 @@ def savePickleRick(path_data, name_file, data):
     backup_file.close()
 
 def recoverData(names, path_data, data):
-    print(data)
-    print(names)
-    print(path_data)
     if len(names) > 0:
         recovered_data = pd.read_csv(f"{path_data}/{names[-1]}.csv")
         lsrd = recovered_data.to_dict('list')
@@ -124,9 +121,6 @@ def create_list(dictionary, index):
     return [dictionary[key][index] for key in dictionary.keys()]
 
 def rewriteRecoveredData(data, path, file_name):
-    print(data)
-    print(path)
-    print(file_name)
     if len(data['subject']) > 0:
         temp_file = open(f"{path}/{file_name}.csv", "a")
         temp_data_writer = csv.writer(temp_file)

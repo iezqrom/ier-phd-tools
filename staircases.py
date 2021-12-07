@@ -150,6 +150,7 @@ class Staircase:
 
         ax.axhline(self.estimated_point, color="k")
 
+        ax.set_title(f"{name}")
         ax.set_ylim(ylim)
         ax.set_ylabel(ylabel)
         ax.set_xlabel("Trials")

@@ -675,7 +675,7 @@ def folderArudio(numdaysubj, testing = 'n', folder_name = None):
     path_data = folderData(steps_back)
     path_day = folderTesting(path_data, testing, numdaysubj, folder_name)
     path_audio = folderAudios(path_day)
-    
+
     return path_audio
 
 def rm_mk_folder_name(path_day):

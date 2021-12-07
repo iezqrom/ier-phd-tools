@@ -5,6 +5,7 @@ import pandas as pd
 import csv
 import shutil
 import time
+import numpy as np
 
 ################################################################################
 ############################# FUNCTION #########################################
@@ -58,12 +59,13 @@ def savePickleRick(path_data, name_file, data):
     backup_file.close()
 
 def recoverData(names, path_data, data):
+    print(data)
+    print(names)
+    print(path_data)
     if len(names) > 0:
         recovered_data = pd.read_csv(f"{path_data}/{names[-1]}.csv")
         lsrd = recovered_data.to_dict('list')
         data = {key: lsrd[key] for key, value in lsrd.items()}
-        print(data)
-        time.sleep(2)
         return data
     else:
         return data
@@ -117,3 +119,22 @@ def spaceLeftWarning():
     if free_human < 3:
         os.system('clear')
         input(f"WARNING: THERE ARE ONLY {free_human} GiB LEFT IN YOUR HARD DRIVE. YOU MIGHT NOT BE ABLE TO FINISH THE EXPERIMENT AND LOSE DATA. CONSIDER REMOVING FILES. Press enter to continue")
+
+def create_list(dictionary, index):
+    return [dictionary[key][index] for key in dictionary.keys()]
+
+def rewriteRecoveredData(data, path, file_name):
+    print(data)
+    print(path)
+    print(file_name)
+    if len(data['subject']) > 0:
+        temp_file = open(f"{path}/{file_name}.csv", "a")
+        temp_data_writer = csv.writer(temp_file)
+
+        for i in np.arange(0, len(data[list(data.keys())[0]])):
+            row = create_list(data, i)
+            temp_data_writer.writerow(row)
+
+        temp_file.close()
+    else:
+        print('\nNo data to rewrite\n')

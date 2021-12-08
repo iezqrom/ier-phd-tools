@@ -394,6 +394,17 @@ def sexbyExperimenter():
 
     return sex
 
+def handednessbyExperimenter():
+    menu_options = {
+        1: "left",
+        2: "right"
+    }
+
+    text_choice = "Handedness of participant "
+    handedness = handle_menu(text_choice, menu_options)
+
+    return handedness
+
 
 def print_menu(menu_options):
     printme("\nMenu Options:")

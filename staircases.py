@@ -118,10 +118,11 @@ class Staircase:
             self.reversal_values[drop_reversals:]
         )
 
-    def plotStaircase(self, path_figs, name, ylabel, ylim, fig=None, ax=None):
+    def plotStaircase(self, path_figs, name, ylabel, ylim, fig=None, ax=None, lwd = 4, pad_size = 5, lenD = 7):
         """
         Plot staircase
         """
+
 
         if not fig and not ax:
             fig, ax = plt.subplots(1)
@@ -149,8 +150,18 @@ class Staircase:
         )
 
         ax.axhline(self.estimated_point, color="k")
+       
 
-        ax.set_title(f"{name}")
+        ax.spines['right'].set_visible(False) 
+        ax.spines['top'].set_visible(False)     
+        ax.spines["left"].set_linewidth(lwd)
+        ax.spines["bottom"].set_linewidth(lwd)
+        ax.yaxis.set_tick_params(width=lwd, length=lenD)
+        ax.xaxis.set_tick_params(width=lwd, length=lenD)
+        ax.tick_params(axis="y", which="major", pad=pad_size)
+        ax.tick_params(axis="x", which="major", pad=pad_size)
+        
+        ax.set_title(f"{name}", pad=pad_size)
         ax.set_ylim(ylim)
         ax.set_ylabel(ylabel)
         ax.set_xlabel("Trials")

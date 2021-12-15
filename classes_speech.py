@@ -34,6 +34,12 @@ def speak(engine, text):
     except Exception as e:
         errorloc(e)
 
+def say(text):
+    try:
+        os.system(f"say {text}")
+    except Exception as e:
+        errorloc(e)
+
 def listenConv(recognizer, microphone, speaker, PROMPT_LIMIT = 5):
     for j in range(PROMPT_LIMIT):
         speech = recognize_speech_from_mic(recognizer, microphone)

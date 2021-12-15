@@ -7,7 +7,7 @@ import pandas as pd
 import subprocess
 import re
 import shutil
-from classes_text import printme, agebyExperimenter, sexbyExperimenter
+from classes_text import printme, agebyExperimenter, sexbyExperimenter, handednessbyExperimenter
 import copy
 
 ##################################################################
@@ -102,6 +102,18 @@ def getAgeSex(situ, path):
         sex = getOrAsk(sexbyExperimenter, path, "sex")
 
     return age, sex
+
+def getAgeSexHandedness(situ, path):
+    if situ == "tb":
+        age = 1
+        sex = 0
+        handedness = 3
+    elif situ == "ex":
+        age = getOrAsk(agebyExperimenter, path, "age")
+        sex = getOrAsk(sexbyExperimenter, path, "sex")
+        handedness = getOrAsk(handednessbyExperimenter, path, "handedness")
+
+    return age, sex, handedness
 
 def getSubjNum(situ):
     if situ == "tb":

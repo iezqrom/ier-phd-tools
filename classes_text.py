@@ -47,6 +47,8 @@ def to_clear_os():
 
     elif sys.platform.startswith('darwin'):
         to_clear = "clear"
+    else:
+        to_clear = "clear"
     return to_clear
 
 to_clear = to_clear_os()

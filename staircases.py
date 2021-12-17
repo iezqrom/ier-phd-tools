@@ -9,7 +9,7 @@ class Staircase:
     Class to perform staircase
     """
 
-    def __init__(self, total_reversals, initial, direction, name="1"):
+    def __init__(self, total_reversals, initial, direction, rules_direction = 1, name="1"):
         self.reversals = 0
         self.first_ramp = True
         self.tracker = 0
@@ -24,6 +24,7 @@ class Staircase:
         self.block = 1
         self.within_block_counter = 0
         self.within_block_successful_counter = 0
+        self.rules_direction = rules_direction
 
         self.reversal_values = []
         self.estimated_point = None
@@ -79,11 +80,17 @@ class Staircase:
 
         if not self.first_ramp:
             if self.tracker == move_down and self.response == 1:
-                self.tracked_stimulation = self.tracked_stimulation - step_down
+                if self.rules_direction == 1:
+                    self.tracked_stimulation = self.tracked_stimulation - step_down
+                elif self.rules_direction == 0:
+                    self.tracked_stimulation = self.tracked_stimulation + step_up
                 self.tracker = 0
 
             elif self.tracker == move_up and self.response == 0:
-                self.tracked_stimulation = self.tracked_stimulation + step_up
+                if self.rules_direction == 1:
+                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                elif self.rules_direction == 0:
+                    self.tracked_stimulation = self.tracked_stimulation - step_down
                 self.tracker = 0
         else:
             if self.direction == "down":

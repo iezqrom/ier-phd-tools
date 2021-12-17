@@ -123,7 +123,6 @@ class Staircase:
         Plot staircase
         """
 
-
         if not fig and not ax:
             fig, ax = plt.subplots(1)
 
@@ -139,28 +138,27 @@ class Staircase:
         )
 
         ax.scatter(
-            self.list_to_plot[0]["trial"],
+            [x + 1 for x in self.list_to_plot[0]["trial"]],
             self.list_to_plot[0]["stimulation"],
             color="red",
         )
         ax.scatter(
-            self.list_to_plot[1]["trial"],
+            [x + 1 for x in self.list_to_plot[1]["trial"]],
             self.list_to_plot[1]["stimulation"],
             color="k",
         )
 
         ax.axhline(self.estimated_point, color="k")
-       
 
-        ax.spines['right'].set_visible(False) 
-        ax.spines['top'].set_visible(False)     
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
         ax.spines["left"].set_linewidth(lwd)
         ax.spines["bottom"].set_linewidth(lwd)
         ax.yaxis.set_tick_params(width=lwd, length=lenD)
         ax.xaxis.set_tick_params(width=lwd, length=lenD)
         ax.tick_params(axis="y", which="major", pad=pad_size)
         ax.tick_params(axis="x", which="major", pad=pad_size)
-        
+
         ax.set_title(f"{name}", pad=pad_size)
         ax.set_ylim(ylim)
         ax.set_ylabel(ylabel)

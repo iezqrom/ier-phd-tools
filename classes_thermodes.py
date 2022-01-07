@@ -119,7 +119,7 @@ class Thermode(object):
             Method of Zaber (object) to create a ramp to reach temperature X from the current temperature.
             Important created attributes: self.volt (voltage to write with IO_thermode).
         """
-        self.target_temp = target_temp
+        self.target_temp = int(target_temp)
 
         self.nearest_temp_target = find_nearest(self.temp_volt[0], target_temp)
 
@@ -127,7 +127,7 @@ class Thermode(object):
 
         self.volt_ref_target = self.temp_volt[1, self.indx_target]
 
-        print(self.volt_ref_target)
+        # print(self.volt_ref_target)
 
         if self.temp_current > target_temp:
             self.volt = np.arange(self.volt_current, self.volt_ref_target, - self.volt_ref_target/1000)
@@ -165,10 +165,11 @@ class Thermode(object):
 
             Important attributes created: self.data (data read from thermode) & self.end_TT (time to write and execute volt)
         """
-        try:
-            if voltI == None:
-                volt = self.volt
-        except:
+        # print('voltI: ', voltI)
+
+        if not voltI:
+            volt = self.volt
+        else:
             volt = voltI
 
         try:
@@ -178,7 +179,7 @@ class Thermode(object):
             len_volt = len(volt)
             raise('Voltage output has to be an array of minimum 2 values')
 
-        print('Length voltage: {}'.format(len_volt))
+        # print('Length voltage: {}'.format(len_volt))
 
         self.ai_task = NT.Task()
         self.ai_task.ai_channels.add_ai_voltage_chan(physical_channel = '/{}/{}'.format(self.dev, self.Ai))

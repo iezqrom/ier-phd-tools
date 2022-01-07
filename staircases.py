@@ -9,7 +9,7 @@ class Staircase:
     Class to perform staircase
     """
 
-    def __init__(self, total_reversals, initial, direction, name="1"):
+    def __init__(self, total_reversals, initial, direction, rules_direction = 1, name="1"):
         self.reversals = 0
         self.first_ramp = True
         self.tracker = 0
@@ -24,6 +24,7 @@ class Staircase:
         self.block = 1
         self.within_block_counter = 0
         self.within_block_successful_counter = 0
+        self.rules_direction = rules_direction
 
         self.reversal_values = []
         self.estimated_point = None
@@ -79,11 +80,17 @@ class Staircase:
 
         if not self.first_ramp:
             if self.tracker == move_down and self.response == 1:
-                self.tracked_stimulation = self.tracked_stimulation - step_down
+                if self.rules_direction == 1:
+                    self.tracked_stimulation = self.tracked_stimulation - step_down
+                elif self.rules_direction == 0:
+                    self.tracked_stimulation = self.tracked_stimulation + step_up
                 self.tracker = 0
 
             elif self.tracker == move_up and self.response == 0:
-                self.tracked_stimulation = self.tracked_stimulation + step_up
+                if self.rules_direction == 1:
+                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                elif self.rules_direction == 0:
+                    self.tracked_stimulation = self.tracked_stimulation - step_down
                 self.tracker = 0
         else:
             if self.direction == "down":
@@ -123,7 +130,6 @@ class Staircase:
         Plot staircase
         """
 
-
         if not fig and not ax:
             fig, ax = plt.subplots(1)
 
@@ -139,28 +145,27 @@ class Staircase:
         )
 
         ax.scatter(
-            self.list_to_plot[0]["trial"],
+            [x + 1 for x in self.list_to_plot[0]["trial"]],
             self.list_to_plot[0]["stimulation"],
             color="red",
         )
         ax.scatter(
-            self.list_to_plot[1]["trial"],
+            [x + 1 for x in self.list_to_plot[1]["trial"]],
             self.list_to_plot[1]["stimulation"],
             color="k",
         )
 
         ax.axhline(self.estimated_point, color="k")
-       
 
-        ax.spines['right'].set_visible(False) 
-        ax.spines['top'].set_visible(False)     
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
         ax.spines["left"].set_linewidth(lwd)
         ax.spines["bottom"].set_linewidth(lwd)
         ax.yaxis.set_tick_params(width=lwd, length=lenD)
         ax.xaxis.set_tick_params(width=lwd, length=lenD)
         ax.tick_params(axis="y", which="major", pad=pad_size)
         ax.tick_params(axis="x", which="major", pad=pad_size)
-        
+
         ax.set_title(f"{name}", pad=pad_size)
         ax.set_ylim(ylim)
         ax.set_ylabel(ylabel)

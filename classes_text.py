@@ -47,6 +47,8 @@ def to_clear_os():
 
     elif sys.platform.startswith('darwin'):
         to_clear = "clear"
+    else:
+        to_clear = "clear"
     return to_clear
 
 to_clear = to_clear_os()
@@ -445,15 +447,13 @@ def scale_reponse(question, start = 0, end = 11):
 
         os.system(to_clear)
         response = input(question)
-        print('input', response)
+
         if response in [f'{i}' for i in range(start, end)]:
             break
         else:
-            print(response)
             printme(f"\n Try again. Only {[f'{i}' for i in range(start, end)]} are accepted responses\n")
             continue
 
-    print(response)
     time_response_end = time.time() - time_response_start
 
     return response, time_response_end

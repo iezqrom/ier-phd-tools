@@ -83,37 +83,6 @@ class Thermode(object):
         self.volts = np.divide(self.mVolts, 1000) # conversion from mV to V
         self.volts = self.volts.round(decimals=4)
 
-############################################
-
-        def voltToTemp(volt, steps_range = 0.1, lower = 0, upper = 51):
-
-            ## We need to map the temperatures with the Voltages ##
-            range_temp = np.arange(lower, upper, steps_range)
-            range_temp = range_temp.round(decimals=1)
-
-            temps = np.arange(0, 51, 5) # From manual
-
-            mVolts = analog_output_mVolts # Analog Output mV AOP
-            volts = np.divide(mVolts, 1000) # conversion from mV to V
-            volts = volts.round(decimals=4)
-
-            # Interpolating
-            range_volt = np.interp(range_temp, temps, volts)
-
-            # We stack the data
-            temp_volt = np.stack((range_temp, range_volt))
-
-            nearest_volt = find_nearest(temp_volt[1], volt)
-
-            indx_currT = np.where(temp_volt[1] == nearest_volt)
-
-            temp_current = temp_volt[0,  indx_currT]
-            temp = temp_current[0][0]
-
-            return temp
-
-############################################
-
         # Interpolating
         self.range_volt = np.interp(self.range_temp, self.temp, self.volts)
 
@@ -361,3 +330,30 @@ def voltToTemp(volt, steps_range = 0.1, lower = 0, upper = 51):
     temp = temp_current[0][0]
 
     return temp
+
+
+def tempToVolt(temp, steps_range = 0.1, lower = 0, upper = 51):
+    ## We need to map the temperatures with the Voltages ##
+    range_temp = np.arange(lower, upper, steps_range)
+    range_temp = range_temp.round(decimals=1)
+
+    temps = np.arange(0, 51, 5) # From manual
+
+    mVolts = analog_output_mVolts # Analog Output mV AOP
+    volts = np.divide(mVolts, 1000) # conversion from mV to V
+    volts = volts.round(decimals=4)
+
+    # Interpolating
+    range_volt = np.interp(range_temp, temps, volts)
+
+    # We stack the data
+    temp_volt = np.stack((range_temp, range_volt))
+
+    nearest_volt = find_nearest(temp_volt[0], temp)
+
+    indx_currT = np.where(temp_volt[0] == nearest_volt)
+
+    volt_current = temp_volt[1,  indx_currT]
+    volt = volt_current[0][0]
+
+    return volt

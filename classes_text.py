@@ -406,8 +406,8 @@ def handednessbyExperimenter():
     return handedness
 
 
-def print_menu(menu_options):
-    printme("\nMenu Options:")
+def print_menu(menu_options, text):
+    printme(f"\n{text}")
     for key, value in menu_options.items():
         print(f"{key}: {value}")
 
@@ -417,11 +417,11 @@ def check_input(user_input, menu_options):
     else:
         return False
 
-def handle_menu(text_choice, menu_options):
+def handle_menu(text_choice, menu_options, text_menu="Menu Options: "):
     to_clear = to_clear_os()
     os.system(to_clear)
     while True:
-        print_menu(menu_options)
+        print_menu(menu_options, text_menu)
         option = int(input(f"\n{text_choice} "))
         checked_input = check_input(option, menu_options)
         if checked_input:

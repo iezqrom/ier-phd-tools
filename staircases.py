@@ -129,6 +129,16 @@ class Staircase:
         """
         Plot staircase
         """
+        mc = "black"
+        plt.rcParams.update(
+            {
+                "font.size": 20,
+                "axes.labelcolor": "{}".format(mc),
+                "xtick.color": "{}".format(mc),
+                "ytick.color": "{}".format(mc),
+                "font.family": "sans-serif",
+            }
+        )
 
         if not fig and not ax:
             fig, ax = plt.subplots(1)
@@ -171,7 +181,9 @@ class Staircase:
         ax.set_ylabel(ylabel)
         ax.set_xlabel("Trials")
 
-        plt.savefig(f"{path_figs}/{name}.png")
+        plt.tight_layout()
+
+        plt.savefig(f"{path_figs}/{change_space_to_underscore(name)}.png")
 
         plt.show()
 
@@ -194,3 +206,7 @@ def choose_staircase(staircases):
         else:
             valid_choice = True
         return trial_staircase
+
+# function to change space to underscore and small letters
+def change_space_to_underscore(string):
+    return string.replace(" ", "_").lower()

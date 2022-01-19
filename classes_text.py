@@ -424,15 +424,20 @@ def handle_menu(text_choice, menu_options, text_menu="Menu Options: "):
     os.system(to_clear)
     while True:
         print_menu(menu_options, text_menu)
-        option = int(input(f"\n{text_choice} "))
-        checked_input = check_input(option, menu_options)
-        if checked_input:
-            break
+        option = input(f"\n{text_choice} ")
+        if option:
+            option_int = int(option)
+            checked_input = check_input(option_int, menu_options)
+            if checked_input:
+                break
+            else:
+                print("\nInvalid option. Please try again.")
+                continue
         else:
             print("\nInvalid option. Please try again.")
             continue
 
-    return option
+    return option_int
 
 def scale_reponse(question, start = 0, end = 11):
     """

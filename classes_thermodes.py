@@ -127,12 +127,12 @@ class Thermode(object):
 
         self.volt_ref_target = self.temp_volt[1, self.indx_target]
 
-        # print(self.volt_ref_target)
-
-        if self.temp_current > target_temp:
+        if self.temp_current >= target_temp:
+            self.volt_current = self.volt_current - 0.0002
             self.volt = np.arange(self.volt_current, self.volt_ref_target, - self.volt_ref_target/1000)
 
         elif target_temp > self.temp_current:
+            self.volt_current = self.volt_current - 0.0002
             self.volt = np.arange(self.volt_current, self.volt_ref_target, self.volt_ref_target/1000)
 
     def rampStartTarget(self, start_temp, target_temp):

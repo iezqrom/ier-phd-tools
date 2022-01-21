@@ -52,7 +52,6 @@ def listenConv(recognizer, microphone, speaker, PROMPT_LIMIT = 5):
 
         listen_again = "I didn't catch that, what did you say?"
         speak(speaker, listen_again)
-        
     return speech
 
 # if there was an error, stop the game

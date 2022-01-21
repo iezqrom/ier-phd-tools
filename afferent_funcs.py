@@ -15,7 +15,7 @@ def default_pars(duration, dt = 1, **kwargs):
   # simulation parameters #
   pars['T'] = duration  # Total duration of simulation [ms]
   pars['dt'] = dt   # Simulation time step [ms]
-  
+
   pars['range_t'] = np.arange(0, pars['T'], pars['dt'])  # Vector of discretized time points [ms]
 
   # external parameters if any #

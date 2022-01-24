@@ -2480,10 +2480,7 @@ class Zaber(grabPorts):
         was_pressed = False
         pantilt_on = True
 
-        # touched = False
-        # three_reversed = False
-
-        # pre_touch = grid['tactile']['4']['z'] - globals.touch_z_offset
+        touched = False
 
         if arduino:
             stimulus = 0
@@ -2503,10 +2500,6 @@ class Zaber(grabPorts):
         keydelay = 0.15
         pan, tilt, head = 0, 0, 0
         device = devices['camera']
-
-        backwards_colther = 10079
-        # positions_touch = {'1': '2', '2': '1', '3': '2', '4': '3'}
-        # checked = {'1': False, '2': False, '3': False, '4': False}
 
         print('\nZaber game activated\n')
 
@@ -2701,13 +2694,12 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
                         devices['colther']['z'].device.move_abs(0)
-                        # movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                        # moveAxisTo(devices, 'tactile', 'x', 533332)
-                        # moveAxisTo(devices, 'tactile', 'y', 1)
+                        pre_touch = grid['tactile'][current_roi]['z'] - globals.touch_z_offset * globals.up_modifier_touch_height
+                        movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                        moveAxisTo(devices, 'tactile', 'x', 533332)
+                        moveAxisTo(devices, 'tactile', 'y', 1)
 
-
-                        # touched = False
-                        # three_reversed = False
+                        touched = False
 
                         current_roi = str(int(current_roi) + 1)
                         if int(current_roi) > len(grid[globals.current_device]):
@@ -2726,12 +2718,12 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
                         devices['colther']['z'].device.move_abs(0)
-                        # movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                        # moveAxisTo(devices, 'tactile', 'x', 533332)
-                        # moveAxisTo(devices, 'tactile', 'y', 1)
+                        pre_touch = grid['tactile'][current_roi]['z'] - globals.touch_z_offset * globals.up_modifier_touch_height
+                        movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                        moveAxisTo(devices, 'tactile', 'x', 533332)
+                        moveAxisTo(devices, 'tactile', 'y', 1)
 
                         # touched = False
-                        # three_reversed = False
 
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:
@@ -2810,26 +2802,28 @@ class Zaber(grabPorts):
                         print(red)
                         was_pressed = True
 
-                # elif keyboard.is_pressed('t'):
-                #     if not was_pressed:
-                #         if not touched:
-                #             devices['colther']['z'].device.move_abs(0)
-                #             movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                #             moveAxisTo(devices, 'tactile', 'y', grid['tactile'][positions_touch[current_roi]]['y'])
-                #             moveAxisTo(devices, 'tactile', 'x', grid['tactile'][positions_touch[current_roi]]['x'])
-                #             moveAxisTo(devices, 'tactile', 'z', grid['tactile'][positions_touch[current_roi]]['z'])
-                #             moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                elif keyboard.is_pressed('t'):
+                    if not was_pressed:
+                        if not touched:
+                            devices['colther']['z'].device.move_abs(0)
+                            pre_touch = grid['tactile'][current_roi]['z'] - globals.touch_z_offset * globals.up_modifier_touch_height
+                            movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                            moveAxisTo(devices, 'tactile', 'y', grid['tactile'][current_roi]['y'])
+                            moveAxisTo(devices, 'tactile', 'x', grid['tactile'][current_roi]['x'])
+                            touching = grid['tactile'][current_roi]['z'] + round(globals.touch_z_offset * globals.down_modifier_touch_height)
+                            moveAxisTo(devices, 'tactile', 'z', touching)
+                            moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                #         elif touched:
-                #             devices['colther']['z'].device.move_abs(0)
-                #             movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                #             moveAxisTo(devices, 'tactile', 'x', 533332)
-                #             moveAxisTo(devices, 'tactile', 'y', 1)
-                #             moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
+                        elif touched:
+                            devices['colther']['z'].device.move_abs(0)
+                            pre_touch = grid['tactile'][current_roi]['z'] - globals.touch_z_offset * globals.up_modifier_touch_height
+                            movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                            moveAxisTo(devices, 'tactile', 'x', 533332)
+                            moveAxisTo(devices, 'tactile', 'y', 1)
+                            moveAxisTo(devices, 'colther', 'z', grid['colther'][current_roi]['z'])
 
-                #         touched = not touched
-                #         checked[current_roi] = False
-                #         was_pressed = True
+                        touched = not touched
+                        was_pressed = True
 
 
                 else:

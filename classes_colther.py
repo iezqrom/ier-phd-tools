@@ -2694,11 +2694,16 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('n'):
                     if not was_pressed:
                         devices['colther']['z'].device.move_abs(0)
-                        pre_touch = grid['tactile'][current_roi]['z'] - globals.touch_z_offset * globals.up_modifier_touch_height
-                        movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                        moveAxisTo(devices, 'tactile', 'x', 533332)
-                        moveAxisTo(devices, 'tactile', 'y', 1)
+                        try:
+                            pre_touch = grid['tactile'][current_roi]['z'] - globals.touch_z_offset * globals.up_modifier_touch_height
+                            movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                            moveAxisTo(devices, 'tactile', 'x', 533332)
+                            moveAxisTo(devices, 'tactile', 'y', 1)
+                        except:
+                            print('HELLO')
+                            pass
 
+                        print('HELLO2')
                         touched = False
 
                         current_roi = str(int(current_roi) + 1)
@@ -2718,10 +2723,13 @@ class Zaber(grabPorts):
                 elif keyboard.is_pressed('b'):
                     if not was_pressed:
                         devices['colther']['z'].device.move_abs(0)
-                        pre_touch = grid['tactile'][current_roi]['z'] - globals.touch_z_offset * globals.up_modifier_touch_height
-                        movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
-                        moveAxisTo(devices, 'tactile', 'x', 533332)
-                        moveAxisTo(devices, 'tactile', 'y', 1)
+                        try:
+                            pre_touch = grid['tactile'][current_roi]['z'] - globals.touch_z_offset * globals.up_modifier_touch_height
+                            movetostartZabersConcu(devices, 'tactile', ['z'], pos = pre_touch)
+                            moveAxisTo(devices, 'tactile', 'x', 533332)
+                            moveAxisTo(devices, 'tactile', 'y', 1)
+                        except:
+                            pass
 
                         # touched = False
 

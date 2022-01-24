@@ -2703,7 +2703,6 @@ class Zaber(grabPorts):
                             print('HELLO')
                             pass
 
-                        print('HELLO2')
                         touched = False
 
                         current_roi = str(int(current_roi) + 1)
@@ -2731,7 +2730,7 @@ class Zaber(grabPorts):
                         except:
                             pass
 
-                        # touched = False
+                        touched = False
 
                         current_roi = str(int(current_roi) - 1)
                         if int(current_roi) == 0:

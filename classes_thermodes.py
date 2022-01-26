@@ -196,25 +196,28 @@ class Thermode(object):
         while True:
             try:
                 self.ao_task.write(volt)
-            except:
+            except Exception as e:
+                print(e)
                 print('We are trying')
-                continue
+                break
             else:
                 break
+        try:
+            # run the task
+            self.ao_task.start()
+            self.ai_task.start()
 
-        # run the task
-        self.ao_task.start()
-        self.ai_task.start()
+            self.ao_task.wait_until_done(timeout = 50)
+            self.ai_task.wait_until_done(timeout = 50)
 
-        self.ao_task.wait_until_done(timeout = 50)
-        self.ai_task.wait_until_done(timeout = 50)
+            self.data = self.ai_task.read(number_of_samples_per_channel = len_volt)
 
-        self.data = self.ai_task.read(number_of_samples_per_channel = len_volt)
+            self.ai_task.close()
+            self.ao_task.close()
 
-        self.ai_task.close()
-        self.ao_task.close()
-
-        self.end_TT = datetime.now() - self.start_TT
+            self.end_TT = datetime.now() - self.start_TT
+        except Exception as e:
+            print(e)
 
     def method_of_limits(self, direction, temp_rate = 0.2 , amount = 1):
         """

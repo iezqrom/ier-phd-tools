@@ -1,41 +1,30 @@
-import numpy as np
-import h5py
 import re
 import os
-########################################################################
-############ Class
-#########################################################################
-
 import matplotlib.pyplot as plt
-import os
-import re
+
 try:
     from func_anim import *
 except:
     pass
 import numpy as np
 import h5py
-import re
-import numpy as np
-from failing import *
+from failing import errorloc
 
-### Notes
-# look up table (LUT): open shutter and see to create a forward model
-# LUT = [220000, 210000, 200000, 190000, 170000, 140000, 120000, 100000, 80000, 40000]
-# bandcut filter
+from classes_camera import rawToC, CToRaw
+
 
 class ReAnRaw(object):
     ''' Grab h5py file. Don't include format in string'''
     def __init__(self, input):
         "We get the data from the h5py files, then we find the parameters used."
-        
+
         self.read = h5py.File('{}.hdf5'.format(input), 'r')
-        
+
         self.parameters = []
 
         for i in self.read.keys():
             self.parameters.append(re.split('(\d+)', i)[0])
-        
+
         self.parameters = list(set(self.parameters))
 
         self.data = {}
@@ -49,23 +38,20 @@ class ReAnRaw(object):
     def datatoDic(self):
         "Transform videos data into a dictionary"
 
-        len_to = len(self.read.keys())
-        len_pa = len(self.parameters)
         self.len_subto =  len(self.read.keys())/len(self.parameters)
 
-        for i in np.arange(len_pa):
+        for index, parameter in enumerate(self.parameters):
             for j in np.arange(self.len_subto):
-                cu_pa = self.parameters[i]
-                cu_na_f = '{}'.format(cu_pa) + str(int(j+1))
+                temp_parameter_name = f'{parameter}' + str(int(j+1))
                 try:
-                    # print()
-                    frame_da = self.read[cu_na_f][:]
-                    self.data[cu_pa].append(frame_da)
+                    frame_da = self.read[temp_parameter_name][:]
+                    self.data[parameter].append(frame_da)
                 except Exception as e:
                     errorloc(e)
-                    frame_da = float('NaN')
-                    self.data[cu_pa].append(frame_da)
-
+    def attrstoDic(self):
+        "Transform videos attributes into a dictionary"
+        for attribute_key in self.read.attrs.keys():
+            self.data[attribute_key] = self.read.attrs[attribute_key]
 
     def extractOpenClose(self, name):
         shus = np.asarray(self.data[name])
@@ -79,7 +65,7 @@ class ReAnRaw(object):
         self.min_pixel = []
         self.means = []
         self.surround = []
- 
+
         for i in np.arange(len(self.data[name_image])):
 
             minimoC = np.min(self.data[name_image][i])
@@ -113,7 +99,6 @@ class ReAnRaw(object):
             self.min_pixel.append(minimoC)
             self.surround.append(meanSU)
 
- 
 ########################################################################
 ############ Functions Display
 #########################################################################

@@ -48,6 +48,7 @@ class ReAnRaw(object):
                     self.data[parameter].append(frame_da)
                 except Exception as e:
                     errorloc(e)
+
     def attrstoDic(self):
         "Transform videos attributes into a dictionary"
         for attribute_key in self.read.attrs.keys():
@@ -256,17 +257,6 @@ def catchThres(self, thresh, solo = 'Y'):
         self.areas.append(area)
         self.mean_temps.append(temp)
         self.shutterOnOff.append(OnOff)
-
-        # data = cv2.resize(raw_dum[:,:], (640, 480))
-        # img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
-        # rgbImage = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        #
-        # cv2.putText(rgbImage, 'A: {}'.format(area), (5, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0))
-        # cv2.putText(rgbImage, 'T: {}'.format(temp), (5, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0))
-        #
-        # cv2.imshow('Playing video', rgbImage)
-        # cv2.waitKey(1)
-
         frame += 1
     frame = 1
 
@@ -500,9 +490,6 @@ def natural_keys(text):
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
-
-
-
 def grabManyvideos(root_path, folder_name, pattern = f'mol_.*\.hdf5$'):
     '''
         pattern for SDT videos f'sdt_.*\.hdf5$'
@@ -532,3 +519,11 @@ def pairwise(vs):
             if len(vs) % 2 != 0:
                 yield vs[-1], None
             return
+
+def saveMetadata(metadata, file):
+    for k, v in metadata.items():
+        file.attrs[f"{k}"] = v
+
+def init_h5file(path, name_file):
+    f = h5py.File(f"{path}/{name_file}.hdf5", "w")
+    return f

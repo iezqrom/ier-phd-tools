@@ -460,9 +460,7 @@ def plotShuTemp(self, output, minY, max):
 
 def GrabNamesOrder(pattern, folder):
     ''' Get the file names with a given pattern in order
-    
     Example pattern: '^m2_([0-9]+)_mof'
-    
     '''
     pattern = re.compile(pattern)
     names = []
@@ -473,7 +471,6 @@ def GrabNamesOrder(pattern, folder):
             names.append(name)
         else:
             continue
-    
     names.sort(key=natural_keys)
 
     return names
@@ -490,7 +487,7 @@ def natural_keys(text):
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
-def grabManyvideos(root_path, folder_name, pattern = f'mol_.*\.hdf5$'):
+def grabManyvideos(root_path, folder_name, pattern = 'mol_.*\.hdf5$'):
     '''
         pattern for SDT videos f'sdt_.*\.hdf5$'
     '''

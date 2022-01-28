@@ -25,6 +25,7 @@ class Staircase:
         self.within_block_counter = 0
         self.within_block_successful_counter = 0
         self.rules_direction = rules_direction
+        self.force_reverse = False
 
         self.reversal_values = []
         self.estimated_point = None
@@ -61,13 +62,15 @@ class Staircase:
         self.list_to_plot[self.response]["trial"].append(self.trial)
         self.list_to_plot[self.response]["stimulation"].append(self.stimulation)
 
-        if self.last_response != response and self.last_response is not None:
+        # print('force_reverse', self.force_reverse)
+
+        if self.last_response != response and self.last_response is not None or self.force_reverse == True:
             self.tracker = 0
             self.reversals += 1
             self.reversed_bool = True
             self.first_ramp = False
             self.reversal_values.append(self.stimulation)
-            if not self.first_ramp and self.reversals == 1:
+            if not self.first_ramp and self.reversals == 1 or self.force_reverse == True:
                 print("\nTracking algorithm triggered\n")
 
     def XupYdownFixedStepSizesTrackingAlgorithm(
@@ -94,17 +97,30 @@ class Staircase:
                 self.tracker = 0
         else:
             if self.direction == "down":
-                if self.response == 1:
+                if self.response == 1 and self.rules_direction == 1:
                     self.tracked_stimulation = self.tracked_stimulation - step_down
-                elif self.response == 0:
+                elif self.response == 0 and self.rules_direction == 1:
                     self.tracked_stimulation = self.tracked_stimulation + step_up
                     self.first_ramp = False
+                    # self.force_reverse = True
+                    # print("down 1")
+
+                elif self.response == 1 and self.rules_direction == 0:
+                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                    self.first_ramp = False
+                    # self.force_reverse = True
+                    # print("down 2")
+                elif self.response == 0 and self.rules_direction == 0:
+                    self.tracked_stimulation = self.tracked_stimulation - step_down
+
             elif self.direction == "up":
                 if self.response == 0:
                     self.tracked_stimulation = self.tracked_stimulation + step_up
                 elif self.response == 1:
                     self.tracked_stimulation = self.tracked_stimulation - step_down
                     self.first_ramp = False
+                    # self.force_reverse = True
+                    # print("up 1")
 
     def clampBoundary(self, lower_boundary, upper_boundary):
         """

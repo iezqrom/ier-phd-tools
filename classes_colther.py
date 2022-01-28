@@ -4341,14 +4341,14 @@ def triggered_exception(zabers = None, platform = None, path_day = None, path_an
         tactile_y_pos = zabers['tactile']['y'].send('/get pos')
         pos_tactile = [not tactile_x_pos.warning_flag == '--', not tactile_y_pos.warning_flag == '--']
 
-        homingZabersConcu(zabers, {'colther': ['z']})
+        homingZabersConcu(zabers, {'colther': ['z', 'x', 'y']})
         # print(tactile_x_pos.data)
         # print(tactile_y_pos.data)
         # print(not any(pos_tactile))
         # print(not any(pos_colther))
-        if not any(pos_tactile) and not any(pos_colther) and int(tactile_x_pos.data) > 1000 and int(tactile_y_pos.data) > 1000:
-            moveAxisTo(zabers, 'tactile', 'z', globals.base_touch)
-        homingZabersConcu(zabers, {'colther': ['x']})
+        # if not any(pos_tactile) and not any(pos_colther) and int(tactile_x_pos.data) > 1000 and int(tactile_y_pos.data) > 1000:
+        #     moveAxisTo(zabers, 'tactile', 'z', globals.base_touch)
+        # homingZabersConcu(zabers, {'colther': ['x']})
 
         if not any(pos_tactile) and not any(pos_colther) and int(colther_x_pos.data) > 1000 and int(colther_y_pos.data) > 1000:
             moveAxisTo(zabers, 'colther', 'y', globals.dry_ice_pos['y'])
@@ -4358,7 +4358,7 @@ def triggered_exception(zabers = None, platform = None, path_day = None, path_an
 
         if not any(pos_tactile) and not any(pos_colther) and int(tactile_x_pos.data) > 1000 and int(tactile_y_pos.data) > 1000:
             moveAxisTo(zabers, 'tactile', 'x', 533332)
-        homingZabersConcu(zabers, {'tactile': ['y']})
+        homingZabersConcu(zabers, {'tactile': ['y', 'z']})
 
     if arduino_syringe:
         globals.stimulus = 0

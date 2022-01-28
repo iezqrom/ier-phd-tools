@@ -60,16 +60,16 @@ except:
 
 import struct
 
-from classes_colther import *
+# from classes_colther import *
 
 def py_frame_callback(frame, userptr):
-  
+
   array_pointer = cast(frame.contents.data, POINTER(c_uint16 * (frame.contents.width * frame.contents.height)))
   data = np.frombuffer(
     array_pointer.contents, dtype=np.dtype(np.uint16)
   ).reshape(
     frame.contents.height, frame.contents.width
-  ) 
+  )
 
   if frame.contents.data_bytes != (2 * frame.contents.width * frame.contents.height):
     return
@@ -93,7 +93,7 @@ class TherCam(object):
         print(f"\nObject thermal camera initiliased\n")
 
     def startStream(self):
-        
+
         """
             Method to start streaming. This method needs to be called always
             before you can extract the data from the camera.
@@ -322,7 +322,7 @@ class TherCam(object):
 
         img = ax.imshow(dummy, interpolation='nearest', vmin = self.vminT, vmax = self.vmaxT, animated = True)
         fig.colorbar(img)
- 
+
         try:
             while True:
                 # time.sleep(0.01)
@@ -349,7 +349,7 @@ class TherCam(object):
                     print('Manual FFC')
                     perform_manual_ffc(devh)
                     print_shutter_info(devh)
-                
+
                 if keyboard.is_pressed('t'):
                     try:
                         now = datetime.now()
@@ -395,7 +395,6 @@ class TherCam(object):
 
         try:
             while True:
-                
                 dataK = q.get(True, 500)
                 if dataK is None:
                     print('Data is none')
@@ -433,7 +432,6 @@ class TherCam(object):
                     print('Close shutter (camera)')
                     arduino.arduino.write(struct.pack('>B', globals.stimulus))
                     break
-                    
 
             event1.set()
             print('Camera off')
@@ -468,7 +466,6 @@ class TherCam(object):
 
         try:
             while True:
-                
                 dataK = q.get(True, 500)
                 if dataK is None:
                     print('Data is none')
@@ -556,7 +553,6 @@ class TherCam(object):
 
         try:
             while True:
-                
                 dataK = q.get(True, 500)
                 if dataK is None:
                     print('Data is none')
@@ -596,7 +592,7 @@ class TherCam(object):
                     globals.temp = round(np.mean(roiC), 2)
                     sROI = 1
                     print('DYNAMIC')
-                    
+
                 else:
                     mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
                     roiC = dataC[mask]
@@ -749,14 +745,14 @@ class TherCam(object):
                     mask = (xs[np.newaxis,:]-indydf[0])**2 + (ys[:,np.newaxis]-indxdf[0])**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    
+
                     print('Mean: ' + str(globals.temp))
                     sROI = 1
                 else:
                     mask = (xs[np.newaxis,:]- indy)**2 + (ys[:,np.newaxis] - indx)**2 < r**2
                     roiC = dataC[mask]
                     globals.temp = round(np.mean(roiC), 2)
-                    
+
                     print('Mean: ' + str(globals.temp))
                     sROI = 0
                     indxdf, indydf = -1, -1
@@ -785,7 +781,7 @@ class TherCam(object):
                     if event_touch:
                         event_touch.set()
                         touched = True
-                        
+
                     break
 
                 if self.shutter_open_time and touched and end and shutter_closed:
@@ -830,7 +826,7 @@ class TherCam(object):
 
                 print(f"Time since shutter closed: {shutter_closed}")
 
-                if end and shutter_closed:  
+                if end and shutter_closed:
                     if shutter_closed > post_shutter_time_out:
                         break
 
@@ -1747,7 +1743,7 @@ class TherCam(object):
             # libuvc.uvc_stop_streaming(devh)
             pass
 
-    def rtMoL(self, output, event = None, cROI = globals.centreROI):
+    def rtMoL(self, output, cROI, event = None):
         """
             Method to perform method of limits with the thermal camera.
         """
@@ -1841,7 +1837,7 @@ class TherCam(object):
             pass
 
 
-    def rtMoLDiff(self, output, event = None, cROI = globals.centreROI):
+    def rtMoLDiff(self, output, cROI, event = None):
         """
             Method to perform method of limits with the thermal camera.
         """

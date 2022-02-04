@@ -524,3 +524,13 @@ def saveMetadata(metadata, file):
 def init_h5file(path, name_file):
     f = h5py.File(f"{path}/{name_file}.hdf5", "w")
     return f
+
+def saveh5py(names, datas, frame, file):
+    """
+    Function to save a frameinto the .h5py file
+    """
+    if len(names) != len(datas):
+        print("Names and datas have to be the same length")
+
+    for n, d in zip(names, datas):
+        file.create_dataset(("{}".format(n) + str(frame)), data=d)

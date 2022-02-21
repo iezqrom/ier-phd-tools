@@ -388,7 +388,8 @@ def agebyExperimenter():
 def sexbyExperimenter():
     menu_options = {
         1: "female",
-        2: "male"
+        2: "male",
+        3: "other"
     }
 
     text_choice = "Sex of participant "

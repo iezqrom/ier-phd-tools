@@ -15,6 +15,7 @@ WDIOC_GETSUPPORT = _IOR(ord('W'), 0, "=II32s")
 """
 
 import struct
+
 # constant for linux portability
 _IOC_NRBITS = 8
 _IOC_TYPEBITS = 8
@@ -41,13 +42,25 @@ _IOC_READ = 2
 def _IOC(dir, type, nr, size):
     if isinstance(size, str) or isinstance(size, unicode):
         size = struct.calcsize(size)
-    return dir  << _IOC_DIRSHIFT  | \
-           type << _IOC_TYPESHIFT | \
-           nr   << _IOC_NRSHIFT   | \
-           size << _IOC_SIZESHIFT
+    return (
+        dir << _IOC_DIRSHIFT
+        | type << _IOC_TYPESHIFT
+        | nr << _IOC_NRSHIFT
+        | size << _IOC_SIZESHIFT
+    )
 
 
-def _IO(type, nr): return _IOC(_IOC_NONE, type, nr, 0)
-def _IOR(type, nr, size): return _IOC(_IOC_READ, type, nr, size)
-def _IOW(type, nr, size): return _IOC(_IOC_WRITE, type, nr, size)
-def _IOWR(type, nr, size): return _IOC(_IOC_READ | _IOC_WRITE, type, nr, size)
+def _IO(type, nr):
+    return _IOC(_IOC_NONE, type, nr, 0)
+
+
+def _IOR(type, nr, size):
+    return _IOC(_IOC_READ, type, nr, size)
+
+
+def _IOW(type, nr, size):
+    return _IOC(_IOC_WRITE, type, nr, size)
+
+
+def _IOWR(type, nr, size):
+    return _IOC(_IOC_READ | _IOC_WRITE, type, nr, size)

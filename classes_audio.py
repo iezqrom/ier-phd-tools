@@ -8,16 +8,18 @@ import numpy as np
 import time
 import math
 import wave
+
 try:
     import winsound
 except:
     # print('This is not a Windows device')
     import simpleaudio as sa
 
+
 class Sound(object):
     def __init__(self, freq, duration):
 
-        self.frequency = freq # Our played note will be 440 Hz
+        self.frequency = freq  # Our played note will be 440 Hz
         self.fs = 44100  # 44100 samples per second
         self.seconds = duration
 
@@ -28,13 +30,13 @@ class Sound(object):
         self.note = np.sin(self.frequency * t * 2 * np.pi)
 
         # Ensure that highest value is in 16-bit range
-        self.audio = self.note * (2**15 - 1) / np.max(np.abs(self.note))
+        self.audio = self.note * (2 ** 15 - 1) / np.max(np.abs(self.note))
         # Convert to 16-bit data
         self.audio = self.audio.astype(np.int16)
 
         print(f"\nObject audio initiliased\n")
 
-    def play(self, event = None):
+    def play(self, event=None):
         try:
             if event != None:
                 event.wait()
@@ -54,7 +56,7 @@ class Sound(object):
         except Exception as e:
             print(e)
 
-    def playEndGlobal(self, event = None):
+    def playEndGlobal(self, event=None):
         try:
             while True:
                 if globals.stimulus == 2:
@@ -80,11 +82,11 @@ class Sound(object):
 ################################################################################################################
 
 
-def saveAudioFile(path_audios, name_file, recorded, channels = 1, fs = 44100):
-    audio_file_name = f'{path_audios}/{name_file}.wav'
-    wf = wave.open(audio_file_name, 'wb')
+def saveAudioFile(path_audios, name_file, recorded, channels=1, fs=44100):
+    audio_file_name = f"{path_audios}/{name_file}.wav"
+    wf = wave.open(audio_file_name, "wb")
     wf.setnchannels(channels)
     wf.setsampwidth(2)
     wf.setframerate(fs)
-    wf.writeframes(b''.join(recorded))
+    wf.writeframes(b"".join(recorded))
     wf.close()

@@ -208,7 +208,6 @@ class Thermode(object):
 
         Important attributes created: self.data (data read from thermode) & self.end_TT (time to write and execute volt)
         """
-        # print('voltI: ', voltI)
 
         if not voltI:
             volt = self.volt
@@ -222,7 +221,7 @@ class Thermode(object):
             len_volt = len(volt)
             raise ("Voltage output has to be an array of minimum 2 values")
 
-        # print('Length voltage: {}'.format(len_volt))
+        print('Length voltage: {}'.format(len_volt))
 
         self.ai_task = NT.Task()
         self.ai_task.ai_channels.add_ai_voltage_chan(
@@ -249,11 +248,11 @@ class Thermode(object):
         while True:
             try:
                 self.ao_task.write(volt)
+                break 
             except Exception as e:
                 print(e)
                 print("We are trying")
-                break
-            else:
+                print(volt)
                 break
         try:
             # run the task
@@ -272,7 +271,7 @@ class Thermode(object):
         except Exception as e:
             print(e)
 
-    def method_of_limits(self, direction, temp_rate=0.2, amount=1):
+    def method_of_limits(self, direction):
         """
         Method of Zaber (object) to find thresholds with method of limits strategy.
 
@@ -286,9 +285,9 @@ class Thermode(object):
         """
 
         if direction == "up":
-            self.rampCurrTarget(42)
+            self.rampCurrTarget(45)
         elif direction == "down":
-            self.rampCurrTarget(17)
+            self.rampCurrTarget(15)
         else:
             raise NameError("Value direction can only be 'up' or 'down'")
 
@@ -299,7 +298,7 @@ class Thermode(object):
             len_volt = len(volt)
             raise ("Voltage output has to be an array of minimum 2 values")
 
-        def ramp_loop(volt, len_volt, dev, Ao, Ai, rate):
+        def ramp_loop(volt, len_volt, dev, Ao, rate):
             self.ao_task = NT.Task()
             self.ao_task.ao_channels.add_ao_voltage_chan("/{}/{}".format(dev, Ao))
             self.ao_task.timing.cfg_samp_clk_timing(
@@ -322,17 +321,15 @@ class Thermode(object):
             self.ao_task.start()
 
             while True:
-                print("looping")
+                # print("looping")
                 if keyboard.is_pressed("space"):
                     self.ao_task.close()
-                    self.readTemp(Ai)
-                    print(self.temp_current)
-                    print("we are here")
+                    self.readTemp()
                     break
 
             # self.ao_task.wait_until_done(timeout = 50)
 
-        ramp_loop(self.volt, len_volt, self.dev, self.Ao, self.Ai, self.rate)
+        ramp_loop(self.volt, len_volt, self.dev, self.Ao, self.rate)
 
     ##### Working progress
     def adjust_single(self, start_temp, target_temp):

@@ -12,8 +12,9 @@ import wave
 try:
     import winsound
 except:
+    pass
     # print('This is not a Windows device')
-    import simpleaudio as sa
+import simpleaudio as sa
 
 
 class Sound(object):
@@ -55,6 +56,9 @@ class Sound(object):
 
         except Exception as e:
             print(e)
+
+    def stop(self):
+        sa.stop_all()
 
     def playEndGlobal(self, event=None):
         try:

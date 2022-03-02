@@ -886,40 +886,30 @@ def delTempFiles(path):
 
     print("Temporary data file Removed!")
 
-###### OLD TRASH
+#################################################################
+######################## Globals ################################
+#################################################################
 
-# def apendIndv(indv_file, subj_n, data):
-#     llaves = data.keys()
-#
-#     of2 = open('../src_analysis/data/{}.csv'.format(indv_file), 'w')
-#     writer_subject = csv.writer(of2)
-#
-#     writer_subject.writerow(llaves)
-#
-#     for i in np.arange(len(data[[*llaves][0]])):
-#         rowToWrite = []
-#         for j in llaves:
-#             datapoint = data[j][i]
-#             rowToWrite.append(datapoint)
-#
-#         writer_subject.writerow(rowToWrite)
-#
-#     of2.close()
+def globalsToDict(globals):
+    all_globals = {}
+    for d in dir(globals):
+        if type(d) is not None:
+            print(globals.__dict__[d])
+            if "__" not in d:
+                all_globals[d] = [globals.__dict__[d]]
+    return all_globals
 
-# def apendAll(name_file, subj_n, data):
-#     llaves = data.keys()
-#     of1 = open('../src_analysis/data/{}.csv'.format(name_file), 'a')
-#     data_writer = csv.writer(of1)
-#
-#     if subj_n == '1':
-#         data_writer.writerow(llaves)
-#
-#     for i in np.arange(len(data[[*llaves][0]])):
-#         rowToWrite = []
-#         for j in llaves:
-#             datapoint = data[j][i]
-#             rowToWrite.append(datapoint)
-#
-#         data_writer.writerow(rowToWrite)
-#
-#     of1.close()
+import ast
+def recoverGlobals(path, name_file='all_globals'):
+    """
+        Function to recover globals from a file
+    """
+    pd_globals = pd.read_csv(f"{path}/{name_file}.csv")
+    dict_globals = pd_globals.to_dict(orient='records')[0]
+    for key, value in dict_globals.items():
+        if type(value) is str:
+            try:
+                dict_globals[key] = ast.literal_eval(value)
+            except:
+                pass
+    return dict_globals

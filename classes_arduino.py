@@ -13,6 +13,7 @@ from saving_data import *
 from datetime import datetime
 import time
 from time import sleep
+
 try:
     import sys
 except:
@@ -29,6 +30,7 @@ import zaber.serial as zs
 import glob
 import keyboard
 import serial
+
 try:
     import winsound
 except:
@@ -44,9 +46,11 @@ import re
 import struct
 from scipy import signal
 
-class ArdUIno(grabPorts):
 
-    def __init__(self, winPort = None, num_ards = 1, usb_port = None, n_modem = None, name = 'Arduino'):
+class ArdUIno(grabPorts):
+    def __init__(
+        self, winPort=None, num_ards=1, usb_port=None, n_modem=None, name="Arduino"
+    ):
 
         self.ports = grabPorts()
         self.n_modem = n_modem
@@ -58,21 +62,23 @@ class ArdUIno(grabPorts):
 
         if num_ards == 1:
             try:
-                self.arduino = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 1)
+                self.arduino = serial.Serial(
+                    self.ports.arduino_ports[0], 9600, timeout=1
+                )
             except IndexError:
-                print('I cannot find any arduino boards!')
+                print("I cannot find any arduino boards!")
         elif num_ards > 1:
-            self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout = 1)
-            self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout = 1)
+            self.arduino1 = serial.Serial(self.ports.arduino_ports[0], 9600, timeout=1)
+            self.arduino2 = serial.Serial(self.ports.arduino_ports[1], 9600, timeout=1)
 
         self.arduino.flushInput()
 
-    def readData(self, dataParser = float, event = None):
+    def readData(self, dataParser=float, event=None):
         while True:
             try:
                 read = self.arduino.readline()
                 read_float = dataParser(read)
-                print('Data_ard: ' + str(read_float))
+                print("Data_ard: " + str(read_float))
                 if read_float > 400:
                     globals.data = globals.data
                 else:
@@ -80,17 +86,17 @@ class ArdUIno(grabPorts):
             except Exception as e:
                 print(e)
                 globals.data = globals.data
-            
+
             if event != None:
                 event.set()
                 # print('EVENT')
 
-            if keyboard.is_pressed('e'):
+            if keyboard.is_pressed("e"):
                 break
-        
-        printme('Reading done')
 
-    def OpenClose(self, wait_close, wait_open, devices = None):
+        printme("Reading done")
+
+    def OpenClose(self, wait_close, wait_open, devices=None):
 
         if devices != None:
             devices[0].device.move_abs(globals.posX)
@@ -101,25 +107,23 @@ class ArdUIno(grabPorts):
 
             try:
 
-                time.sleep(wait_close*1/10)
+                time.sleep(wait_close * 1 / 10)
 
                 globals.stimulus = 1
-                self.arduino.write(struct.pack('>B', globals.stimulus))
-
+                self.arduino.write(struct.pack(">B", globals.stimulus))
 
                 time.sleep(wait_open)
 
                 globals.stimulus = 0
-                self.arduino.write(struct.pack('>B', globals.stimulus))
+                self.arduino.write(struct.pack(">B", globals.stimulus))
 
+                time.sleep(wait_close * 9 / 10)
 
-                time.sleep(wait_close*9/10)
-
-                globals.counter +=1
+                globals.counter += 1
 
                 if globals.counter == 3:
                     globals.stimulus = 0
-                    self.arduino.write(struct.pack('>B', globals.stimulus))
+                    self.arduino.write(struct.pack(">B", globals.stimulus))
                     break
                 # if keyboard.is_pressed('e'):
                 #
@@ -135,28 +139,28 @@ class ArdUIno(grabPorts):
         while True:
             try:
 
-                if keyboard.is_pressed('c'):
+                if keyboard.is_pressed("c"):
                     globals.stimulus = 0
-                    self.arduino.write(struct.pack('>B', globals.stimulus))
+                    self.arduino.write(struct.pack(">B", globals.stimulus))
 
-                if keyboard.is_pressed('o'):
+                if keyboard.is_pressed("o"):
                     globals.stimulus = 1
-                    self.arduino.write(struct.pack('>B', globals.stimulus))
+                    self.arduino.write(struct.pack(">B", globals.stimulus))
 
-                if keyboard.is_pressed('u'):
-                    devices['colther'][0].device.move_rel(-20000)
+                if keyboard.is_pressed("u"):
+                    devices["colther"][0].device.move_rel(-20000)
 
-                if keyboard.is_pressed('d'):
-                    devices['colther'][0].device.move_rel(20000)
+                if keyboard.is_pressed("d"):
+                    devices["colther"][0].device.move_rel(20000)
 
-                if keyboard.is_pressed('e'):
+                if keyboard.is_pressed("e"):
 
                     globals.stimulus = 0
-                    self.arduino.write(struct.pack('>B', globals.stimulus))
+                    self.arduino.write(struct.pack(">B", globals.stimulus))
                     break
 
                 try:
-                    pos = devices['colther'][0].device.send("/get pos")
+                    pos = devices["colther"][0].device.send("/get pos")
                     globals.pos = int(pos.data)
                 except:
                     pass
@@ -165,7 +169,7 @@ class ArdUIno(grabPorts):
 
     def OpenCloseMoL(self, event):
         """
-            Method to perform Method of Limits with the shutter
+        Method to perform Method of Limits with the shutter
         """
 
         if event != None:
@@ -175,9 +179,9 @@ class ArdUIno(grabPorts):
 
         if event != None:
             event.clear()
-        
-        self.arduino.write(struct.pack('>B', globals.stimulus))
-        printme('Start reaction time')
+
+        self.arduino.write(struct.pack(">B", globals.stimulus))
+        printme("Start reaction time")
         start = time.time()
         # time.sleep(0.2)
 
@@ -185,7 +189,7 @@ class ArdUIno(grabPorts):
             time.sleep(0.001)
             if globals.stimulus == 4:
                 globals.rt = time.time() - start
-                self.arduino.write(struct.pack('>B', globals.stimulus))
+                self.arduino.write(struct.pack(">B", globals.stimulus))
                 # time.sleep(0.1)
                 break
 
@@ -202,17 +206,17 @@ class ArdUIno(grabPorts):
             except Exception as e:
                 print(e)
 
-            if keyboard.is_pressed('enter'):
+            if keyboard.is_pressed("enter"):
                 event[0].set()
                 break
-            elif keyboard.is_pressed('l'):
+            elif keyboard.is_pressed("l"):
                 event[0].set()
                 # print('Waiting for Zaber to move')
                 event[1].wait()
 
     def closeOpenTemp(self, range):
         """
-            Method of function to close and open shutter depending on the temperature
+        Method of function to close and open shutter depending on the temperature
         """
 
         while True:
@@ -220,149 +224,171 @@ class ArdUIno(grabPorts):
             if globals.temp < range[0]:
                 # print('Close')
                 globals.stimulus = 0
-                self.arduino.write(struct.pack('>B', globals.stimulus))
+                self.arduino.write(struct.pack(">B", globals.stimulus))
             elif globals.temp > range[1]:
                 # print('Open')
                 globals.stimulus = 1
-                self.arduino.write(struct.pack('>B', globals.stimulus))
-            
+                self.arduino.write(struct.pack(">B", globals.stimulus))
+
             if globals.momen > globals.timeout:
-                printme('Finish shutter')
+                printme("Finish shutter")
                 globals.stimulus = 0
-                self.arduino.write(struct.pack('>B', globals.stimulus))
+                self.arduino.write(struct.pack(">B", globals.stimulus))
                 break
 
     def readDistance(self):
         """
-            Method to read distance and save it during a period set manually
+        Method to read distance and save it during a period set manually
         """
         self.buffer = []
         save_buffer = False
         pressed = False
         while True:
-            # 
+            #
             read = self.arduino.readline()
             if save_buffer:
                 self.buffer.append(float(read))
             try:
                 print(float(read))
             except:
-                printme('Arduino sent garbage')
+                printme("Arduino sent garbage")
 
-            if keyboard.is_pressed('e'):
-                printme('Done reading distance...')
+            if keyboard.is_pressed("e"):
+                printme("Done reading distance...")
                 break
-            elif keyboard.is_pressed('s'):
+            elif keyboard.is_pressed("s"):
                 if not pressed:
-                    printme('STARTED saving readings from Arduino')
+                    printme("STARTED saving readings from Arduino")
                     save_buffer = True
                     pressed = True
-            elif keyboard.is_pressed('o'):
+            elif keyboard.is_pressed("o"):
                 if not pressed:
-                    printme('STOPPED saving readings from Arduino')
+                    printme("STOPPED saving readings from Arduino")
                     save_buffer = False
                     pressed = True
             else:
                 pressed = False
 
 
-
 ################################################################################
 ############################# FUNCTION #########################################
 ################################################################################
 
+
 def reLoad(ard):
-    os.system('clear')
+    os.system("clear")
     was_pressed = False
     print('\nPosition syringe pusher ("d" for down / "u" for up / "e" to move on)\n')
     while True:
-        if keyboard.is_pressed('e'):
+        if keyboard.is_pressed("e"):
             break
 
-        elif keyboard.is_pressed('d'):
+        elif keyboard.is_pressed("d"):
             if not was_pressed:
                 try:
                     globals.stimulus = 6
-                    ard.arduino.write(struct.pack('>B', globals.stimulus))
+                    ard.arduino.write(struct.pack(">B", globals.stimulus))
                 except Exception as e:
                     errorloc(e)
                 was_pressed = True
 
-        elif keyboard.is_pressed('u'):
+        elif keyboard.is_pressed("u"):
             if not was_pressed:
                 try:
                     globals.stimulus = 5
-                    ard.arduino.write(struct.pack('>B', globals.stimulus))
+                    ard.arduino.write(struct.pack(">B", globals.stimulus))
                 except Exception as e:
                     errorloc(e)
                 was_pressed = True
         else:
             was_pressed = False
 
+
 def shakeShutter(ard, times):
     for i in np.arange(times):
         globals.stimulus = 1
-        ard.arduino.write(struct.pack('>B', globals.stimulus))
-        printme('Open shutter')
+        ard.arduino.write(struct.pack(">B", globals.stimulus))
+        printme("Open shutter")
 
         time.sleep(0.2)
 
         globals.stimulus = 0
-        ard.arduino.write(struct.pack('>B', globals.stimulus))
+        ard.arduino.write(struct.pack(">B", globals.stimulus))
 
-        printme('Close shutter')
+        printme("Close shutter")
         time.sleep(0.2)
 
-def tryexceptArduino(ard, signal, name = 'Arduino', n_modem = None, usb_port = 1):
+
+def tryexceptArduino(ard, signal, name="Arduino", n_modem=None, usb_port=1):
     try:
-        ard.arduino.write(struct.pack('>B', signal))
-        print(f'TALKING TO {ard.name}')
+        ard.arduino.write(struct.pack(">B", signal))
+        print(f"TALKING TO {ard.name}")
         time.sleep(0.1)
 
     except Exception as e:
-        os.system('clear')
+        os.system("clear")
         errorloc(e)
-        waitForEnter(f'\n\n Press enter when {ard.name} is fixed...')
-        ard = ArdUIno(usb_port = ard.usb_port, n_modem = ard.n_modem)
+        waitForEnter(f"\n\n Press enter when {ard.name} is fixed...")
+        ard = ArdUIno(usb_port=ard.usb_port, n_modem=ard.n_modem)
         ard.arduino.flushInput()
         time.sleep(1)
-        ard.arduino.write(struct.pack('>B', signal))
+        ard.arduino.write(struct.pack(">B", signal))
         time.sleep(0.1)
 
     if signal == 6:
-        file_name = './data/pusher_counter'
+        file_name = "./data/pusher_counter"
         file = open(file_name)
         old_value = int(file.read())
         old_value += 1
-        writeValue('./data/pusher_counter', old_value)
+        writeValue("./data/pusher_counter", old_value)
 
-def movePanTilt(ard, trio_array, trigger_move = 8):
-    printme(f'Sending to PanTilt x: {trio_array[0]}, y: {trio_array[1]}, z: {trio_array[2]}')
+
+def movePanTilt(ard, trio_array, trigger_move=8):
+    printme(
+        f"Sending to PanTilt x: {trio_array[0]}, y: {trio_array[1]}, z: {trio_array[2]}"
+    )
     try:
-        ard.arduino.write(struct.pack('>B', trigger_move))
+        ard.arduino.write(struct.pack(">B", trigger_move))
         time.sleep(globals.keydelay)
-        ard.arduino.write(struct.pack('>BBB', trio_array[0], trio_array[1], trio_array[2]))
+        ard.arduino.write(
+            struct.pack(">BBB", trio_array[0], trio_array[1], trio_array[2])
+        )
     except Exception as e:
-        os.system('clear')
+        os.system("clear")
         errorloc(e)
-        waitForEnter(f'\n\n Press enter when Arduino PanTilt is fixed...')
-        ard = ArdUIno(usb_port = globals.usb_port_pantilt, n_modem = globals.modem_port_pantilt)
+        waitForEnter(f"\n\n Press enter when Arduino PanTilt is fixed...")
+        ard = ArdUIno(
+            usb_port=globals.usb_port_pantilt, n_modem=globals.modem_port_pantilt
+        )
         ard.arduino.flushInput()
         time.sleep(1)
-        ard.arduino.write(struct.pack('>B', trigger_move))
+        ard.arduino.write(struct.pack(">B", trigger_move))
         time.sleep(globals.keydelay)
-        ard.arduino.write(struct.pack('>BBB', trio_array[0], trio_array[1], trio_array[2]))
+        ard.arduino.write(
+            struct.pack(">BBB", trio_array[0], trio_array[1], trio_array[2])
+        )
 
-    print('TALKING TO PANTILT')
+    print("TALKING TO PANTILT")
 
-Fs = 20; # sampling freq
-Fc = 2; # cutoff
-[b, a] = signal.butter(2, Fc/(Fs/2))
+
+Fs = 20
+# sampling freq
+Fc = 2
+# cutoff
+[b, a] = signal.butter(2, Fc / (Fs / 2))
+
 
 def smoother(datapoint):
-    d_cen_round_filtered = b[0] * data2[-1] + b[1] * data2[-2] + b[2] * data2[-3] - a[1] * df2[-1] - a[2] * df2[-2]
+    d_cen_round_filtered = (
+        b[0] * data2[-1]
+        + b[1] * data2[-2]
+        + b[2] * data2[-3]
+        - a[1] * df2[-1]
+        - a[2] * df2[-2]
+    )
+
 
 def print_var_name(variable):
- for name in globals():
-     if eval(name) == variable:
-        print(name)
+    for name in globals():
+        if eval(name) == variable:
+            print(name)

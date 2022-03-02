@@ -155,8 +155,6 @@ class Anchoring:
 
 
 def delay_stimulus_offset_response(lower_bound_delay, higher_bound_delay):
-    delay = np.random.uniform(
-        lower_bound_delay, higher_bound_delay
-    )
+    delay = np.random.uniform(lower_bound_delay, higher_bound_delay)
     time.sleep(delay)
     return delay

@@ -2,18 +2,20 @@ import numpy as np
 import h5py
 import re
 import os
+
 ########################################################################
 ############ Class
 #########################################################################
 
 
 class ReAnRaw(object):
-    ''' Grab h5py file. Don't include format in string'''
-    def __init__(self, input):
-        
-        self.read = h5py.File('{}.hdf5'.format(input), 'r')
+    """Grab h5py file. Don't include format in string"""
 
-    def getParaMoF(self, r = 20):
+    def __init__(self, input):
+
+        self.read = h5py.File("{}.hdf5".format(input), "r")
+
+    def getParaMoF(self, r=20):
 
         self.min_pixel = []
         self.means = []
@@ -30,8 +32,8 @@ class ReAnRaw(object):
 
         for i in np.arange(len(self.read.keys())):
 
-            dataAll = self.read['image'+str(frame)][:]
-            frame +=1
+            dataAll = self.read["image" + str(frame)][:]
+            frame += 1
             dataC = dataAll[0:120]
 
             shutter = dataAll[120]
@@ -50,7 +52,9 @@ class ReAnRaw(object):
             self.indxDD.append(self.indxD)
             self.indyDD.append(self.indyD)
 
-            mask = (xs[np.newaxis,:] - self.indy)**2 + (ys[:,np.newaxis] - self.indx)**2 < r**2
+            mask = (xs[np.newaxis, :] - self.indy) ** 2 + (
+                ys[:, np.newaxis] - self.indx
+            ) ** 2 < r ** 2
 
             roiC = dataC[mask]
             mean = round(np.mean(roiC), 2)
@@ -67,7 +71,7 @@ class ReAnRaw(object):
         shus = np.asarray(self.shutterOnOff)
         self.open = np.where(shus[:-1] != shus[1:])[0]
 
-    def getParaTempPos(self, r = 20):
+    def getParaTempPos(self, r=20):
 
         self.min_pixel = []
         self.means = []
@@ -81,15 +85,15 @@ class ReAnRaw(object):
         self.indxDD = []
         self.indyDD = []
 
-        zero_time = self.read['image1'][122][0]
+        zero_time = self.read["image1"][122][0]
 
         r = r
         frame = 1
 
         for i in np.arange(len(self.read.keys())):
 
-            dataAll = self.read['image'+str(frame)][:]
-            frame +=1
+            dataAll = self.read["image" + str(frame)][:]
+            frame += 1
             dataC = dataAll[0:120]
 
             shutter = dataAll[120]
@@ -112,7 +116,9 @@ class ReAnRaw(object):
 
             posI = dataAll[124][0]
 
-            mask = (xs[np.newaxis,:] - self.indy)**2 + (ys[:,np.newaxis] - self.indx)**2 < r**2
+            mask = (xs[np.newaxis, :] - self.indy) ** 2 + (
+                ys[:, np.newaxis] - self.indx
+            ) ** 2 < r ** 2
 
             roiC = dataC[mask]
             mean = round(np.mean(roiC), 2)
@@ -135,7 +141,7 @@ class ReAnRaw(object):
 # class ReAnRaw(object):
 #     ''' Grab h5py file. Don't include format in string'''
 #     def __init__(self, input):
-        
+
 #         self.read = h5py.File('{}.hdf5'.format(input), 'r')
 
 #     def getParaMoF(self, r = 20):
@@ -257,44 +263,45 @@ class ReAnRaw(object):
 #         self.open = np.where(shus[:-1] != shus[1:])[0]
 
 
-
 ########################################################################
 ############ Functions Display
 #########################################################################
-def play(self, solo = 'Y'):
-    #This method plays the rawdata as a video
+def play(self, solo="Y"):
+    # This method plays the rawdata as a video
     global frame
     for i in np.arange(len(self.read.keys())):
         # print(frame)
-        if solo == 'Y':
-            data = self.read['image'+str(frame)][:]
+        if solo == "Y":
+            data = self.read["image" + str(frame)][:]
             data = data[0:120]
             print(data)
         else:
             try:
-                data = self.read['image'+str(frame)+'_open'][:]
+                data = self.read["image" + str(frame) + "_open"][:]
             except KeyError:
-                data = self.read['image'+str(frame)+'_close'][:]
+                data = self.read["image" + str(frame) + "_close"][:]
 
         # data = cv2.resize(data[:,:], (480, 640))
         img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
         # rgbImage = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.imshow('Playing video', img)
+        cv2.imshow("Playing video", img)
 
         frame += 1
         time.sleep(0.1)
 
-        if cv2.waitKey(9) & keyboard.is_pressed('e') & frame > len(self.read.keys()):
+        if cv2.waitKey(9) & keyboard.is_pressed("e") & frame > len(self.read.keys()):
             cv2.destroyAllWindows()
             frame = 1
             exit(1)
     frame = 1
 
-def playPlot(self, solo = 'Y'):
-    #This method plays the rawdata as a video
+
+def playPlot(self, solo="Y"):
+    # This method plays the rawdata as a video
     global frame
     import matplotlib as mpl
-    mpl.rc('image', cmap='hot')
+
+    mpl.rc("image", cmap="hot")
 
     fig = plt.figure()
     ax = plt.axes()
@@ -303,7 +310,7 @@ def playPlot(self, solo = 'Y'):
 
     dummy = np.zeros([120, 160])
 
-    img = ax.imshow(dummy, interpolation='nearest', vmin = 30, vmax = 40, animated = True)
+    img = ax.imshow(dummy, interpolation="nearest", vmin=30, vmax=40, animated=True)
     fig.colorbar(img)
 
     current_cmap = plt.cm.get_cmap()
@@ -311,25 +318,25 @@ def playPlot(self, solo = 'Y'):
 
     for i in np.arange(len(self.read.keys())):
         # print(frame)
-        if solo == 'Y':
-            data = self.read['image'+str(frame)][:]
+        if solo == "Y":
+            data = self.read["image" + str(frame)][:]
             data = data[0:120]
             # print(data)
         else:
             try:
-                data = self.read['image'+str(frame)+'_open'][:]
+                data = self.read["image" + str(frame) + "_open"][:]
             except KeyError:
-                data = self.read['image'+str(frame)+'_close'][:]
+                data = self.read["image" + str(frame) + "_close"][:]
 
         # data = cv2.resize(data[:,:], (480, 640))
         ax.clear()
         ax.set_xticks([])
         ax.set_yticks([])
 
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
         ax.imshow(data)
         # print(data)
         plt.pause(0.0005)
@@ -337,51 +344,56 @@ def playPlot(self, solo = 'Y'):
         frame += 1
         time.sleep(0.13)
 
-        if cv2.waitKey(9) & keyboard.is_pressed('e') & frame > len(self.read.keys()):
+        if cv2.waitKey(9) & keyboard.is_pressed("e") & frame > len(self.read.keys()):
             cv2.destroyAllWindows()
             frame = 1
             exit(1)
     frame = 1
 
-def playSaveVideo(self, output, solo = 'Y'):
-    #This method plays the raw data as a video and saves it as an avi. you need to specify the name of the output (.avi) file
+
+def playSaveVideo(self, output, solo="Y"):
+    # This method plays the raw data as a video and saves it as an avi. you need to specify the name of the output (.avi) file
     global frame
     frame_width = 640
     frame_height = 480
 
-    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-    writer = cv2.VideoWriter('./video_data/videos/{}.avi'.format(output), fourcc, 9, (frame_width, frame_height), True)
-
+    fourcc = cv2.VideoWriter_fourcc("M", "J", "P", "G")
+    writer = cv2.VideoWriter(
+        "./video_data/videos/{}.avi".format(output),
+        fourcc,
+        9,
+        (frame_width, frame_height),
+        True,
+    )
 
     for i in np.arange(len(self.read.keys())):
         # print(frame)
-        if solo == 'Y':
-            data = self.read['image'+str(frame)][:]
+        if solo == "Y":
+            data = self.read["image" + str(frame)][:]
         else:
             try:
-                data = self.read['image'+str(frame)+'_open'][:]
+                data = self.read["image" + str(frame) + "_open"][:]
             except KeyError:
-                data = self.read['image'+str(frame)+'_close'][:]
+                data = self.read["image" + str(frame) + "_close"][:]
 
-
-        data = cv2.resize(data[:,:], (640, 480))
+        data = cv2.resize(data[:, :], (640, 480))
         img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
         # rgbImage = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         writer.write(img)
-        cv2.imshow('Playing video', img)
+        cv2.imshow("Playing video", img)
 
         frame += 1
 
-
-        if cv2.waitKey(1) & keyboard.is_pressed('e') & frame > len(self.read.keys()):
+        if cv2.waitKey(1) & keyboard.is_pressed("e") & frame > len(self.read.keys()):
             writer.release()
             cv2.destroyAllWindows()
             frame = 1
             exit(1)
     frame = 1
 
-def catchThres(self, thresh, solo = 'Y'):
+
+def catchThres(self, thresh, solo="Y"):
     global frame
     self.mean_temps = []
     self.areas = []
@@ -390,17 +402,17 @@ def catchThres(self, thresh, solo = 'Y'):
 
     for i in np.arange(len(self.read.keys())):
 
-        if solo == 'Y':
-            raw_dum = self.read['image'+str(frame)][:]
+        if solo == "Y":
+            raw_dum = self.read["image" + str(frame)][:]
         else:
             try:
-                raw_dum = self.read['image'+str(frame)+'_open'][:]
+                raw_dum = self.read["image" + str(frame) + "_open"][:]
                 OnOff = 1
                 # ONE 1 is open
             except KeyError:
-                raw_dum = self.read['image'+str(frame)+'_close'][:]
+                raw_dum = self.read["image" + str(frame) + "_close"][:]
                 OnOff = 0
-                #ZERO 0 is close
+                # ZERO 0 is close
 
         threshold = CToRaw(thresh)
 
@@ -429,26 +441,27 @@ def catchThres(self, thresh, solo = 'Y'):
         frame += 1
     frame = 1
 
-def overThres(self, thresh, solo = 'Y'):
+
+def overThres(self, thresh, solo="Y"):
     global frame
     self.mean_temps = []
     self.areas = []
 
     for i in np.arange(len(self.read.keys())):
-        if solo == 'Y':
-            raw_dum = self.read['image'+str(frame)][:]
-            original = self.read['image'+str(frame)][:]
+        if solo == "Y":
+            raw_dum = self.read["image" + str(frame)][:]
+            original = self.read["image" + str(frame)][:]
         else:
             try:
-                raw_dum = self.read['image'+str(frame)+'_open'][:]
-                original = self.read['image'+str(frame)+'_open'][:]
+                raw_dum = self.read["image" + str(frame) + "_open"][:]
+                original = self.read["image" + str(frame) + "_open"][:]
                 OnOff = 1
                 # ONE 1 is open
             except KeyError:
-                raw_dum = self.read['image'+str(frame)+'_close'][:]
-                original = self.read['image'+str(frame)+'_close'][:]
+                raw_dum = self.read["image" + str(frame) + "_close"][:]
+                original = self.read["image" + str(frame) + "_close"][:]
                 OnOff = 0
-                #ZERO 0 is close
+                # ZERO 0 is close
 
         threshold = CToRaw(thresh)
 
@@ -463,7 +476,7 @@ def overThres(self, thresh, solo = 'Y'):
         except:
             area = 0
 
-        try :
+        try:
             temp = np.mean(meaning)
             temp = rawToC(temp)
         except RuntimeWarning:
@@ -480,42 +493,66 @@ def overThres(self, thresh, solo = 'Y'):
 
         # Image_thres = raw_dum #cv2.cvtColor(Image_thres, cv2.COLOR_RGB2HSV)
         # print(np.nonzero(raw_dum))
-        cv2.putText(original, 'A: {}'.format(area), (100, 5), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0))
-        cv2.putText(original, 'T: {}'.format(temp), (100, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0))
+        cv2.putText(
+            original,
+            "A: {}".format(area),
+            (100, 5),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.35,
+            (0, 0, 0),
+        )
+        cv2.putText(
+            original,
+            "T: {}".format(temp),
+            (100, 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.35,
+            (0, 0, 0),
+        )
 
         # cv2.imshow('Playing video', cv2.resize(  | Image_thres, (640, 480), interpolation = cv2.INTER_CUBIC)))
-        cv2.imshow('Playing video',  cv2.resize(raw_dum | original, (640, 480), interpolation = cv2.INTER_CUBIC))
+        cv2.imshow(
+            "Playing video",
+            cv2.resize(raw_dum | original, (640, 480), interpolation=cv2.INTER_CUBIC),
+        )
         cv2.waitKey(1)
 
         frame += 1
 
     frame = 1
 
-def overThresSave(self, thresh, output, solo = 'Y'):
+
+def overThresSave(self, thresh, output, solo="Y"):
     global frame
     self.mean_temps = []
     self.areas = []
     frame_width = 640
     frame_height = 480
 
-    fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-    writer = cv2.VideoWriter('./video_data/videos/{}.avi'.format(output), fourcc, 9, (frame_width, frame_height), True)
+    fourcc = cv2.VideoWriter_fourcc("M", "J", "P", "G")
+    writer = cv2.VideoWriter(
+        "./video_data/videos/{}.avi".format(output),
+        fourcc,
+        9,
+        (frame_width, frame_height),
+        True,
+    )
 
     for i in np.arange(len(self.read.keys())):
-        if solo == 'Y':
-            raw_dum = self.read['image'+str(frame)][:]
-            original = self.read['image'+str(frame)][:]
+        if solo == "Y":
+            raw_dum = self.read["image" + str(frame)][:]
+            original = self.read["image" + str(frame)][:]
         else:
             try:
-                raw_dum = self.read['image'+str(frame)+'_open'][:]
-                original = self.read['image'+str(frame)+'_open'][:]
+                raw_dum = self.read["image" + str(frame) + "_open"][:]
+                original = self.read["image" + str(frame) + "_open"][:]
                 OnOff = 1
                 # ONE 1 is open
             except KeyError:
-                raw_dum = self.read['image'+str(frame)+'_close'][:]
-                original = self.read['image'+str(frame)+'_close'][:]
+                raw_dum = self.read["image" + str(frame) + "_close"][:]
+                original = self.read["image" + str(frame) + "_close"][:]
                 OnOff = 0
-                #ZERO 0 is close
+                # ZERO 0 is close
 
         threshold = CToRaw(thresh)
 
@@ -530,7 +567,7 @@ def overThresSave(self, thresh, output, solo = 'Y'):
         except:
             area = 0
 
-        try :
+        try:
             temp = np.mean(meaning)
             temp = rawToC(temp)
         except RuntimeWarning:
@@ -547,13 +584,32 @@ def overThresSave(self, thresh, output, solo = 'Y'):
 
         # Image_thres = raw_dum #cv2.cvtColor(Image_thres, cv2.COLOR_RGB2HSV)
         # print(np.nonzero(raw_dum))
-        cv2.putText(original, 'A: {}'.format(area), (100, 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0))
-        cv2.putText(original, 'T: {}'.format(temp), (100, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0))
+        cv2.putText(
+            original,
+            "A: {}".format(area),
+            (100, 10),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.35,
+            (0, 0, 0),
+        )
+        cv2.putText(
+            original,
+            "T: {}".format(temp),
+            (100, 20),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.35,
+            (0, 0, 0),
+        )
 
-        writer.write(cv2.resize(raw_dum | original, (640, 480), interpolation = cv2.INTER_CUBIC))
-        cv2.imshow('Playing video',  cv2.resize(raw_dum | original, (640, 480), interpolation = cv2.INTER_CUBIC))
+        writer.write(
+            cv2.resize(raw_dum | original, (640, 480), interpolation=cv2.INTER_CUBIC)
+        )
+        cv2.imshow(
+            "Playing video",
+            cv2.resize(raw_dum | original, (640, 480), interpolation=cv2.INTER_CUBIC),
+        )
 
-        if cv2.waitKey(1) & 0xFF == ord('q') & frame > len(self.read.keys):
+        if cv2.waitKey(1) & 0xFF == ord("q") & frame > len(self.read.keys):
             writer.release()
             cv2.destroyAllWindows()
             frame = 1
@@ -565,61 +621,72 @@ def overThresSave(self, thresh, output, solo = 'Y'):
 
 
 def plotShuArea(self, output):
-    fig, ax = plt.subplots(figsize = (20, 10))
-    plt.plot(np.arange(len(self.areas)), self.areas, color = 'r')
+    fig, ax = plt.subplots(figsize=(20, 10))
+    plt.plot(np.arange(len(self.areas)), self.areas, color="r")
 
-    ax.set_title('Total pixels below threshold: {} degree Celsius'.format(self.thresholdChoise))
-    ax.set_ylabel('Number of pixels')
-    ax.set_xlabel('Frames')
-
+    ax.set_title(
+        "Total pixels below threshold: {} degree Celsius".format(self.thresholdChoise)
+    )
+    ax.set_ylabel("Number of pixels")
+    ax.set_xlabel("Frames")
 
     ax2 = ax.twinx()
-    lns_alc = ax2.plot(np.arange(len(self.areas)), self.shutterOnOff, color='k')
+    lns_alc = ax2.plot(np.arange(len(self.areas)), self.shutterOnOff, color="k")
     ax2.set_ylim([0, 1.1])
-    ax2.set_ylabel('Shutter state')
+    ax2.set_ylabel("Shutter state")
 
     ax2.yaxis.set_ticks(np.arange(0, 1, 0.9999))
 
     labels = [item.get_text() for item in ax2.get_yticklabels()]
-    labels[0] = 'close'
-    labels[1] = 'open'
+    labels[0] = "close"
+    labels[1] = "open"
 
     ax2.set_yticklabels(labels)
 
+    ax.spines["top"].set_visible(False)
+    ax2.spines["top"].set_visible(False)
 
-    ax.spines['top'].set_visible(False)
-    ax2.spines['top'].set_visible(False)
+    plt.savefig(
+        "./video_data/figures/{}.svg".format(output),
+        transparent=True,
+        bbox_inches="tight",
+    )
 
-    plt.savefig('./video_data/figures/{}.svg'.format(output), transparent = True, bbox_inches='tight')
 
 def plotShuTemp(self, output, minY, max):
-    fig, ax = plt.subplots(figsize = (20, 10))
-    plt.plot(np.arange(len(self.mean_temps)), self.mean_temps, color = 'b')
+    fig, ax = plt.subplots(figsize=(20, 10))
+    plt.plot(np.arange(len(self.mean_temps)), self.mean_temps, color="b")
 
-    ax.set_title('Mean temperature of pixels below threshold: {} degree Celsius'.format(self.thresholdChoise))
-    ax.set_ylabel('Temperature (degree Celsius)')
-    ax.set_xlabel('Frames')
+    ax.set_title(
+        "Mean temperature of pixels below threshold: {} degree Celsius".format(
+            self.thresholdChoise
+        )
+    )
+    ax.set_ylabel("Temperature (degree Celsius)")
+    ax.set_xlabel("Frames")
     ax.set_ylim([minY, maxY])
 
-
     ax2 = ax.twinx()
-    lns_alc = ax2.plot(np.arange(len(self.mean_temps)), self.shutterOnOff, color='k')
+    lns_alc = ax2.plot(np.arange(len(self.mean_temps)), self.shutterOnOff, color="k")
     ax2.set_ylim([0, 1.1])
-    ax2.set_ylabel('Shutter state')
+    ax2.set_ylabel("Shutter state")
 
     ax2.yaxis.set_ticks(np.arange(0, 1, 0.9999))
 
     labels = [item.get_text() for item in ax2.get_yticklabels()]
-    labels[0] = 'close'
-    labels[1] = 'open'
+    labels[0] = "close"
+    labels[1] = "open"
 
     ax2.set_yticklabels(labels)
 
+    ax.spines["top"].set_visible(False)
+    ax2.spines["top"].set_visible(False)
 
-    ax.spines['top'].set_visible(False)
-    ax2.spines['top'].set_visible(False)
-
-    plt.savefig('./video_data/figures/{}.svg'.format(output), transparent = True, bbox_inches='tight')
+    plt.savefig(
+        "./video_data/figures/{}.svg".format(output),
+        transparent=True,
+        bbox_inches="tight",
+    )
 
 
 ########################################################################
@@ -628,21 +695,21 @@ def plotShuTemp(self, output, minY, max):
 
 
 def GrabNamesOrder(pattern, folder):
-    ''' Get the file names with a given pattern in order
-    
+    """Get the file names with a given pattern in order
+
     Example pattern: '^m2_([0-9]+)_mof'
-    
-    '''
+
+    """
     pattern = re.compile(pattern)
     names = []
 
-    for filename in os.listdir('./{}'.format(folder)):
+    for filename in os.listdir("./{}".format(folder)):
         if pattern.match(filename):
-            name, form = filename.split('.')
+            name, form = filename.split(".")
             names.append(name)
         else:
             continue
-    
+
     names.sort(key=natural_keys)
 
     return names
@@ -651,10 +718,11 @@ def GrabNamesOrder(pattern, folder):
 def atoi(text):
     return int(text) if text.isdigit() else text
 
+
 def natural_keys(text):
-    '''
+    """
     alist.sort(key=natural_keys) sorts in human order
     http://nedbatchelder.com/blog/200712/human_sorting.html
     (See Toothy's implementation in the comments)
-    '''
-    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+    """
+    return [atoi(c) for c in re.split(r"(\d+)", text)]

@@ -4,12 +4,15 @@ import time
 import numpy as np
 import random
 
+
 class Staircase:
     """
     Class to perform staircase
     """
 
-    def __init__(self, total_reversals, initial, direction, rules_direction = 1, name="1"):
+    def __init__(
+        self, total_reversals, initial, direction, rules_direction=1, name="1"
+    ):
         self.reversals = 0
         self.first_ramp = True
         self.tracker = 0
@@ -64,17 +67,25 @@ class Staircase:
 
         # print('force_reverse', self.force_reverse)
 
-        if self.last_response != response and self.last_response is not None or self.force_reverse == True:
+        if (
+            self.last_response != response
+            and self.last_response is not None
+            or self.force_reverse == True
+        ):
             self.tracker = 0
             self.reversals += 1
             self.reversed_bool = True
             self.first_ramp = False
             self.reversal_values.append(self.stimulation)
-            if not self.first_ramp and self.reversals == 1 or self.force_reverse == True:
+            if (
+                not self.first_ramp
+                and self.reversals == 1
+                or self.force_reverse == True
+            ):
                 print("\nTracking algorithm triggered\n")
 
     def XupYdownFixedStepSizesTrackingAlgorithm(
-        self, move_down, move_up, step_down, step_up
+        self, move_down, move_up, step_down, step_up, step_first_reversal
     ):
         """
         Execute tracking algorithm for a stairse X UP / Y DOWN with fixed step sizes (but the length of the steps up and down can be of different size)
@@ -98,26 +109,38 @@ class Staircase:
         else:
             if self.direction == "down":
                 if self.response == 1 and self.rules_direction == 1:
-                    self.tracked_stimulation = self.tracked_stimulation - step_down
+                    self.tracked_stimulation = (
+                        self.tracked_stimulation - step_first_reversal
+                    )
                 elif self.response == 0 and self.rules_direction == 1:
-                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                    self.tracked_stimulation = (
+                        self.tracked_stimulation + step_first_reversal
+                    )
                     self.first_ramp = False
                     # self.force_reverse = True
                     # print("down 1")
 
                 elif self.response == 1 and self.rules_direction == 0:
-                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                    self.tracked_stimulation = (
+                        self.tracked_stimulation + step_first_reversal
+                    )
                     self.first_ramp = False
                     # self.force_reverse = True
                     # print("down 2")
                 elif self.response == 0 and self.rules_direction == 0:
-                    self.tracked_stimulation = self.tracked_stimulation - step_down
+                    self.tracked_stimulation = (
+                        self.tracked_stimulation - step_first_reversal
+                    )
 
             elif self.direction == "up":
                 if self.response == 0:
-                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                    self.tracked_stimulation = (
+                        self.tracked_stimulation + step_first_reversal
+                    )
                 elif self.response == 1:
-                    self.tracked_stimulation = self.tracked_stimulation - step_down
+                    self.tracked_stimulation = (
+                        self.tracked_stimulation - step_first_reversal
+                    )
                     self.first_ramp = False
                     # self.force_reverse = True
                     # print("up 1")
@@ -141,7 +164,19 @@ class Staircase:
             self.reversal_values[drop_reversals:]
         )
 
-    def plotStaircase(self, path_figs, name, ylabel, ylim, fig=None, ax=None, lwd = 4, pad_size = 5, lenD = 7):
+    def plotStaircase(
+        self,
+        path_figs,
+        name,
+        ylabel,
+        ylim,
+        fig=None,
+        ax=None,
+        lwd=4,
+        pad_size=5,
+        lenD=7,
+        show=True,
+    ):
         """
         Plot staircase
         """
@@ -183,8 +218,8 @@ class Staircase:
 
         ax.axhline(self.estimated_point, color="k")
 
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
         ax.spines["left"].set_linewidth(lwd)
         ax.spines["bottom"].set_linewidth(lwd)
         ax.yaxis.set_tick_params(width=lwd, length=lenD)
@@ -201,27 +236,32 @@ class Staircase:
 
         plt.savefig(f"{path_figs}/{change_space_to_underscore(name)}.png")
 
-        plt.show()
+        if show:
+            plt.show()
 
     def __round__(self):
         return str(round(self.stimulation * 100))
 
+
 def delay_stimulus_offset_response(lower_bound_delay, higher_bound_delay):
-    delay = np.random.uniform(
-        lower_bound_delay, higher_bound_delay
-    )
+    delay = np.random.uniform(lower_bound_delay, higher_bound_delay)
     time.sleep(delay)
     return delay
+
 
 def choose_staircase(staircases):
     valid_choice = False
     while not valid_choice:
         trial_staircase = random.choice(list(staircases.keys()))
-        if staircases[trial_staircase].reversals == staircases[trial_staircase].total_reversals:
+        if (
+            staircases[trial_staircase].reversals
+            == staircases[trial_staircase].total_reversals
+        ):
             continue
         else:
             valid_choice = True
         return trial_staircase
+
 
 # function to change space to underscore and small letters
 def change_space_to_underscore(string):

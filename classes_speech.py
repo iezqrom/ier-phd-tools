@@ -12,18 +12,22 @@ from failing import *
 ########################################################################
 ## Basics
 
+
 def initConv():
     """
-        Function to initiliase recogniser and microphone
+    Function to initiliase recogniser and microphone
     """
     recognizer = sr.Recognizer()
     microphone = sr.Microphone()
     print("Microphone and recognizer initiliased")
 
     return [recognizer, microphone]
+
+
 def initSpeak():
     engine = pyttsx3.init()
     return engine
+
 
 def speak(engine, text):
     try:
@@ -34,13 +38,15 @@ def speak(engine, text):
     except Exception as e:
         errorloc(e)
 
+
 def say(text):
     try:
         os.system(f"say {text}")
     except Exception as e:
         errorloc(e)
 
-def listenConv(recognizer, microphone, speaker, PROMPT_LIMIT = 5):
+
+def listenConv(recognizer, microphone, speaker, PROMPT_LIMIT=5):
     for j in range(PROMPT_LIMIT):
         speech = recognize_speech_from_mic(recognizer, microphone)
         if speech["transcription"]:
@@ -54,21 +60,25 @@ def listenConv(recognizer, microphone, speaker, PROMPT_LIMIT = 5):
         speak(speaker, listen_again)
     return speech
 
+
 # if there was an error, stop the game
 def error_conv(speech):
     if speech["error"]:
         raise Exception("ERROR: {}".format(speech["error"]))
+
 
 def checkCorrect(speech, word):
     guess_is_correct = speech["transcription"].lower() == word.lower()
 
     return guess_is_correct
 
+
 def sayCorrect(guess_is_correct):
     if guess_is_correct:
         print("Correct.")
     else:
         print("Please. Try again.\n")
+
 
 #################################################################
 ####################### IBM watson ##############################
@@ -96,10 +106,12 @@ except ImportError:
 CHUNK = 1024
 BUF_MAX_SIZE = CHUNK * 10
 
+
 def audioInstance(BUF_MAX_SIZE=BUF_MAX_SIZE, CHUNK=CHUNK):
     q = Queue(maxsize=int(round(BUF_MAX_SIZE / CHUNK)))
     audio_source = AudioSource(q, True, True)
     return [audio_source, q]
+
 
 ###############################################
 #### Prepare Speech to Text Service ########
@@ -107,10 +119,13 @@ def audioInstance(BUF_MAX_SIZE=BUF_MAX_SIZE, CHUNK=CHUNK):
 
 # initialize speech to text service
 def initSpeech2Text():
-    authenticator = IAMAuthenticator('TYpFrLihy3SW0rwX9X81j6MS9i3XyE1kzhWbVqmlYMuH')
+    authenticator = IAMAuthenticator("TYpFrLihy3SW0rwX9X81j6MS9i3XyE1kzhWbVqmlYMuH")
     speech_to_text = SpeechToTextV1(authenticator=authenticator)
-    speech_to_text.set_service_url('https://api.eu-gb.speech-to-text.watson.cloud.ibm.com/instances/c0042364-1a14-4eb3-b499-d9945a8564bc')
+    speech_to_text.set_service_url(
+        "https://api.eu-gb.speech-to-text.watson.cloud.ibm.com/instances/c0042364-1a14-4eb3-b499-d9945a8564bc"
+    )
     return speech_to_text
+
 
 # define callback for the speech to text service
 class MyRecognizeCallback(RecognizeCallback):
@@ -129,16 +144,16 @@ class MyRecognizeCallback(RecognizeCallback):
         pass
 
     def on_connected(self):
-        print('Connection was successful')
+        print("Connection was successful")
 
     def on_error(self, error):
-        print('Error received: {}'.format(error))
+        print("Error received: {}".format(error))
 
     def on_inactivity_timeout(self, error):
-        print('Inactivity timeout: {}'.format(error))
+        print("Inactivity timeout: {}".format(error))
 
     def on_listening(self):
-        print('\nSERVICE IS LISTENING\n')
+        print("\nSERVICE IS LISTENING\n")
 
     def on_hypothesis(self, hypothesis):
         globals.hypothesis = hypothesis
@@ -146,36 +161,38 @@ class MyRecognizeCallback(RecognizeCallback):
         pass
 
     def on_data(self, data):
-        listened = data['results'][0]['alternatives'][0]['transcript']
+        listened = data["results"][0]["alternatives"][0]["transcript"]
         # print(data)
         try:
-            globals.confidence = data['results'][0]['alternatives'][0]['confidence']
+            globals.confidence = data["results"][0]["alternatives"][0]["confidence"]
         except:
             pass
 
-        if any(x in listened for x in ['yes', 'yeah', 'no']):
+        if any(x in listened for x in ["yes", "yeah", "no"]):
             globals.answer = 1
             globals.listened = listened
-            if any(x in globals.listened for x in ['yes', 'yeah']):
+            if any(x in globals.listened for x in ["yes", "yeah"]):
                 globals.answered = 1
                 print(globals.listened)
-            elif any(x in globals.listened for x in ['no']):
+            elif any(x in globals.listened for x in ["no"]):
                 globals.answered = 0
                 print(globals.listened)
 
-
     def on_close(self):
         print("Connection closed")
+
 
 # this function will initiate the recognize service and pass in the AudioSource
 def recognize_yes_no_weboscket(speech_to_text, audio_source, text, *args):
     mycallback = MyRecognizeCallback(text)
     # print('Speech recognition on')
-    speech_to_text.recognize_using_websocket(audio=audio_source,
-                                             content_type='audio/l16; rate=44100',
-                                             recognize_callback=mycallback,
-                                             interim_results=True)
-    print('Speech recognition off')
+    speech_to_text.recognize_using_websocket(
+        audio=audio_source,
+        content_type="audio/l16; rate=44100",
+        recognize_callback=mycallback,
+        interim_results=True,
+    )
+    print("Speech recognition off")
 
 
 ###############################################
@@ -192,10 +209,12 @@ RATE = 44100
 
 # define callback for pyaudio to store the recording in queue
 
+
 def startAudioWatson():
     # instantiate pyaudio
     audio = pyaudio.PyAudio()
     return audio
+
 
 def openStream(audio, q):
     def pyaudio_callback(in_data, frame_count, time_info, status):
@@ -205,7 +224,7 @@ def openStream(audio, q):
             # print(in_data)
             # print('WE ARE HERE')
         except Full:
-            pass # discard
+            pass  # discard
         return (None, pyaudio.paContinue)
 
     stream = audio.open(
@@ -215,10 +234,11 @@ def openStream(audio, q):
         input=True,
         frames_per_buffer=CHUNK,
         stream_callback=pyaudio_callback,
-        start=False
+        start=False,
     )
 
     return stream
+
 
 def terminateSpeechRecognition(stream, audio, audio_source):
 
@@ -228,10 +248,11 @@ def terminateSpeechRecognition(stream, audio, audio_source):
     audio.terminate()
     audio_source.completed_recording()
 
-    print('Speech recognition terminated')
+    print("Speech recognition terminated")
 
 
 ##### Functions of functions
+
 
 def testingSpeechCov(words, repeats):
     recognizer, microphone = initConv()
@@ -276,11 +297,7 @@ def recognize_speech_from_mic(recognizer, microphone):
         audio = recognizer.listen(source)
 
     # set up the response object
-    response = {
-        "success": True,
-        "error": None,
-        "transcription": None
-    }
+    response = {"success": True, "error": None, "transcription": None}
 
     # try recognizing the speech in the recording
     # if a RequestError or UnknownValueError exception is caught,
@@ -296,4 +313,3 @@ def recognize_speech_from_mic(recognizer, microphone):
         response["error"] = "Unable to recognize speech"
 
     return response
-

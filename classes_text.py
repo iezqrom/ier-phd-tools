@@ -543,4 +543,4 @@ def binary_response(question, values={"0": "no", "1": "yes"}):
     # print(response)
     time_response_end = time.time() - time_response_start
 
-    return response, time_response_end
+    return int(response), time_response_end

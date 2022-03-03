@@ -6100,3 +6100,20 @@ def reducegrid(dictionary, list_to_remove):
         reduced_grid[f"{i+1}"] = v
 
     return reduced_grid
+
+
+def findHeight(delta):
+    time_adjust = 0.8
+    slope = -2.2589600000000023
+    intercept = 15.199626666666676
+    height = abs((intercept - delta) / slope) - time_adjust
+    height = round(height, 2)
+    # clamp within range
+    low_bound = 4
+    high_bound = 6.5
+    if height < low_bound:
+        height = low_bound
+    if height > high_bound:
+        height = high_bound
+
+    return height

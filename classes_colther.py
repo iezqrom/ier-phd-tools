@@ -6106,7 +6106,11 @@ def findHeight(delta):
     time_adjust = 0.8
     slope = -2.2589600000000023
     intercept = 15.199626666666676
-    height = abs((intercept - delta) / slope) - time_adjust
+    height = (intercept - delta) / slope - time_adjust
+    if height < 0:
+        height = abs(height)
+    elif height > 0:
+        height = 4
     height = round(height, 2)
     # clamp within range
     low_bound = 4

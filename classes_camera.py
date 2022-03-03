@@ -975,12 +975,14 @@ class TherCam(object):
         output,
         target_delta,
         centreROI,
-        r=20,
-        arduino=None,
-        stimulus=1,
-        total_time_out=12,
-        event_camera=None,
-        event_touch=None,
+        r = 20,
+        arduino = None,
+        stimulus = 1,
+        total_time_out = 12,
+        event_camera = None,
+        event_touch = None,
+        pre_shutter_time_in = 1.01,
+        touch_time_in = 0.01
     ):
         """
         Method function to measure temperature of ROI and trigger action when a given temperature is reached.
@@ -992,7 +994,7 @@ class TherCam(object):
         import matplotlib as mpl
 
         tiff_frameLOCAL = 1
-        f = h5py.File("./{}.hdf5".format(output), "w")
+        f = h5py.File(f"./{output}.hdf5", "w")
         print(f"\nFile to save video initialised\n")
         start = time.time()
         close_shutter_stamp = None
@@ -1000,14 +1002,11 @@ class TherCam(object):
         end = False
         shutter_opened = False
         touched = False
-        globals.stimulus = 4
 
         self.failed_trial = False
 
         post_shutter_time_out = 0.01
-        pre_shutter_time_in = 1.01
         touch_time_out = 1
-        touch_time_in = 0.01
         self.shutter_open_time = None
         xs = np.arange(0, 160)
         ys = np.arange(0, 120)
@@ -1015,7 +1014,7 @@ class TherCam(object):
         diff_buffer = []
         baseline_buffer = []
 
-        globals.delta = 0
+        delta = 0
 
         try:
             while True:
@@ -1040,9 +1039,9 @@ class TherCam(object):
                         if stimulus == 2 or stimulus == 10:
                             self.failed_trial = True
                             print("FAILED stimulation")
-                        globals.stimulus = 4
+                        stimulus = 4
                         print("Close shutter (camera)")
-                        arduino.arduino.write(struct.pack(">B", globals.stimulus))
+                        arduino.arduino.write(struct.pack(">B", stimulus))
                         event_camera.set()
                         close_shutter_stamp = time.time()
                         if event_touch:
@@ -1068,10 +1067,9 @@ class TherCam(object):
                         touched = True
 
                 if momen > pre_shutter_time_in and not end and not shutter_opened:
-                    globals.stimulus = stimulus
                     print("Open shutter (camera)")
                     try:
-                        arduino.arduino.write(struct.pack(">B", globals.stimulus))
+                        arduino.arduino.write(struct.pack(">B", stimulus))
                     except:
                         print("ARDUINO FAILED!")
                     event_camera.set()
@@ -1080,7 +1078,7 @@ class TherCam(object):
                     meand_baseline_buffer = np.mean(baseline_buffer)
                     # print(f'Meaned baseline {meand_baseline_buffer}')
 
-                if globals.stimulus == 2 or globals.stimulus == 10:
+                if stimulus == 2 or stimulus == 10:
                     buffering_time = time.time() - self.shutter_open_time
 
                     if buffering_time < 0.3:
@@ -1104,10 +1102,10 @@ class TherCam(object):
                             ys[:, np.newaxis] - indxdf[0]
                         ) ** 2 < r ** 2
                         roiC = dataC[mask]
-                        globals.temp = round(np.mean(roiC), 2)
+                        temp = round(np.mean(roiC), 2)
 
-                        globals.delta = meand_baseline_buffer - globals.temp
-                        print("Delta: " + str(round(globals.delta, 2)))
+                        globals.delta = meand_baseline_buffer - temp
+                        print("Delta: " + str(round(delta, 2)))
 
                     sROI = 1
 
@@ -1116,27 +1114,26 @@ class TherCam(object):
                         ys[:, np.newaxis] - indx
                     ) ** 2 < r ** 2
                     roiC = dataC[mask]
-                    globals.temp = round(np.mean(roiC), 2)
+                    temp = round(np.mean(roiC), 2)
 
-                    baseline_buffer.append(globals.temp)
+                    baseline_buffer.append(temp)
 
-                    # print('Baseline: ' + str(globals.temp))
                     sROI = 0
 
                     indxdf, indydf = -1, -1
 
                 if (
-                    globals.delta > target_delta
+                    delta > target_delta
                     and not end
                     and shutter_opened
-                    and globals.delta < (target_delta + 0.8)
+                    and delta < (target_delta + 0.8)
                 ):
                     self.shutter_open_time = time.time() - self.shutter_open_time
                     print(f"\nTIME SHUTTER WAS OPEN {self.shutter_open_time}\n")
                     print(f"\nClose shutter (camera)\n")
 
-                    globals.stimulus = 4
-                    arduino.arduino.write(struct.pack(">B", globals.stimulus))
+                    stimulus = 4
+                    arduino.arduino.write(struct.pack(">B", stimulus))
                     close_shutter_stamp = time.time()
 
                     event_camera.set()
@@ -1146,14 +1143,14 @@ class TherCam(object):
                         event_touch.set()
                         touched = False
 
-                if globals.delta > (target_delta + 0.8) and not end and shutter_opened:
+                if delta > (target_delta + 0.8) and not end and shutter_opened:
                     self.shutter_open_time = 0.1
                     print(f"\nDELTA OVERSHOT\n")
                     print(f"\nClose shutter (camera)\n")
                     self.failed_trial = True
 
-                    globals.stimulus = 4
-                    arduino.arduino.write(struct.pack(">B", globals.stimulus))
+                    stimulus = 4
+                    arduino.arduino.write(struct.pack(">B", stimulus))
                     close_shutter_stamp = time.time()
 
                     event_camera.set()
@@ -1162,8 +1159,6 @@ class TherCam(object):
                     if event_touch:
                         event_touch.set()
                         touched = False
-
-                # print(f"Time since shutter closed: {shutter_closed}")
 
                 if end and shutter_closed_time:
                     if shutter_closed_time > post_shutter_time_out:
@@ -1180,12 +1175,12 @@ class TherCam(object):
                 ]
                 datas = [
                     dataC,
-                    [globals.stimulus],
+                    [stimulus],
                     [indx, indy],
                     [momen],
                     [indxdf, indydf],
                     [sROI],
-                    [globals.delta],
+                    [delta],
                 ]
                 saveh5py(names, datas, tiff_frameLOCAL, f)
                 tiff_frameLOCAL += 1

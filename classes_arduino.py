@@ -319,7 +319,7 @@ def shakeShutter(ard, times):
         time.sleep(0.2)
 
 
-def tryexceptArduino(ard, signal, name="Arduino", n_modem=None, usb_port=1):
+def tryexceptArduino(ard, signal):
     try:
         ard.arduino.write(struct.pack(">B", signal))
         print(f"TALKING TO {ard.name}")

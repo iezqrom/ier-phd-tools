@@ -1078,7 +1078,7 @@ class TherCam(object):
                     meand_baseline_buffer = np.mean(baseline_buffer)
                     # print(f'Meaned baseline {meand_baseline_buffer}')
 
-                if stimulus == 2 or stimulus == 10:
+                if stimulus == 2 or stimulus == 10 and self.shutter_open_time:
                     buffering_time = time.time() - self.shutter_open_time
 
                     if buffering_time < 0.3:
@@ -1109,7 +1109,7 @@ class TherCam(object):
 
                     sROI = 1
 
-                elif globals.stimulus == 4 and not end:
+                elif stimulus == 2 or stimulus == 10 and not end:
                     mask = (xs[np.newaxis, :] - indy) ** 2 + (
                         ys[:, np.newaxis] - indx
                     ) ** 2 < r ** 2

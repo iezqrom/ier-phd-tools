@@ -1078,7 +1078,7 @@ class TherCam(object):
                     meand_baseline_buffer = np.mean(baseline_buffer)
                     # print(f'Meaned baseline {meand_baseline_buffer}')
 
-                if stimulus == 2 or stimulus == 10 and self.shutter_open_time:
+                if stimulus == 2 or stimulus == 10 and self.shutter_open_time is not None:
                     buffering_time = time.time() - self.shutter_open_time
 
                     if buffering_time < 0.3:

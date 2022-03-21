@@ -1,20 +1,41 @@
 #!/usr/bin/env python3
-
-### Data structure
-from __future__ import print_function
 import numpy as np
-
 import math
-
 from functools import wraps
+import matplotlib.pyplot as plt
 
+pad_size_label = 20
+pad_size_ticks = 10
+width_lines = 10
+length_ticks = 20
+scatter_size = 300
+alpha_partici = 0.1
+
+nt_color = "#0F4C81"
+t_color = "#B59A48"
+
+def plotParams(colour = "black"):
+    plt.rcParams.update(
+        {
+            "font.size": 40,
+            "axes.labelcolor": f"{colour}",
+            "xtick.color": f"{colour}",
+            "ytick.color": f"{colour}",
+            "font.family": "sans-serif",
+        }
+    )
+
+def removeSpines(ax, sides = ["top", "right"]):
+    for side in sides:
+        ax.spines[side].set_visible(False)
+
+def setSpineWidth(ax, width_lines, length_ticks):
+    ax.yaxis.set_tick_params(width=width_lines, length=length_ticks)
+    ax.xaxis.set_tick_params(width=width_lines, length=length_ticks)
 
 ############################################################################################################
+####### Functions PhD
 ############################################################################################################
-####### Functions
-############################################################################################################
-############################################################################################################
-
 
 def framesToseconds(axis, steps, x):
     """
@@ -84,36 +105,3 @@ def no_right_top_spines(function):
         ax.spines["top"].set_visible(False)
 
     return wrapper
-
-
-################################################################################################################################################
-################################################################################################################################################
-###### Trash
-################################################################################################################################################
-################################################################################################################################################
-def frames_to_seconds(steps=None, data=None):
-    # @wraps(function)
-    def deco(function):
-        @wraps(function)
-        def wrapper(self=None, *args, **kwargs):
-            # print(function)
-            fig, ax = function(self, *args, **kwargs)
-
-            seconds = np.arange(
-                0, round(len(data) / 8.7 * 1, 2), round(10 / 8.7) * steps
-            )
-            frames = np.arange(0, len(data), 8.7 * steps)
-            ax.xaxis.set_ticks(frames)
-
-            labelsx = [item.get_text() for item in ax.get_xticklabels()]
-
-            for j in enumerate(seconds):
-                labelsx[j[0]] = int(j[1])
-
-            ax.set_xticklabels(labelsx)
-            ax.spines["right"].set_visible(False)
-            ax.spines["top"].set_visible(False)
-
-        return wrapper
-
-    return deco

@@ -1015,6 +1015,7 @@ class TherCam(object):
         baseline_buffer = []
 
         delta = 0
+        sROI = 0
 
         try:
             while True:

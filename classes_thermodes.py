@@ -248,7 +248,7 @@ class Thermode(object):
         while True:
             try:
                 self.ao_task.write(volt)
-                break 
+                break
             except Exception as e:
                 print(e)
                 print("We are trying")

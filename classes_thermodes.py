@@ -221,7 +221,9 @@ class Thermode(object):
             len_volt = len(volt)
             raise ("Voltage output has to be an array of minimum 2 values")
 
-        print('Length voltage: {}'.format(len_volt))
+        # print('Length voltage: {}'.format(len_volt))
+
+        # print("rate", self.rate)
 
         self.ai_task = NT.Task()
         self.ai_task.ai_channels.add_ai_voltage_chan(

@@ -85,7 +85,7 @@ class Staircase:
                 print("\nTracking algorithm triggered\n")
 
     def XupYdownFixedStepSizesTrackingAlgorithm(
-        self, move_down, move_up, step_down, step_up, step_first_reversal
+        self, move_down, move_up, step_down, step_up, step_first_reversal = 0
     ):
         """
         Execute tracking algorithm for a stairse X UP / Y DOWN with fixed step sizes (but the length of the steps up and down can be of different size)
@@ -176,6 +176,7 @@ class Staircase:
         pad_size=5,
         lenD=7,
         show=True,
+        colour=None
     ):
         """
         Plot staircase
@@ -194,10 +195,13 @@ class Staircase:
         if not fig and not ax:
             fig, ax = plt.subplots(1)
 
+        if colour is None:
+            colour = "black"
+
         ax.plot(
             list(range(1, len(self.list_stimulations) + 1)),
             self.list_stimulations,
-            color="k",
+            color=colour,
         )
         ax.plot(
             list(range(1, len(self.list_tracked_stimulations) + 1)),
@@ -213,10 +217,10 @@ class Staircase:
         ax.scatter(
             [x + 1 for x in self.list_to_plot[1]["trial"]],
             self.list_to_plot[1]["stimulation"],
-            color="k",
+            color=colour,
         )
 
-        ax.axhline(self.estimated_point, color="k")
+        ax.axhline(self.estimated_point, color=colour)
 
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)

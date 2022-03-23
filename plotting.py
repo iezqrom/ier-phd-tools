@@ -10,6 +10,7 @@ width_lines = 10
 length_ticks = 20
 scatter_size = 300
 alpha_partici = 0.1
+width_participants = 6
 
 nt_color = "#0F4C81"
 t_color = "#B59A48"
@@ -29,9 +30,19 @@ def removeSpines(ax, sides = ["top", "right"]):
     for side in sides:
         ax.spines[side].set_visible(False)
 
-def setSpineWidth(ax, width_lines, length_ticks):
+def setTickShape(ax, width_lines, length_ticks):
     ax.yaxis.set_tick_params(width=width_lines, length=length_ticks)
     ax.xaxis.set_tick_params(width=width_lines, length=length_ticks)
+
+def setSpinesWidth(ax, width_lines):
+    ax.spines["left"].set_linewidth(width_lines)
+    ax.spines["bottom"].set_linewidth(width_lines)
+
+def setTicksPad(ax, gap):
+    ax.tick_params(axis="y", which="major", pad=gap)
+    ax.tick_params(axis="x", which="major", pad=gap)
+
+
 
 ############################################################################################################
 ####### Functions PhD

@@ -6,22 +6,22 @@ import numpy as np
 Z = norm.ppf
 
 
-def tableTosdtDoble(table, num_sdt):
+def tableTosdtDoble(table, num_sdt, name_response = "responses"):
     table_single_sdt = table.loc[table["touch"] == num_sdt]
 
     table_cold = table_single_sdt.loc[table_single_sdt["cold"] == 1]
     table_nocold = table_single_sdt.loc[table_single_sdt["cold"] == 0]
 
-    present_yes = table_cold.loc[table_cold["responses"] == 1]
-    present_no = table_cold.loc[table_cold["responses"] == 0]
+    present_yes = table_cold.loc[table_cold[name_response] == 1]
+    present_no = table_cold.loc[table_cold[name_response] == 0]
 
-    absent_yes = table_nocold.loc[table_nocold["responses"] == 1]
-    absent_no = table_nocold.loc[table_nocold["responses"] == 0]
+    absent_yes = table_nocold.loc[table_nocold[name_response] == 1]
+    absent_no = table_nocold.loc[table_nocold[name_response] == 0]
 
     return present_yes, present_no, absent_yes, absent_no
 
 
-def correctPercSDT(subtables):
+def correctPercSDT(subtables, name_response = "responses"):
     out = {}
 
     present_yes = subtables[0]
@@ -29,14 +29,14 @@ def correctPercSDT(subtables):
     absent_yes = subtables[2]
     absent_no = subtables[3]
 
-    out["hits"] = len(present_yes.loc[:, "responses"])
-    out["misses"] = len(present_no.loc[:, "responses"])
+    out["hits"] = len(present_yes.loc[:, name_response])
+    out["misses"] = len(present_no.loc[:, name_response])
 
-    out["fas"] = len(absent_yes.loc[:, "responses"])
-    out["crs"] = len(absent_no.loc[:, "responses"])
+    out["fas"] = len(absent_yes.loc[:, name_response])
+    out["crs"] = len(absent_no.loc[:, name_response])
 
-    out["correc_present"] = out["hits"] / sum([out["hits"], out["misses"]])
-    out["correc_absent"] = out["crs"] / sum([out["crs"], out["fas"]])
+    out["correc_present"] = round(out["hits"] / sum([out["hits"], out["misses"]]), 3)
+    out["correc_absent"] = round(out["crs"] / sum([out["crs"], out["fas"]]), 3)
 
     return out
 

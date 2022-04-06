@@ -273,7 +273,7 @@ class Thermode(object):
         except Exception as e:
             print(e)
 
-    def method_of_limits(self, direction):
+    def method_of_limits(self, direction, beep = None):
         """
         Method of Zaber (object) to find thresholds with method of limits strategy.
 
@@ -300,7 +300,7 @@ class Thermode(object):
             len_volt = len(volt)
             raise ("Voltage output has to be an array of minimum 2 values")
 
-        def ramp_loop(volt, len_volt, dev, Ao, rate):
+        def ramp_loop(volt, len_volt, dev, Ao, rate, beep):
             self.ao_task = NT.Task()
             self.ao_task.ao_channels.add_ao_voltage_chan("/{}/{}".format(dev, Ao))
             self.ao_task.timing.cfg_samp_clk_timing(
@@ -323,15 +323,15 @@ class Thermode(object):
             self.ao_task.start()
 
             while True:
-                # print("looping")
                 if keyboard.is_pressed("space"):
+                    if beep:
+                        beep.stop()
+
                     self.ao_task.close()
                     self.readTemp()
                     break
 
-            # self.ao_task.wait_until_done(timeout = 50)
-
-        ramp_loop(self.volt, len_volt, self.dev, self.Ao, self.rate)
+        ramp_loop(self.volt, len_volt, self.dev, self.Ao, self.rate, beep)
 
     ##### Working progress
     def adjust_single(self, start_temp, target_temp):

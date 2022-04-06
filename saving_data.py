@@ -76,7 +76,7 @@ def setSubjNumDec(age, numdaywithin, situ, file="subjs.csv"):
 
     t = time.localtime()
     time_now = time.strftime("%H_%M_%S", t)
-    todaydate = date.today().strftime("%d%m%Y")
+    todaydate = date.today().strftime("%Y%m%d")
 
     if situ == "tb":
         state = 0
@@ -187,7 +187,7 @@ def changeNameTempFile(path, outcome="failed"):
     names = findTempFiles(path)
     t = time.localtime()
     time_now = time.strftime("%H_%M_%S", t)
-    todaydate = date.today().strftime("%d%m%Y")
+    todaydate = date.today().strftime("%Y%m%d")
     for i, n in enumerate(names):
         temp_file_name = n[0].split("temp_", 1)[1]
         shutil.copyfile(
@@ -606,14 +606,14 @@ def folderData(backs):
 
 def numberSubjDay(testing="n"):
     if testing == "y":
-        head_folder_name = "test"
+        head_folder_name = "ex"
 
     elif testing == "n":
         head_folder_name = "tb"
 
     backwards = depthToSrc()
 
-    todaydate = date.today().strftime("%d%m%Y")
+    todaydate = date.today().strftime("%Y%m%d")
     folder_name = f"{head_folder_name}_" + todaydate + "_"
 
     patternf = re.compile(folder_name)
@@ -645,13 +645,13 @@ def folderTesting(path, testing, numdaysubj=None, existing_folder_name=None):
     If the folder does't exist it is created automatically
     """
     if testing == "y":
-        head_folder_name = "test"
+        head_folder_name = "ex"
 
     elif testing == "n":
         head_folder_name = "tb"
 
     if not existing_folder_name:
-        todaydate = date.today().strftime("%d%m%Y")
+        todaydate = date.today().strftime("%Y%m%d")
         folder_name = head_folder_name + "_" + todaydate + "_" + str(numdaysubj)
         path = path + "/" + folder_name
     else:
@@ -747,7 +747,7 @@ def rm_mk_folder_name(path_day):
 #################################################################
 
 
-def setSubjNum(file_pattern="data_subj_(.*).csv", folder_pattern="test_(.)"):
+def setSubjNum(file_pattern="data_subj_(.*).csv", folder_pattern="ex_(.)"):
     """
     Function to set the number of the subject automatically
     """
@@ -797,7 +797,7 @@ def txtToVar(path, file):
 def create_temp_name(name):
     t = time.localtime()
     time_now = time.strftime("%H_%M_%S", t)
-    todaydate = date.today().strftime("%d%m%Y")
+    todaydate = date.today().strftime("%Y%m%d")
     name_temp_file = f"{name}_temp_{time_now}_{todaydate}"
     return name_temp_file
 

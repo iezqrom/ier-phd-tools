@@ -5,15 +5,9 @@ import globals
 
 ##### OTHERS' CODE
 import numpy as np
-import time
 import math
 import wave
 
-try:
-    import winsound
-except:
-    pass
-    # print('This is not a Windows device')
 import simpleaudio as sa
 
 

@@ -108,29 +108,15 @@ class Staircase:
                 self.tracker = 0
         else:
             if self.direction == "down":
-                if self.response == 1 and self.rules_direction == 1:
+                if self.response == 1:
                     self.tracked_stimulation = (
                         self.tracked_stimulation - step_first_reversal
                     )
-                elif self.response == 0 and self.rules_direction == 1:
+                elif self.response == 0:
                     self.tracked_stimulation = (
                         self.tracked_stimulation + step_first_reversal
                     )
                     self.first_ramp = False
-                    # self.force_reverse = True
-                    # print("down 1")
-
-                elif self.response == 1 and self.rules_direction == 0:
-                    self.tracked_stimulation = (
-                        self.tracked_stimulation + step_first_reversal
-                    )
-                    self.first_ramp = False
-                    # self.force_reverse = True
-                    # print("down 2")
-                elif self.response == 0 and self.rules_direction == 0:
-                    self.tracked_stimulation = (
-                        self.tracked_stimulation - step_first_reversal
-                    )
 
             elif self.direction == "up":
                 if self.response == 0:
@@ -142,8 +128,6 @@ class Staircase:
                         self.tracked_stimulation - step_first_reversal
                     )
                     self.first_ramp = False
-                    # self.force_reverse = True
-                    # print("up 1")
 
     def clampBoundary(self, lower_boundary, upper_boundary):
         """

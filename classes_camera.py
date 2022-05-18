@@ -65,8 +65,7 @@ except:
 
 import struct
 
-# from classes_colther import *
-
+from classes_text import printme
 
 def py_frame_callback(frame, userptr):
 
@@ -330,17 +329,21 @@ class TherCam(object):
         print('Press "t" to take a thermal pic.')
 
         import matplotlib as mpl
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-        mpl.rc("image", cmap="hot")
+        mpl.rc("image", cmap="coolwarm")
 
         global dev
         global devh
         global tiff_frame
+        pressed = False
 
         fig = plt.figure()
         ax = plt.axes()
+        div = make_axes_locatable(ax)
+        cax = div.append_axes('right', '5%', '5%')
 
-        fig.tight_layout()
+        # fig.tight_layout()
 
         dummy = np.zeros([120, 160])
 
@@ -351,7 +354,7 @@ class TherCam(object):
             vmax=self.vmaxT,
             animated=True,
         )
-        fig.colorbar(img)
+        fig.colorbar(img, cax=cax)
 
         try:
             while True:
@@ -371,40 +374,54 @@ class TherCam(object):
                 ax.spines["right"].set_visible(False)
                 ax.spines["left"].set_visible(False)
                 ax.spines["bottom"].set_visible(False)
-                ax.imshow(data, vmin=self.vminT, vmax=self.vmaxT)
+
+                img = ax.imshow(data, vmin=self.vminT, vmax=self.vmaxT)
+                fig.colorbar(img, cax=cax)
 
                 plt.pause(0.0005)
 
                 if keyboard.is_pressed("r"):
-                    print("Manual FFC")
-                    perform_manual_ffc(devh)
-                    print_shutter_info(devh)
+                    if not pressed:
+                        print("Manual FFC")
+                        perform_manual_ffc(devh)
+                        print_shutter_info(devh)
+                        pressed = True
 
-                if keyboard.is_pressed("t"):
-                    try:
-                        now = datetime.now()
-                        dt_string = now.strftime("day_%d_%m_%Y_time_%H_%M_%S")
-                        print(dt_string)
-                        f = h5py.File("{}/{}.hdf5".format(self.pathset, dt_string), "w")
-                        f.create_dataset("image", data=data)
-                        f = None
+                elif keyboard.is_pressed("t"):
+                    if not pressed:
+                        try:
+                            now = datetime.now()
+                            dt_string = now.strftime("day_%d_%m_%Y_time_%H_%M_%S")
+                            printme(dt_string)
+                            f = h5py.File(f"{self.pathset}/{dt_string}.hdf5", "w")
+                            f.create_dataset("image", data=data)
+                            f = None
+                            printme('Thermal pic saved as hdf5')
+                            if self.png:
+                                plt.imsave(f'{self.pathset}/{dt_string}.png', data, vmin=self.vminT, vmax=self.vmaxT)
 
-                    except Exception as e:
-                        print(e)
-                        print("There isn't a set path!")
+                        except Exception as e:
+                            print(e)
+                            print("There isn't a set path!")
 
-                if keyboard.is_pressed("e"):
-                    cv2.destroyAllWindows()
-                    frame = 1
-                    print("We are done")
-                    break
+                    pressed = True
+
+                elif keyboard.is_pressed("e"):
+                    if not pressed:
+                        cv2.destroyAllWindows()
+                        print("We are done")
+                        break
+
+                else:
+                    pressed = False
 
         except Exception as e:
             print(e)
             libuvc.uvc_stop_streaming(devh)
 
-    def setPathName(self, path):
+    def setPathName(self, path, png=False):
         self.pathset = path
+        self.png = png
 
     def PIDROI(self, output, event1, r=20, arduino=None):
         """

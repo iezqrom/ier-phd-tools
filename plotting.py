@@ -14,7 +14,7 @@ width_participants = 6
 
 nt_color = "#0F4C81"
 t_color = "#B59A48"
-
+degree_sign = u'\N{DEGREE SIGN}'
 def plotParams(colour = "black"):
     plt.rcParams.update(
         {

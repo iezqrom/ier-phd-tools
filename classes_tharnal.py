@@ -29,6 +29,7 @@ class ReAnRaw(object):
         self.parameters = list(set(self.parameters))
 
         self.data = {}
+        self.metadata = {}
 
         for p in self.parameters:
             self.data[p] = []
@@ -53,7 +54,7 @@ class ReAnRaw(object):
     def attrstoDic(self):
         "Transform videos attributes into a dictionary"
         for attribute_key in self.read.attrs.keys():
-            self.data[attribute_key] = self.read.attrs[attribute_key]
+            self.metadata[attribute_key] = self.read.attrs[attribute_key]
 
     def extractOpenClose(self, name):
         shus = np.asarray(self.data[name])

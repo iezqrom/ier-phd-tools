@@ -273,7 +273,7 @@ class Thermode(object):
         except Exception as e:
             print(e)
 
-    def method_of_limits(self, direction, beep = None):
+    def method_of_limits(self, direction, callback = None):
         """
         Method of Zaber (object) to find thresholds with method of limits strategy.
 
@@ -324,8 +324,8 @@ class Thermode(object):
 
             while True:
                 if keyboard.is_pressed("space"):
-                    if beep:
-                        beep.stop()
+                    if callback is not None:
+                        callback()
 
                     self.ao_task.close()
                     self.readTemp()

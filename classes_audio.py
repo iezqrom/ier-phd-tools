@@ -29,7 +29,7 @@ class Sound(object):
         # Convert to 16-bit data
         self.audio = self.audio.astype(np.int16)
 
-        print(f"\nObject audio initiliased\n")
+        print(f"\nObject audio initiliased with length {len(self.audio)}\n")
 
     def play(self, event=None):
         try:

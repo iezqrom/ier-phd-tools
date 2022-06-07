@@ -325,7 +325,10 @@ class Thermode(object):
             while True:
                 if keyboard.is_pressed("space"):
                     if beep:
-                        beep.stop()
+                        try:
+                            beep.stop()
+                        except:
+                            beep.play()
 
                     self.ao_task.close()
                     self.readTemp()

@@ -79,7 +79,7 @@ class grabPorts(object):
 
             elif num_ards > 1:
                 self.arduino_ports = []
-                for i in np.arange(len(n_ards)):
+                for i in np.arange(len(num_ards)):
                     self.arduino_ports.append(
                         [
                             s

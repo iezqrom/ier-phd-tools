@@ -95,6 +95,54 @@ y_vals = intercept + slope * np.asarray(zebers) + (33 - ends[-1])
 zebers_inter = np.arange(220000, 140000, -150)
 y_vals_inter = intercept + slope * zebers_inter + (33 - ends[-1])
 
+default_rules = {
+    "colther": {"x": True, "y": True, "z": True},
+    "camera": {"x": False, "y": True, "z": True},
+    "tactile": {"x": False, "y": True, "z": True},
+}
+
+default_grid = {"colther": None, "camera": None, "tactile": None}
+
+default_ROIs = {}
+
+default_amount = 10000
+
+default_haxes = {
+    "colther": ["z", "x", "y"],
+    "camera": ["x", "z", "y"],
+    "tactile": ["y", "x", "z"],
+}
+
+default_touch_z_offset = 52494
+
+default_PanTilts = {
+    "1": (37, 84, 66),
+    "2": (24, 101, 48),
+    "3": (29, 83, 61),
+    "4": (39, 95, 63),
+    "5": (31, 97, 57),
+}
+
+default_step_sizes = {"colther": 0.49609375, "camera": 0.1905, "tactile": 0.1905}
+
+default_positions = {
+    "colther": {"x": 233126, "y": 106874, "z": 0},
+    "camera": {"x": 49507, "y": 535098, "z": 287000},
+    "tactile": {"x": 336000, "y": 380000, "z": 270000},
+}
+
+zaber_models_default = {
+    "colther": {"x": "end_X-LSQ150B", "y": "end_A-LSQ150B", "z": "end_A-LSQ150B"},
+    "camera": {"x": "end_LSM100B-T4", "y": "end_LSM200B-T4", "z": "end_LSM100B-T4"},
+    "tactile": {"x": "end_LSM100B-T4", "y": "end_LSM200B-T4", "z": "end_LSM100B-T4"},
+}
+
+zaber_models_end_default = {
+    "end_X-LSQ150B": 305381,
+    "end_A-LSQ150B": 305381,
+    "end_LSM100B-T4": 533333,
+    "end_LSM200B-T4": 1066667,
+}
 
 ################################################################################################################
 ################################################################################################################
@@ -163,7 +211,7 @@ class Zaber(grabPorts):
                 print("\n Only r, l and e are valid answers")
                 continue
 
-    def manualCon1(self, devices):
+    def manualCon1(self, devices, rules = default_rules):
         """
         Method for Object Zaber to move 3 axes in ONE zaber with keyboard presses.
         Like a game!
@@ -179,14 +227,14 @@ class Zaber(grabPorts):
                         device["y"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
                     except:
                         device["y"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
 
@@ -195,14 +243,14 @@ class Zaber(grabPorts):
                         device["y"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
                     except:
                         device["y"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
 
@@ -213,14 +261,14 @@ class Zaber(grabPorts):
                         device["x"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
                     except:
                         device["x"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
 
@@ -229,14 +277,14 @@ class Zaber(grabPorts):
                         device["x"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
                     except:
                         device["x"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
 
@@ -246,14 +294,14 @@ class Zaber(grabPorts):
                         device["z"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         device["z"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -262,14 +310,14 @@ class Zaber(grabPorts):
                         device["z"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         device["z"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -300,11 +348,11 @@ class Zaber(grabPorts):
                     except:
                         posZ = device[0].device.send("/get pos")
 
-                    globals.positions[globals.current_device][0] = int(posX.data)
-                    globals.positions[globals.current_device][1] = int(posY.data)
-                    globals.positions[globals.current_device][2] = int(posZ.data)
+                    default_positions[globals.current_device][0] = int(posX.data)
+                    default_positions[globals.current_device][1] = int(posY.data)
+                    default_positions[globals.current_device][2] = int(posZ.data)
 
-                    # logging.info(globals.positions)
+                    # logging.info(default_positions)
 
                 else:
                     continue
@@ -312,7 +360,7 @@ class Zaber(grabPorts):
         except Exception as e:
             print(e)
 
-    def manualCon1Measure(self, devices, device, rules=globals.rules):
+    def manualCon1Measure(self, devices, device, rules=default_rules):
         """
         Method for Object Zaber to move 3 axes in ONE zaber with keyboard presses.
         Like a game!
@@ -328,22 +376,22 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         try:
                             devices[device]["y"].move_rel(
-                                0 - revDirection(device, "y", rules, globals.amount)
+                                0 - revDirection(device, "y", rules, default_amount)
                             )
                         except:
                             devices[device]["y"].device.move_rel(
-                                0 - revDirection(device, "y", rules, globals.amount)
+                                0 - revDirection(device, "y", rules, default_amount)
                             )
 
                 elif keyboard.is_pressed("down"):
                     if not was_pressed:
                         try:
                             devices[device]["y"].move_rel(
-                                0 + revDirection(device, "y", rules, globals.amount)
+                                0 + revDirection(device, "y", rules, default_amount)
                             )
                         except:
                             devices[device]["y"].device.move_rel(
-                                0 + revDirection(device, "y", rules, globals.amount)
+                                0 + revDirection(device, "y", rules, default_amount)
                             )
 
                 elif keyboard.is_pressed("1"):
@@ -362,11 +410,11 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         try:
                             devices[device]["x"].move_rel(
-                                0 - revDirection(device, "x", rules, globals.amount)
+                                0 - revDirection(device, "x", rules, default_amount)
                             )
                         except:
                             devices[device]["x"].device.move_rel(
-                                0 - revDirection(device, "x", rules, globals.amount)
+                                0 - revDirection(device, "x", rules, default_amount)
                             )
 
                         was_pressed = True
@@ -375,11 +423,11 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         try:
                             devices[device]["x"].move_rel(
-                                0 + revDirection(device, "x", rules, globals.amount)
+                                0 + revDirection(device, "x", rules, default_amount)
                             )
                         except:
                             devices[device]["x"].device.move_rel(
-                                0 + revDirection(device, "x", rules, globals.amount)
+                                0 + revDirection(device, "x", rules, default_amount)
                             )
 
                         was_pressed = True
@@ -389,11 +437,11 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         try:
                             devices[device]["z"].move_rel(
-                                0 + revDirection(device, "z", rules, globals.amount)
+                                0 + revDirection(device, "z", rules, default_amount)
                             )
                         except:
                             devices[device]["z"].device.move_rel(
-                                0 + revDirection(device, "z", rules, globals.amount)
+                                0 + revDirection(device, "z", rules, default_amount)
                             )
 
                         was_pressed = True
@@ -402,11 +450,11 @@ class Zaber(grabPorts):
                     if not was_pressed:
                         try:
                             devices[device]["z"].move_rel(
-                                0 - revDirection(device, "z", rules, globals.amount)
+                                0 - revDirection(device, "z", rules, default_amount)
                             )
                         except:
                             devices[device]["z"].device.move_rel(
-                                0 - revDirection(device, "z", rules, globals.amount)
+                                0 - revDirection(device, "z", rules, default_amount)
                             )
 
                         was_pressed = True
@@ -458,7 +506,7 @@ class Zaber(grabPorts):
         except Exception as e:
             print(e)
 
-    def manualCon2(self, devices, arduino=None, home="y", rules=globals.rules):
+    def manualCon2(self, devices, arduino=None, home="y", rules=default_rules):
         """
         Method for Object Zabers to move the three axes of TWO zabers with keyboard presses.
         Like a game!
@@ -486,14 +534,14 @@ class Zaber(grabPorts):
                         device["y"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
                     except:
                         device["y"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
 
@@ -502,14 +550,14 @@ class Zaber(grabPorts):
                         device["y"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
                     except:
                         device["y"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
 
@@ -520,14 +568,14 @@ class Zaber(grabPorts):
                         device["x"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
                     except:
                         device["x"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
 
@@ -536,14 +584,14 @@ class Zaber(grabPorts):
                         device["x"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
                     except:
                         device["x"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
 
@@ -553,14 +601,14 @@ class Zaber(grabPorts):
                         device["z"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         device["z"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -569,14 +617,14 @@ class Zaber(grabPorts):
                         device["z"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         device["z"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -588,7 +636,7 @@ class Zaber(grabPorts):
 
                 ### TERMINATE
                 elif keyboard.is_pressed("e"):
-                    vars = [globals.centreROI, globals.positions]
+                    vars = [globals.centreROI, default_positions]
                     if all(v is not None for v in vars) and home == "n":
                         print("Terminating Zaber game \n")
                         break
@@ -598,7 +646,7 @@ class Zaber(grabPorts):
                         break
                     else:
                         print("You are missing something...")
-                        print(globals.centreROI, globals.positions)
+                        print(globals.centreROI, default_positions)
 
                 #### GET POSITION
 
@@ -620,12 +668,12 @@ class Zaber(grabPorts):
                         except:
                             posZ = device["z"].device.send("/get pos")
 
-                        globals.positions[globals.current_device]["x"] = int(posX.data)
-                        globals.positions[globals.current_device]["y"] = int(posY.data)
-                        globals.positions[globals.current_device]["z"] = int(posZ.data)
+                        default_positions[globals.current_device]["x"] = int(posX.data)
+                        default_positions[globals.current_device]["y"] = int(posY.data)
+                        default_positions[globals.current_device]["z"] = int(posZ.data)
 
-                        print(globals.positions)
-                        # logging.info(globals.positions)
+                        print(default_positions)
+                        # logging.info(default_positions)
                         was_pressed = True
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
@@ -673,7 +721,7 @@ class Zaber(grabPorts):
                 arduino.arduino.write(struct.pack(">B", stimulus))
 
     def manualCon3(
-        self, devices, arduino=None, home="y", rules=globals.rules, end_button="e"
+        self, devices, arduino=None, home="y", rules=default_rules, end_button="e"
     ):
         """
         Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
@@ -703,14 +751,14 @@ class Zaber(grabPorts):
                         response = device["y"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
                     except:
                         response = device["y"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
 
@@ -719,9 +767,9 @@ class Zaber(grabPorts):
                         device,
                         "y",
                         globals.current_device,
-                        globals.amount,
-                        globals.zaber_models,
-                        globals.zaber_models_end,
+                        default_amount,
+                        zaber_models_default,
+                        zaber_models_end_default,
                     )
 
                 elif keyboard.is_pressed("down"):
@@ -729,14 +777,14 @@ class Zaber(grabPorts):
                         response = device["y"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
                     except:
                         response = device["y"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "y", rules, globals.amount
+                                globals.current_device, "y", rules, default_amount
                             )
                         )
 
@@ -745,9 +793,9 @@ class Zaber(grabPorts):
                         device,
                         "y",
                         globals.current_device,
-                        globals.amount,
-                        globals.zaber_models,
-                        globals.zaber_models_end,
+                        default_amount,
+                        zaber_models_default,
+                        zaber_models_end_default,
                     )
 
                 #### X axis
@@ -757,14 +805,14 @@ class Zaber(grabPorts):
                         response = device["x"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
                     except:
                         response = device["x"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
 
@@ -773,9 +821,9 @@ class Zaber(grabPorts):
                         device,
                         "x",
                         globals.current_device,
-                        globals.amount,
-                        globals.zaber_models,
-                        globals.zaber_models_end,
+                        default_amount,
+                        zaber_models_default,
+                        zaber_models_end_default,
                     )
 
                 elif keyboard.is_pressed("right"):
@@ -783,14 +831,14 @@ class Zaber(grabPorts):
                         response = device["x"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
                     except:
                         response = device["x"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "x", rules, globals.amount
+                                globals.current_device, "x", rules, default_amount
                             )
                         )
 
@@ -799,9 +847,9 @@ class Zaber(grabPorts):
                         device,
                         "x",
                         globals.current_device,
-                        globals.amount,
-                        globals.zaber_models,
-                        globals.zaber_models_end,
+                        default_amount,
+                        zaber_models_default,
+                        zaber_models_end_default,
                     )
 
                 ### Z axis
@@ -810,14 +858,14 @@ class Zaber(grabPorts):
                         response = device["z"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         response = device["z"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -826,9 +874,9 @@ class Zaber(grabPorts):
                         device,
                         "z",
                         globals.current_device,
-                        globals.amount,
-                        globals.zaber_models,
-                        globals.zaber_models_end,
+                        default_amount,
+                        zaber_models_default,
+                        zaber_models_end_default,
                     )
 
                 elif keyboard.is_pressed("u"):
@@ -836,14 +884,14 @@ class Zaber(grabPorts):
                         response = device["z"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         response = device["z"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -852,24 +900,24 @@ class Zaber(grabPorts):
                         device,
                         "z",
                         globals.current_device,
-                        globals.amount,
-                        globals.zaber_models,
-                        globals.zaber_models_end,
+                        default_amount,
+                        zaber_models_default,
+                        zaber_models_end_default,
                     )
 
                 elif keyboard.is_pressed("5"):
                     if not was_pressed:
-                        globals.amount = 10000
+                        default_amount = 10000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 1000
+                        default_amount = 1000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 500
+                        default_amount = 500
                         was_pressed = True
 
                 elif keyboard.is_pressed("o"):  # Open Arduino shutter
@@ -890,7 +938,7 @@ class Zaber(grabPorts):
 
                 ### TERMINATE
                 elif keyboard.is_pressed(f"{end_button}"):
-                    vars = [globals.centreROI, globals.positions]
+                    vars = [globals.centreROI, default_positions]
                     if all(v is not None for v in vars) and home == "n":
                         print("Terminating Zaber game \n")
                         break
@@ -900,7 +948,7 @@ class Zaber(grabPorts):
                         break
                     else:
                         print("You are missing something...")
-                        print(globals.centreROI, globals.positions)
+                        print(globals.centreROI, default_positions)
 
                 #### GET POSITION
 
@@ -922,12 +970,12 @@ class Zaber(grabPorts):
                         except:
                             posZ = device["z"].device.send("/get pos")
 
-                        globals.positions[globals.current_device]["x"] = int(posX.data)
-                        globals.positions[globals.current_device]["y"] = int(posY.data)
-                        globals.positions[globals.current_device]["z"] = int(posZ.data)
+                        default_positions[globals.current_device]["x"] = int(posX.data)
+                        default_positions[globals.current_device]["y"] = int(posY.data)
+                        default_positions[globals.current_device]["z"] = int(posZ.data)
 
-                        printme(globals.positions[globals.current_device])
-                        # logging.info(globals.positions)
+                        printme(default_positions[globals.current_device])
+                        # logging.info(default_positions)
                         was_pressed = True
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
@@ -961,7 +1009,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("a"):
                     if not was_pressed:
-                        globals.amount = changeAmount("a")
+                        default_amount = changeAmount("a")
 
                         was_pressed = True
 
@@ -980,7 +1028,7 @@ class Zaber(grabPorts):
         ardpantilt,
         arduino=None,
         home="y",
-        rules=globals.rules,
+        rules=default_rules,
         end_button="e",
     ):
         """
@@ -1017,14 +1065,14 @@ class Zaber(grabPorts):
                             response = device["y"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
                         except:
                             response = device["y"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
 
@@ -1033,9 +1081,9 @@ class Zaber(grabPorts):
                             device,
                             "y",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("down"):
@@ -1047,14 +1095,14 @@ class Zaber(grabPorts):
                             response = device["y"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
                         except:
                             response = device["y"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
 
@@ -1063,9 +1111,9 @@ class Zaber(grabPorts):
                             device,
                             "y",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("right"):
@@ -1077,14 +1125,14 @@ class Zaber(grabPorts):
                             response = device["x"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
                         except:
                             response = device["x"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
 
@@ -1093,9 +1141,9 @@ class Zaber(grabPorts):
                             device,
                             "x",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("left"):
@@ -1107,14 +1155,14 @@ class Zaber(grabPorts):
                             response = device["x"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
                         except:
                             response = device["x"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
 
@@ -1123,9 +1171,9 @@ class Zaber(grabPorts):
                             device,
                             "x",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("u"):
@@ -1137,14 +1185,14 @@ class Zaber(grabPorts):
                             response = device["z"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
                         except:
                             response = device["z"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
 
@@ -1153,9 +1201,9 @@ class Zaber(grabPorts):
                             device,
                             "z",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("d"):
@@ -1167,14 +1215,14 @@ class Zaber(grabPorts):
                             response = device["z"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
                         except:
                             response = device["z"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
 
@@ -1183,24 +1231,24 @@ class Zaber(grabPorts):
                             device,
                             "z",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("5"):
                     if not was_pressed:
-                        globals.amount = 10000
+                        default_amount = 10000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 1000
+                        default_amount = 1000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 500
+                        default_amount = 500
                         was_pressed = True
 
                 elif keyboard.is_pressed("o"):  # Open Arduino shutter
@@ -1221,7 +1269,7 @@ class Zaber(grabPorts):
 
                 ### TERMINATE
                 elif keyboard.is_pressed(f"{end_button}"):
-                    vars = [globals.centreROI, globals.positions]
+                    vars = [globals.centreROI, default_positions]
                     if all(v is not None for v in vars) and home == "n":
                         print("Terminating Zaber game \n")
                         break
@@ -1231,7 +1279,7 @@ class Zaber(grabPorts):
                         break
                     else:
                         print("You are missing something...")
-                        print(globals.centreROI, globals.positions)
+                        print(globals.centreROI, default_positions)
 
                 #### GET POSITION
                 elif keyboard.is_pressed("p"):
@@ -1252,12 +1300,12 @@ class Zaber(grabPorts):
                         except:
                             posZ = device["z"].device.send("/get pos")
 
-                        globals.positions[globals.current_device]["x"] = int(posX.data)
-                        globals.positions[globals.current_device]["y"] = int(posY.data)
-                        globals.positions[globals.current_device]["z"] = int(posZ.data)
+                        default_positions[globals.current_device]["x"] = int(posX.data)
+                        default_positions[globals.current_device]["y"] = int(posY.data)
+                        default_positions[globals.current_device]["z"] = int(posZ.data)
 
-                        printme(globals.positions[globals.current_device])
-                        # logging.info(globals.positions)
+                        printme(default_positions[globals.current_device])
+                        # logging.info(default_positions)
                         was_pressed = True
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
@@ -1292,7 +1340,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("a"):
                     if not was_pressed:
-                        globals.amount = changeAmount("a")
+                        default_amount = changeAmount("a")
 
                         was_pressed = True
 
@@ -1310,11 +1358,11 @@ class Zaber(grabPorts):
         devices,
         arduino=None,
         home="y",
-        grid=globals.grid,
-        rois=globals.ROIs,
-        rules=globals.rules,
-        amount=globals.amount,
-        haxes=globals.haxes,
+        grid=default_grid,
+        rois=default_ROIs,
+        rules=default_rules,
+        amount=default_amount,
+        haxes=default_haxes,
     ):
         """
         Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
@@ -1358,7 +1406,7 @@ class Zaber(grabPorts):
 
                 ### TERMINATE
                 elif keyboard.is_pressed("e"):
-                    vars = [globals.centreROI, globals.positions]
+                    vars = [globals.centreROI, default_positions]
                     if all(v is not None for v in vars) and home == "n":
                         printme("Terminating Zaber game")
                         break
@@ -1368,7 +1416,7 @@ class Zaber(grabPorts):
                         break
                     else:
                         print("You are missing something...")
-                        print(globals.centreROI, globals.positions)
+                        print(globals.centreROI, default_positions)
 
                 elif keyboard.is_pressed("d"):  # Open Arduino shutter
                     if not was_pressed:
@@ -1493,9 +1541,9 @@ class Zaber(grabPorts):
         current_device,
         current_roi="1",
         home="y",
-        grid=globals.grid,
-        haxes=globals.haxes,
-        rules=globals.rules,
+        grid=default_grid,
+        haxes=default_haxes,
+        rules=default_rules,
     ):
         was_pressed = False
 
@@ -1511,8 +1559,8 @@ class Zaber(grabPorts):
                     if (
                         not any(
                             [
-                                globals.grid[current_device][x]["z"] == 0
-                                for x in globals.grid[current_device]
+                                default_grid[current_device][x]["z"] == 0
+                                for x in default_grid[current_device]
                             ]
                         )
                         and home == "y"
@@ -1526,8 +1574,8 @@ class Zaber(grabPorts):
                     elif (
                         not any(
                             [
-                                globals.grid[current_device][x]["z"] == 0
-                                for x in globals.grid[current_device]
+                                default_grid[current_device][x]["z"] == 0
+                                for x in default_grid[current_device]
                             ]
                         )
                         and home == "n"
@@ -1544,14 +1592,14 @@ class Zaber(grabPorts):
                         devices[current_device]["z"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         devices[current_device]["z"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -1560,14 +1608,14 @@ class Zaber(grabPorts):
                         devices[current_device]["z"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         devices[current_device]["z"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -1607,7 +1655,7 @@ class Zaber(grabPorts):
 
                         print(roi_selector)
                         current_roi = str(
-                            list(globals.grid[globals.current_device].keys())[
+                            list(default_grid[globals.current_device].keys())[
                                 roi_selector
                             ]
                         )
@@ -1633,7 +1681,7 @@ class Zaber(grabPorts):
 
                         print(roi_selector)
                         current_roi = str(
-                            list(globals.grid[globals.current_device].keys())[
+                            list(default_grid[globals.current_device].keys())[
                                 roi_selector
                             ]
                         )
@@ -1651,12 +1699,12 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("5"):
                     if not was_pressed:
-                        globals.amount = 10000
+                        default_amount = 10000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 1000
+                        default_amount = 1000
                         was_pressed = True
                 else:
                     was_pressed = False
@@ -1672,10 +1720,9 @@ class Zaber(grabPorts):
         current_angle_arc,
         current_roi="1",
         home="y",
-        grid=globals.grid,
-        haxes=globals.haxes,
-        rules=globals.rules,
-        touch_z_offset=globals.touch_z_offset,
+        grid=default_grid,
+        haxes=default_haxes,
+        rules=default_rules,
     ):
         was_pressed = False
         current_pos_arc = None
@@ -1690,8 +1737,8 @@ class Zaber(grabPorts):
                     if (
                         not any(
                             [
-                                globals.grid[current_device][x]["z"] == 0
-                                for x in globals.grid[current_device]
+                                default_grid[current_device][x]["z"] == 0
+                                for x in default_grid[current_device]
                             ]
                         )
                         and home == "y"
@@ -1705,8 +1752,8 @@ class Zaber(grabPorts):
                     elif (
                         not any(
                             [
-                                globals.grid[current_device][x]["z"] == 0
-                                for x in globals.grid[current_device]
+                                default_grid[current_device][x]["z"] == 0
+                                for x in default_grid[current_device]
                             ]
                         )
                         and home == "n"
@@ -1723,14 +1770,14 @@ class Zaber(grabPorts):
                         devices[current_device]["z"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         devices[current_device]["z"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -1739,30 +1786,30 @@ class Zaber(grabPorts):
                         devices[current_device]["z"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         devices[current_device]["z"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
                 elif keyboard.is_pressed("5"):
                     if not was_pressed:
-                        globals.amount = 10000
+                        default_amount = 10000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 1000
+                        default_amount = 1000
                         was_pressed = True
 
                 elif keyboard.is_pressed("7"):
                     if not was_pressed:
-                        globals.amount = 100000
+                        default_amount = 100000
                         was_pressed = True
 
                 elif keyboard.is_pressed("right"):
@@ -1958,7 +2005,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("a"):
                     if not was_pressed:
-                        globals.amount = changeAmount("a")
+                        default_amount = changeAmount("a")
 
                         was_pressed = True
 
@@ -1975,9 +2022,9 @@ class Zaber(grabPorts):
         current_angle_arc,
         current_roi="1",
         home="y",
-        grid=globals.grid,
-        haxes=globals.haxes,
-        rules=globals.rules,
+        grid=default_grid,
+        haxes=default_haxes,
+        rules=default_rules,
     ):
         """
         Move along arc from fixed master point
@@ -1995,8 +2042,8 @@ class Zaber(grabPorts):
                     if (
                         not any(
                             [
-                                globals.grid[current_device][x]["z"] == 0
-                                for x in globals.grid[current_device]
+                                default_grid[current_device][x]["z"] == 0
+                                for x in default_grid[current_device]
                             ]
                         )
                         and home == "y"
@@ -2010,8 +2057,8 @@ class Zaber(grabPorts):
                     elif (
                         not any(
                             [
-                                globals.grid[current_device][x]["z"] == 0
-                                for x in globals.grid[current_device]
+                                default_grid[current_device][x]["z"] == 0
+                                for x in default_grid[current_device]
                             ]
                         )
                         and home == "n"
@@ -2028,14 +2075,14 @@ class Zaber(grabPorts):
                         devices[current_device]["z"].move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         devices[current_device]["z"].device.move_rel(
                             0
                             + revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
@@ -2044,30 +2091,30 @@ class Zaber(grabPorts):
                         devices[current_device]["z"].move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
                     except:
                         devices[current_device]["z"].device.move_rel(
                             0
                             - revDirection(
-                                globals.current_device, "z", rules, globals.amount
+                                globals.current_device, "z", rules, default_amount
                             )
                         )
 
                 elif keyboard.is_pressed("5"):
                     if not was_pressed:
-                        globals.amount = 10000
+                        default_amount = 10000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 1000
+                        default_amount = 1000
                         was_pressed = True
 
                 elif keyboard.is_pressed("7"):
                     if not was_pressed:
-                        globals.amount = 100000
+                        default_amount = 100000
                         was_pressed = True
 
                 elif keyboard.is_pressed("right"):
@@ -2204,7 +2251,7 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("a"):
                     if not was_pressed:
-                        globals.amount = changeAmount("a")
+                        default_amount = changeAmount("a")
 
                         was_pressed = True
 
@@ -2219,8 +2266,8 @@ class Zaber(grabPorts):
         current_device,
         current_roi="1",
         home="y",
-        grid=globals.grid,
-        haxes=globals.haxes,
+        grid=default_grid,
+        haxes=default_haxes,
     ):
         was_pressed = False
 
@@ -2231,8 +2278,8 @@ class Zaber(grabPorts):
                     if (
                         not any(
                             [
-                                globals.grid[current_device][x]["z"] == 0
-                                for x in globals.grid[current_device]
+                                default_grid[current_device][x]["z"] == 0
+                                for x in default_grid[current_device]
                             ]
                         )
                         and home == "y"
@@ -2246,8 +2293,8 @@ class Zaber(grabPorts):
                     elif (
                         not any(
                             [
-                                globals.grid[current_device][x]["z"] == 0
-                                for x in globals.grid[current_device]
+                                default_grid[current_device][x]["z"] == 0
+                                for x in default_grid[current_device]
                             ]
                         )
                         and home == "n"
@@ -2316,10 +2363,10 @@ class Zaber(grabPorts):
         ardpantilt,
         platformcamera=None,
         arduino=None,
-        default_pan_tilt_values=globals.PanTilts,
-        grid=globals.grid,
-        haxes=globals.haxes,
-        rules=globals.rules,
+        default_pan_tilt_values=default_PanTilts,
+        grid=default_grid,
+        haxes=default_haxes,
+        rules=default_rules,
     ):
         """
         (for dermatome distance experiment) Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
@@ -2339,7 +2386,7 @@ class Zaber(grabPorts):
             0: grid["camera"]["2"].copy(),
             1: {"x": 356247, "y": 1018906, "z": 23039},
         }
-        pre_touch = grid["tactile"]["4"]["z"] - globals.touch_z_offset
+        pre_touch = grid["tactile"]["4"]["z"] - default_touch_z_offset
 
         if arduino:
             stimulus = 0
@@ -2456,17 +2503,17 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("5"):
                     if not was_pressed:
-                        globals.amount = 10000
+                        default_amount = 10000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 1000
+                        default_amount = 1000
                         was_pressed = True
 
                 elif keyboard.is_pressed("7"):
                     if not was_pressed:
-                        globals.amount = 50000
+                        default_amount = 50000
                         was_pressed = True
 
                 elif keyboard.is_pressed("o"):
@@ -2490,14 +2537,14 @@ class Zaber(grabPorts):
                             response = device["y"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
                         except:
                             response = device["y"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
 
@@ -2506,9 +2553,9 @@ class Zaber(grabPorts):
                             device,
                             "y",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("down"):
@@ -2520,14 +2567,14 @@ class Zaber(grabPorts):
                             response = device["y"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
                         except:
                             response = device["y"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
 
@@ -2536,9 +2583,9 @@ class Zaber(grabPorts):
                             device,
                             "y",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("right"):
@@ -2550,14 +2597,14 @@ class Zaber(grabPorts):
                             response = device["x"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
                         except:
                             response = device["x"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
 
@@ -2566,9 +2613,9 @@ class Zaber(grabPorts):
                             device,
                             "x",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("left"):
@@ -2580,14 +2627,14 @@ class Zaber(grabPorts):
                             response = device["x"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
                         except:
                             response = device["x"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
 
@@ -2596,9 +2643,9 @@ class Zaber(grabPorts):
                             device,
                             "x",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("u"):
@@ -2610,14 +2657,14 @@ class Zaber(grabPorts):
                             response = device["z"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
                         except:
                             response = device["z"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
 
@@ -2626,9 +2673,9 @@ class Zaber(grabPorts):
                             device,
                             "z",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("d"):
@@ -2640,14 +2687,14 @@ class Zaber(grabPorts):
                             response = device["z"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
                         except:
                             response = device["z"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
 
@@ -2656,9 +2703,9 @@ class Zaber(grabPorts):
                             device,
                             "z",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("h"):
@@ -2964,10 +3011,10 @@ class Zaber(grabPorts):
         ardpantilt,
         platformcamera=None,
         arduino=None,
-        default_pan_tilt_values=globals.PanTilts,
-        grid=globals.grid,
-        haxes=globals.haxes,
-        rules=globals.rules,
+        default_pan_tilt_values=default_PanTilts,
+        grid=default_grid,
+        haxes=default_haxes,
+        rules=default_rules,
     ):
         """
         (for skin distance experiment) Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
@@ -3092,17 +3139,17 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("5"):
                     if not was_pressed:
-                        globals.amount = 10000
+                        default_amount = 10000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 1000
+                        default_amount = 1000
                         was_pressed = True
 
                 elif keyboard.is_pressed("7"):
                     if not was_pressed:
-                        globals.amount = 50000
+                        default_amount = 50000
                         was_pressed = True
 
                 elif keyboard.is_pressed("o"):
@@ -3126,14 +3173,14 @@ class Zaber(grabPorts):
                             response = device["y"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
                         except:
                             response = device["y"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
 
@@ -3142,9 +3189,9 @@ class Zaber(grabPorts):
                             device,
                             "y",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("down"):
@@ -3156,14 +3203,14 @@ class Zaber(grabPorts):
                             response = device["y"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
                         except:
                             response = device["y"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
 
@@ -3172,9 +3219,9 @@ class Zaber(grabPorts):
                             device,
                             "y",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("right"):
@@ -3186,14 +3233,14 @@ class Zaber(grabPorts):
                             response = device["x"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
                         except:
                             response = device["x"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
 
@@ -3202,9 +3249,9 @@ class Zaber(grabPorts):
                             device,
                             "x",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("left"):
@@ -3216,14 +3263,14 @@ class Zaber(grabPorts):
                             response = device["x"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
                         except:
                             response = device["x"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
 
@@ -3232,9 +3279,9 @@ class Zaber(grabPorts):
                             device,
                             "x",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("u"):
@@ -3246,14 +3293,14 @@ class Zaber(grabPorts):
                             response = device["z"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
                         except:
                             response = device["z"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
 
@@ -3262,9 +3309,9 @@ class Zaber(grabPorts):
                             device,
                             "z",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("d"):
@@ -3276,14 +3323,14 @@ class Zaber(grabPorts):
                             response = device["z"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
                         except:
                             response = device["z"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
 
@@ -3292,9 +3339,9 @@ class Zaber(grabPorts):
                             device,
                             "z",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("h"):
@@ -3328,7 +3375,7 @@ class Zaber(grabPorts):
                                     grid["tactile"][
                                         [k for k, v in touched.items() if v][0]
                                     ]["z"]
-                                    - globals.touch_z_offset * 1.3
+                                    - default_touch_z_offset * 1.3
                                 ),
                             )
 
@@ -3377,7 +3424,7 @@ class Zaber(grabPorts):
                                     grid["tactile"][
                                         [k for k, v in touched.items() if v][0]
                                     ]["z"]
-                                    - globals.touch_z_offset * 1.3
+                                    - default_touch_z_offset * 1.3
                                 ),
                             )
 
@@ -3493,7 +3540,7 @@ class Zaber(grabPorts):
                                     ["z"],
                                     (
                                         grid["tactile"]["4"]["z"]
-                                        - globals.touch_z_offset
+                                        - default_touch_z_offset
                                         * globals.up_modifier_touch_height
                                     ),
                                 ],
@@ -3508,8 +3555,8 @@ class Zaber(grabPorts):
                         movetostartZabersConcu(
                             devices, "tactile", ["x"], grid["tactile"]["1"]
                         )
-                        touch = globals.grid["tactile"]["1"]["z"] + round(
-                            globals.touch_z_offset * globals.down_modifier_touch_height
+                        touch = default_grid["tactile"]["1"]["z"] + round(
+                            default_touch_z_offset * globals.down_modifier_touch_height
                         )
                         moveAxisTo(devices, "tactile", "z", touch)
 
@@ -3528,7 +3575,7 @@ class Zaber(grabPorts):
                             ["z"],
                             (
                                 grid["tactile"]["1"]["z"]
-                                - globals.touch_z_offset
+                                - default_touch_z_offset
                                 * globals.up_modifier_touch_height
                             ),
                         )
@@ -3553,7 +3600,7 @@ class Zaber(grabPorts):
                                     ["z"],
                                     (
                                         grid["tactile"]["2"]["z"]
-                                        - globals.touch_z_offset
+                                        - default_touch_z_offset
                                         * globals.up_modifier_touch_height
                                     ),
                                 ],
@@ -3565,8 +3612,8 @@ class Zaber(grabPorts):
                         movetostartZabersConcu(
                             devices, "tactile", ["x", "y"], grid["tactile"]["2"]
                         )
-                        touch = globals.grid["tactile"]["2"]["z"] + round(
-                            globals.touch_z_offset * globals.down_modifier_touch_height
+                        touch = default_grid["tactile"]["2"]["z"] + round(
+                            default_touch_z_offset * globals.down_modifier_touch_height
                         )
                         moveAxisTo(devices, "tactile", "z", touch)
 
@@ -3585,7 +3632,7 @@ class Zaber(grabPorts):
                             ["z"],
                             (
                                 grid["tactile"]["2"]["z"]
-                                - globals.touch_z_offset
+                                - default_touch_z_offset
                                 * globals.up_modifier_touch_height
                             ),
                         )
@@ -3610,7 +3657,7 @@ class Zaber(grabPorts):
                                     ["z"],
                                     (
                                         grid["tactile"]["3"]["z"]
-                                        - globals.touch_z_offset
+                                        - default_touch_z_offset
                                         * globals.up_modifier_touch_height
                                     ),
                                 ],
@@ -3622,8 +3669,8 @@ class Zaber(grabPorts):
                         movetostartZabersConcu(
                             devices, "tactile", ["x", "y"], grid["tactile"]["3"]
                         )
-                        touch = globals.grid["tactile"]["3"]["z"] + round(
-                            globals.touch_z_offset * globals.down_modifier_touch_height
+                        touch = default_grid["tactile"]["3"]["z"] + round(
+                            default_touch_z_offset * globals.down_modifier_touch_height
                         )
                         moveAxisTo(devices, "tactile", "z", touch)
 
@@ -3642,7 +3689,7 @@ class Zaber(grabPorts):
                             ["z"],
                             (
                                 grid["tactile"]["3"]["z"]
-                                - globals.touch_z_offset
+                                - default_touch_z_offset
                                 * globals.up_modifier_touch_height
                             ),
                         )
@@ -3667,7 +3714,7 @@ class Zaber(grabPorts):
                                     ["z"],
                                     (
                                         grid["tactile"]["4"]["z"]
-                                        - globals.touch_z_offset
+                                        - default_touch_z_offset
                                         * globals.up_modifier_touch_height
                                     ),
                                 ],
@@ -3679,8 +3726,8 @@ class Zaber(grabPorts):
                         movetostartZabersConcu(
                             devices, "tactile", ["x", "y"], grid["tactile"]["4"]
                         )
-                        touch = globals.grid["tactile"]["4"]["z"] + round(
-                            globals.touch_z_offset * globals.down_modifier_touch_height
+                        touch = default_grid["tactile"]["4"]["z"] + round(
+                            default_touch_z_offset * globals.down_modifier_touch_height
                         )
                         moveAxisTo(devices, "tactile", "z", touch)
 
@@ -3699,7 +3746,7 @@ class Zaber(grabPorts):
                             ["z"],
                             (
                                 grid["tactile"]["4"]["z"]
-                                - globals.touch_z_offset
+                                - default_touch_z_offset
                                 * globals.up_modifier_touch_height
                             ),
                         )
@@ -3727,10 +3774,10 @@ class Zaber(grabPorts):
         ardpantilt,
         platformcamera=None,
         arduino=None,
-        default_pan_tilt_values=globals.PanTilts,
-        grid=globals.grid,
-        haxes=globals.haxes,
-        rules=globals.rules,
+        default_pan_tilt_values=default_PanTilts,
+        grid=default_grid,
+        haxes=default_haxes,
+        rules=default_rules,
     ):
         """
         (for dermatome distance experiment) Method for Object Zaber to move the 3 axes of THREE zabers with keyboard presses. Like a game!
@@ -3848,17 +3895,17 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("5"):
                     if not was_pressed:
-                        globals.amount = 10000
+                        default_amount = 10000
                         was_pressed = True
 
                 elif keyboard.is_pressed("6"):
                     if not was_pressed:
-                        globals.amount = 1000
+                        default_amount = 1000
                         was_pressed = True
 
                 elif keyboard.is_pressed("7"):
                     if not was_pressed:
-                        globals.amount = 50000
+                        default_amount = 50000
                         was_pressed = True
 
                 elif keyboard.is_pressed("o"):
@@ -3886,14 +3933,14 @@ class Zaber(grabPorts):
                             response = device["y"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
                         except:
                             response = device["y"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
 
@@ -3902,9 +3949,9 @@ class Zaber(grabPorts):
                             device,
                             "y",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif (
@@ -3920,14 +3967,14 @@ class Zaber(grabPorts):
                             response = device["y"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
                         except:
                             response = device["y"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "y", rules, globals.amount
+                                    globals.current_device, "y", rules, default_amount
                                 )
                             )
 
@@ -3936,9 +3983,9 @@ class Zaber(grabPorts):
                             device,
                             "y",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("right"):
@@ -3950,14 +3997,14 @@ class Zaber(grabPorts):
                             response = device["x"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
                         except:
                             response = device["x"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
 
@@ -3966,9 +4013,9 @@ class Zaber(grabPorts):
                             device,
                             "x",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("left"):
@@ -3980,14 +4027,14 @@ class Zaber(grabPorts):
                             response = device["x"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
                         except:
                             response = device["x"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "x", rules, globals.amount
+                                    globals.current_device, "x", rules, default_amount
                                 )
                             )
 
@@ -3996,9 +4043,9 @@ class Zaber(grabPorts):
                             device,
                             "x",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("u"):
@@ -4010,14 +4057,14 @@ class Zaber(grabPorts):
                             response = device["z"].move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
                         except:
                             response = device["z"].device.move_rel(
                                 0
                                 - revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
 
@@ -4026,9 +4073,9 @@ class Zaber(grabPorts):
                             device,
                             "z",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("d"):
@@ -4040,14 +4087,14 @@ class Zaber(grabPorts):
                             response = device["z"].move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
                         except:
                             response = device["z"].device.move_rel(
                                 0
                                 + revDirection(
-                                    globals.current_device, "z", rules, globals.amount
+                                    globals.current_device, "z", rules, default_amount
                                 )
                             )
 
@@ -4056,9 +4103,9 @@ class Zaber(grabPorts):
                             device,
                             "z",
                             globals.current_device,
-                            globals.amount,
-                            globals.zaber_models,
-                            globals.zaber_models_end,
+                            default_amount,
+                            zaber_models_default,
+                            zaber_models_end_default,
                         )
 
                 elif keyboard.is_pressed("h"):
@@ -4088,7 +4135,7 @@ class Zaber(grabPorts):
                         try:
                             pre_touch = (
                                 grid["tactile"][current_roi]["z"]
-                                - globals.touch_z_offset
+                                - default_touch_z_offset
                                 * globals.up_modifier_touch_height
                             )
                             movetostartZabersConcu(
@@ -4138,7 +4185,7 @@ class Zaber(grabPorts):
                         try:
                             pre_touch = (
                                 grid["tactile"][current_roi]["z"]
-                                - globals.touch_z_offset
+                                - default_touch_z_offset
                                 * globals.up_modifier_touch_height
                             )
                             movetostartZabersConcu(
@@ -4250,7 +4297,7 @@ class Zaber(grabPorts):
                             devices["colther"]["z"].device.move_abs(0)
                             pre_touch = (
                                 grid["tactile"][current_roi]["z"]
-                                - globals.touch_z_offset
+                                - default_touch_z_offset
                                 * globals.up_modifier_touch_height
                             )
                             movetostartZabersConcu(
@@ -4269,7 +4316,7 @@ class Zaber(grabPorts):
                                 grid["tactile"][current_roi]["x"],
                             )
                             touching = grid["tactile"][current_roi]["z"] + round(
-                                globals.touch_z_offset
+                                default_touch_z_offset
                                 * globals.down_modifier_touch_height
                             )
                             moveAxisTo(devices, "tactile", "z", touching)
@@ -4284,7 +4331,7 @@ class Zaber(grabPorts):
                             devices["colther"]["z"].device.move_abs(0)
                             pre_touch = (
                                 grid["tactile"][current_roi]["z"]
-                                - globals.touch_z_offset
+                                - default_touch_z_offset
                                 * globals.up_modifier_touch_height
                             )
                             movetostartZabersConcu(
@@ -4320,36 +4367,36 @@ class Zaber(grabPorts):
                 #### Y axis
                 if keyboard.is_pressed("up"):
                     try:
-                        device[2].move_rel(globals.amount)
+                        device[2].move_rel(default_amount)
                     except:
-                        device[2].device.move_rel(globals.amount)
+                        device[2].device.move_rel(default_amount)
 
                 elif keyboard.is_pressed("down"):
                     try:
-                        device[2].move_rel(0 - globals.amount)
+                        device[2].move_rel(0 - default_amount)
                     except:
-                        device[2].device.move_rel(0 - globals.amount)
+                        device[2].device.move_rel(0 - default_amount)
 
                 #### X axis
 
                 elif keyboard.is_pressed("left"):
                     try:
-                        device[1].move_rel(0 - globals.amount)
+                        device[1].move_rel(0 - default_amount)
                     except:
-                        device[1].device.move_rel(0 - globals.amount)
+                        device[1].device.move_rel(0 - default_amount)
 
                 elif keyboard.is_pressed("right"):
                     try:
-                        device[1].move_rel(globals.amount)
+                        device[1].move_rel(default_amount)
                     except:
-                        device[1].device.move_rel(globals.amount)
+                        device[1].device.move_rel(default_amount)
 
                 ### Z axis
                 elif keyboard.is_pressed("d"):
                     try:
-                        device[0].move_rel(globals.amount)
+                        device[0].move_rel(default_amount)
                     except:
-                        device[0].device.move_rel(globals.amount)
+                        device[0].device.move_rel(default_amount)
 
                 elif keyboard.is_pressed("o"):  # Open Arduino shutter
                     globals.stimulus = 1
@@ -4361,9 +4408,9 @@ class Zaber(grabPorts):
 
                 elif keyboard.is_pressed("u"):
                     try:
-                        device[0].move_rel(0 - globals.amount)
+                        device[0].move_rel(0 - default_amount)
                     except:
-                        device[0].device.move_rel(0 - globals.amount)
+                        device[0].device.move_rel(0 - default_amount)
 
                 elif keyboard.is_pressed("p"):
                     globals.centreROI = [globals.indx0, globals.indy0]
@@ -4392,9 +4439,9 @@ class Zaber(grabPorts):
                     except:
                         posZ = device[0].device.send("/get pos")
 
-                    globals.positions1[globals.current_device][0] = int(posX.data)
-                    globals.positions1[globals.current_device][1] = int(posY.data)
-                    globals.positions1[globals.current_device][2] = int(posZ.data)
+                    default_positions1[globals.current_device][0] = int(posX.data)
+                    default_positions1[globals.current_device][1] = int(posY.data)
+                    default_positions1[globals.current_device][2] = int(posZ.data)
 
                 # Press letter h and Zaber will home, first z axis, then y and finally x
                 # Control
@@ -4468,43 +4515,43 @@ class Zaber(grabPorts):
                 #### Y axis
                 if keyboard.is_pressed("up"):
                     try:
-                        device[1].move_rel(globals.amount)
+                        device[1].move_rel(default_amount)
                     except:
-                        device[1].device.move_rel(globals.amount)
+                        device[1].device.move_rel(default_amount)
                     # print(curses.KEY_UP)
 
                 elif keyboard.is_pressed("down"):
                     try:
-                        device[1].move_rel(0 - globals.amount)
+                        device[1].move_rel(0 - default_amount)
                     except:
-                        device[1].device.move_rel(0 - globals.amount)
+                        device[1].device.move_rel(0 - default_amount)
 
                 #### X axis
 
                 elif keyboard.is_pressed("left"):
                     try:
-                        device[2].move_rel(0 - globals.amount)
+                        device[2].move_rel(0 - default_amount)
                     except:
-                        device[2].device.move_rel(0 - globals.amount)
+                        device[2].device.move_rel(0 - default_amount)
 
                 elif keyboard.is_pressed("right"):
                     try:
-                        device[2].move_rel(globals.amount)
+                        device[2].move_rel(default_amount)
                     except:
-                        device[2].device.move_rel(globals.amount)
+                        device[2].device.move_rel(default_amount)
 
                 ### Z axis
                 elif keyboard.is_pressed("d"):
                     try:
-                        device[0].move_rel(globals.amount)
+                        device[0].move_rel(default_amount)
                     except:
-                        device[0].device.move_rel(globals.amount)
+                        device[0].device.move_rel(default_amount)
 
                 elif keyboard.is_pressed("u"):
                     try:
-                        device[0].move_rel(0 - globals.amount)
+                        device[0].move_rel(0 - default_amount)
                     except:
-                        device[0].device.move_rel(0 - globals.amount)
+                        device[0].device.move_rel(0 - default_amount)
 
                 ### TERMINATE
                 elif keyboard.is_pressed("e"):
@@ -4531,17 +4578,17 @@ class Zaber(grabPorts):
                     except:
                         posZ = device[2].device.send("/get pos")
 
-                    globals.positions[globals.current_device]["experimental"][2] = int(
+                    default_positions[globals.current_device]["experimental"][2] = int(
                         posX.data
                     )
-                    globals.positions[globals.current_device]["experimental"][1] = int(
+                    default_positions[globals.current_device]["experimental"][1] = int(
                         posY.data
                     )
-                    globals.positions[globals.current_device]["experimental"][0] = int(
+                    default_positions[globals.current_device]["experimental"][0] = int(
                         posZ.data
                     )
 
-                    # print(globals.positions)
+                    # print(default_positions)
 
                 elif keyboard.is_pressed("z"):
                     try:
@@ -4560,13 +4607,13 @@ class Zaber(grabPorts):
                     except:
                         posZ = device[2].device.send("/get pos")
 
-                    globals.positions[globals.current_device]["control"][2] = int(
+                    default_positions[globals.current_device]["control"][2] = int(
                         posX.data
                     )
-                    globals.positions[globals.current_device]["control"][1] = int(
+                    default_positions[globals.current_device]["control"][1] = int(
                         posY.data
                     )
-                    globals.positions[globals.current_device]["control"][0] = int(
+                    default_positions[globals.current_device]["control"][0] = int(
                         posZ.data
                     )
 
@@ -4809,13 +4856,13 @@ class Zaber(grabPorts):
                 PID.proportional,
                 PID.integral,
                 PID.error,
-                globals.positions["colther"][0],
-                globals.positions["colther"][1],
-                globals.positions["colther"][2],
+                default_positions["colther"][0],
+                default_positions["colther"][1],
+                default_positions["colther"][2],
                 globals.dist,
                 now,
             ]
-            # print(globals.positions['colther'])
+            # print(default_positions['colther'])
 
             device[name_dev][0].device.move_rel(int(PID.output))
             pos = device[name_dev][0].device.send("/get pos")
@@ -4974,7 +5021,7 @@ class Zaber(grabPorts):
             stdscr.refresh()
             curses.endwin()
 
-    def controlZaxis(self, amount=globals.amount, rules=globals.rules):
+    def controlZaxis(self, amount=default_amount, rules=default_rules):
         """
         Function to....
         """
@@ -5033,9 +5080,9 @@ class Zaber(grabPorts):
                     except:
                         posZ = self.device.send("/get pos")
 
-                    globals.positions[globals.current_device]["z"] = int(posZ.data)
+                    default_positions[globals.current_device]["z"] = int(posZ.data)
 
-                    print(globals.positions)
+                    print(default_positions)
                     was_pressed = True
 
             else:
@@ -5324,9 +5371,9 @@ class Zaber(grabPorts):
 def grid_calculation(
     zaber,
     grid_separation,
-    step_size=globals.step_sizes,
-    pos=globals.positions,
-    rule=globals.rules,
+    step_size=default_step_sizes,
+    pos=default_positions,
+    rule=default_rules,
     dim=[3, 3],
 ):
     """
@@ -5431,12 +5478,12 @@ def vectorEnd(start, magnitude, angle):
     ]
 
 
-def addVectorPointGrid(zaber, pos, magnitude, angle, grid=globals.grid):
+def addVectorPointGrid(zaber, pos, magnitude, angle, grid=default_grid):
     """
     Function to inject an end point of a vector starting from one grid point into the grid dictionary of a given Zaber
     """
     v_end = vectorEnd([grid[zaber][pos]["x"], grid[zaber][pos]["y"]], magnitude, angle)
-    new_pos = max([int(x) for x in list(globals.grid[zaber].keys())])
+    new_pos = max([int(x) for x in list(default_grid[zaber].keys())])
 
     grid[zaber][f"{new_pos + 1}"] = {"x": v_end[0], "y": v_end[1], "z": 0}
 
@@ -5604,7 +5651,7 @@ def homingZabers(zabers, axes=None, speed=153600 * 4):
 
 
 def movetostartZabers(
-    zabers, zaber, axes, pos=globals.positions, event=None, speed=153600 * 4
+    zabers, zaber, axes, pos=default_positions, event=None, speed=153600 * 4
 ):
     """
     This function is to move one set of Zabers to a defined positions (pos)
@@ -5642,7 +5689,7 @@ def moveAxisTo(zabers, zaber, axis, amount, speed=153600 * 4):
 
 
 def movetostartZabersConcu(
-    zabers, zaber, axes, pos=globals.positions, speed=153600 * 4
+    zabers, zaber, axes, pos=default_positions, speed=153600 * 4
 ):
     """
     This function is to move one set of Zabers to a defined positions (pos)
@@ -5964,9 +6011,9 @@ def handleOutOfRange(
     zaber,
     axis,
     current_device,
-    amount=globals.amount,
-    models=globals.zaber_models,
-    ends=globals.zaber_models_end,
+    amount=default_amount,
+    models=zaber_models_default,
+    ends=zaber_models_end_default,
 ):
 
     try:
@@ -6083,7 +6130,7 @@ def triggered_exception(
         arduino_dimmer.arduino.write(struct.pack(">B", globals.lamp))
 
     if zabers:
-        homingZabersConcu(zabers, globals.haxes, speed=globals.speed)
+        homingZabersConcu(zabers, default_haxes, speed=globals.speed)
 
 
 def reducegrid(dictionary, list_to_remove):

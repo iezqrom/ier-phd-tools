@@ -263,6 +263,22 @@ def choose_staircase(staircases):
     while not valid_choice:
         trial_staircase = random.choice(list(staircases.keys()))
         if (
+            staircases[trial_staircase][0].reversals
+            == staircases[trial_staircase][0].total_reversals
+        ) and (
+            staircases[trial_staircase][1].reversals
+            == staircases[trial_staircase][1].total_reversals
+        ):
+            continue
+        else:
+            valid_choice = True
+        return trial_staircase
+
+def choose_substaircase(staircases):
+    valid_choice = False
+    while not valid_choice:
+        trial_staircase = random.choice(list(staircases.keys()))
+        if (
             staircases[trial_staircase].reversals
             == staircases[trial_staircase].total_reversals
         ):
@@ -270,7 +286,6 @@ def choose_staircase(staircases):
         else:
             valid_choice = True
         return trial_staircase
-
 
 # function to change space to underscore and small letters
 def change_space_to_underscore(string):

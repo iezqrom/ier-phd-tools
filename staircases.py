@@ -97,14 +97,14 @@ class Staircase:
                 if self.rules_direction == 1:
                     self.tracked_stimulation = self.tracked_stimulation - step_down
                 elif self.rules_direction == 0:
-                    self.tracked_stimulation = self.tracked_stimulation + step_up
+                    self.tracked_stimulation = self.tracked_stimulation + step_down
                 self.tracker = 0
 
             elif self.tracker == move_up and self.response == 0:
                 if self.rules_direction == 1:
                     self.tracked_stimulation = self.tracked_stimulation + step_up
                 elif self.rules_direction == 0:
-                    self.tracked_stimulation = self.tracked_stimulation - step_down
+                    self.tracked_stimulation = self.tracked_stimulation - step_up
                 self.tracker = 0
         else:
             if self.direction == "down":

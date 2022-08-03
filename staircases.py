@@ -152,7 +152,7 @@ class Staircase:
 
     def clampBoundary(self, lower_boundary, upper_boundary, carryover=True):
         """
-        Apply carry-over boundary rule
+        Apply carry-over boundary rule by default. If you want to disable it and use a fix boundary, set carryover to False
         """
         if self.tracked_stimulation > upper_boundary:
             if carryover:

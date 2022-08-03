@@ -150,14 +150,22 @@ class Staircase:
 
                     self.first_ramp = False
 
-    def clampBoundary(self, lower_boundary, upper_boundary):
+    def clampBoundary(self, lower_boundary, upper_boundary, carryover=True):
         """
         Apply carry-over boundary rule
         """
         if self.tracked_stimulation > upper_boundary:
-            self.stimulation = upper_boundary
+            if carryover:
+                self.stimulation = upper_boundary
+            elif not carryover:
+                self.stimulation = upper_boundary
+                self.tracked_stimulation = upper_boundary
         elif self.tracked_stimulation < lower_boundary:
-            self.stimulation = lower_boundary
+            if carryover:
+                self.stimulation = lower_boundary
+            elif not carryover:
+                self.stimulation = lower_boundary
+                self.tracked_stimulation = lower_boundary
         else:
             self.stimulation = self.tracked_stimulation
 

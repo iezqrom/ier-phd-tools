@@ -6,15 +6,23 @@ import matplotlib.pyplot as plt
 
 pad_size_label = 20
 pad_size_ticks = 10
-width_lines = 10
+
+width_spines = 5
+
+width_lines = 9
+
 length_ticks = 20
+width_ticks = 5
+
 scatter_size = 300
 alpha_partici = 0.1
-width_participants = 6
 
 nt_color = "#0F4C81"
 t_color = "#B59A48"
 degree_sign = u'\N{DEGREE SIGN}'
+
+path_thesis = '/Users/ivan/Documents/aaa_online_stuff/phd_2018_2023/aaa_phd/writing/thesis/figures/'
+
 def plotParams(colour = "black"):
     plt.rcParams.update(
         {
@@ -42,7 +50,20 @@ def setTicksPad(ax, gap):
     ax.tick_params(axis="y", which="major", pad=gap)
     ax.tick_params(axis="x", which="major", pad=gap)
 
+def prettifySpinesTicks(ax):
+    ax.yaxis.set_tick_params(width=width_ticks, length=length_ticks, color='grey')
+    ax.xaxis.set_tick_params(width=width_ticks, length=length_ticks, color='grey')
 
+    for spine in ax.spines.values():
+        spine.set_edgecolor('grey')
+
+    ax.spines["left"].set_linewidth(width_spines)
+    ax.spines["bottom"].set_linewidth(width_spines)
+
+    ax.tick_params(axis="y", which="major", pad=pad_size_ticks)
+    ax.tick_params(axis="x", which="major", pad=pad_size_ticks)
+
+# TODO: standardise saving figure
 
 ############################################################################################################
 ####### Functions PhD

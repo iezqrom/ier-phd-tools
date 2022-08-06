@@ -26,7 +26,7 @@ try:
     import termios
 except:
     pass
-import zaber.serial as zs
+
 import glob
 import keyboard
 import serial

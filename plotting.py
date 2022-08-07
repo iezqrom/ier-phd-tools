@@ -19,9 +19,13 @@ alpha_partici = 0.1
 
 nt_color = "#0F4C81"
 t_color = "#B59A48"
+none_color = "#000000"
+only_touch_color = "#417743"
+
 degree_sign = u'\N{DEGREE SIGN}'
 
-path_thesis = '/Users/ivan/Documents/aaa_online_stuff/phd_2018_2023/aaa_phd/writing/thesis/figures/'
+path_thesis = '/Users/ivan/Documents/aaa_online_stuff/phd_2018_2023/aaa_phd/writing/thesis/figures'
+path_figures = "../../globalfigures/thesis"
 
 def plotParams(colour = "black"):
     plt.rcParams.update(
@@ -63,7 +67,17 @@ def prettifySpinesTicks(ax):
     ax.tick_params(axis="y", which="major", pad=pad_size_ticks)
     ax.tick_params(axis="x", which="major", pad=pad_size_ticks)
 
-# TODO: standardise saving figure
+def doubleSave(name, thesis_expt_path):
+    plt.savefig(f"{path_figures}/{name}.svg", transparent=True, dpi=300)
+    plt.savefig(f"{path_thesis}/{thesis_expt_path}/{name}.svg", transparent=True, dpi=300)
+
+def saveStatsFigure(func, thesis_expt_path, name):
+    # save result from func in a text file in the thesis thesis_expt_path folder with name
+    with open(f"{path_thesis}/{thesis_expt_path}/stats_{name}.txt", "w") as f:
+        f.write(f"{type(func).__name__}\n")
+        f.write(str(func))
+    # close the file
+    f.close()
 
 ############################################################################################################
 ####### Functions PhD
@@ -122,6 +136,8 @@ def estimates(params, data):
     data_fit = est_amp * np.sin(est_freq * np.arange(len(data)) + est_phase) + est_mean
 
     return data_first_guess, est_params, data_fit
+
+
 
 
 ############################################################################################################

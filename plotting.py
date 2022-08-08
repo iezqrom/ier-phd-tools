@@ -3,6 +3,7 @@ import numpy as np
 import math
 from functools import wraps
 import matplotlib.pyplot as plt
+import scipy
 
 pad_size_label = 20
 pad_size_ticks = 10
@@ -16,6 +17,8 @@ width_ticks = 5
 
 scatter_size = 300
 alpha_partici = 0.1
+
+adjust_parti_line = 4
 
 nt_color = "#0F4C81"
 t_color = "#B59A48"
@@ -79,6 +82,500 @@ def saveStatsFigure(func, thesis_expt_path, name):
     # close the file
     f.close()
 
+############################################################################################################
+####### Thesis figures
+############################################################################################################
+def percCorrectPlot(data, cond, thesis_expt_path):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    ax.scatter(
+        np.repeat(0, len(data[f"{cond}-correct-present-touch"])),
+        [data_point*100 for data_point in data[f"{cond}-correct-present-touch"]],
+        s=scatter_size,
+        color=t_color,
+        clip_on=False
+    )
+    ax.scatter(
+        np.repeat(1, len(data[f"{cond}-correct-absent-touch"])),
+        [data_point*100 for data_point in data[f"{cond}-correct-absent-touch"]],
+        s=scatter_size,
+        color=only_touch_color,
+        clip_on=False
+    )
+    ax.scatter(
+        np.repeat(2, len(data[f"{cond}-correct-present-notouch"])),
+        [data_point*100 for data_point in data[f"{cond}-correct-present-notouch"]],
+        s=scatter_size,
+        color=nt_color,
+        clip_on=False
+    )
+    ax.scatter(
+        np.repeat(3, len(data[f"{cond}-correct-absent-notouch"])),
+        [data_point*100 for data_point in data[f"{cond}-correct-absent-notouch"]],
+        s=scatter_size,
+        color=none_color,
+        clip_on=False
+    )
+
+    m_cpt = np.mean(data[f"{cond}-correct-present-touch"]) * 100
+    m_cat = np.mean(data[f"{cond}-correct-absent-touch"]) * 100
+
+    m_cpnt = np.mean(data[f"{cond}-correct-present-notouch"]) * 100
+    m_cant = np.mean(data[f"{cond}-correct-absent-notouch"]) * 100
+
+    offset = 0.2
+    ax.plot([0 - offset, 0 + offset], [m_cpt, m_cpt], color=t_color, lw=width_lines)
+    ax.plot([1 - offset, 1 + offset], [m_cat, m_cat], color=only_touch_color, lw=width_lines)
+    ax.plot([2 - offset, 2 + offset], [m_cpnt, m_cpnt], color=nt_color, lw=width_lines)
+    ax.plot([3 - offset, 3 + offset], [m_cant, m_cant], color=none_color, lw=width_lines)
+
+    for i, dd in enumerate(data[f"{cond}-correct-present-touch"]):
+        ax.plot(
+            [0, 1, 2, 3],
+            [
+                [data_point*100 for data_point in data[f"{cond}-correct-present-touch"]],
+                [data_point*100 for data_point in data[f"{cond}-correct-absent-touch"]],
+                [data_point*100 for data_point in data[f"{cond}-correct-present-notouch"]],
+                [data_point*100 for data_point in data[f"{cond}-correct-absent-notouch"]],
+            ],
+            color="k",
+            lw=width_lines - adjust_parti_line,
+            alpha=alpha_partici,
+            zorder=0
+        )
+
+    removeSpines(ax)
+    prettifySpinesTicks(ax)
+
+    ax.set_ylabel("Percent correct (%)", labelpad=pad_size_label)
+
+    ax.set_ylim([0, 100])
+
+    ax.set_xticks([0, 1, 2, 3])
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+
+    labels[0] = "Cold + Touch"
+    labels[1] = "Touch"
+    labels[2] = "Cold"
+    labels[3] = "None"
+
+    ax.set_xticklabels(labels)
+
+    plt.tight_layout()
+
+    name = f"perc_correct_{cond}_derma"
+    doubleSave(name, thesis_expt_path)
+    saveStatsFigure(
+                scipy.stats.ttest_rel(
+            data[f"{cond}-correct-present-notouch"],
+            data[f"{cond}-correct-present-touch"],
+            alternative="greater",
+        ),
+        thesis_expt_path,
+        name
+    )
+
+def hrFsPlot(data, cond, thesis_expt_path):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    ax.scatter(
+        np.repeat(0, len(data[f"{cond}-hr-touch-loglinear"])),
+        data[f"{cond}-hr-touch-loglinear"],
+        s=scatter_size,
+        color=t_color,
+        clip_on=False
+    )
+    ax.scatter(
+        np.repeat(1, len(data[f"{cond}-fa-touch-loglinear"])),
+        data[f"{cond}-fa-touch-loglinear"],
+        s=scatter_size,
+        color=only_touch_color,
+        clip_on=False
+    )
+    ax.scatter(
+        np.repeat(3, len(data[f"{cond}-hr-notouch-loglinear"])),
+        data[f"{cond}-hr-notouch-loglinear"],
+        s=scatter_size,
+        color=nt_color,
+        clip_on=False
+    )
+    ax.scatter(
+        np.repeat(4, len(data[f"{cond}-fa-notouch-loglinear"])),
+        data[f"{cond}-fa-notouch-loglinear"],
+        s=scatter_size,
+        color=none_color,
+        clip_on=False
+    )
+
+    m_hrt = np.mean(data[f"{cond}-hr-touch-loglinear"])
+    m_fat = np.mean(data[f"{cond}-fa-touch-loglinear"])
+
+    m_hrnt = np.mean(data[f"{cond}-hr-notouch-loglinear"])
+    m_fant = np.mean(data[f"{cond}-fa-notouch-loglinear"])
+
+    offset = 0.2
+    ax.plot([0 - offset, 0 + offset], [m_hrt, m_hrt], color=t_color, lw=width_lines)
+    ax.plot([1 - offset, 1 + offset], [m_fat, m_fat], color=only_touch_color, lw=width_lines)
+    ax.plot([3 - offset, 3 + offset], [m_hrnt, m_hrnt], color=nt_color, lw=width_lines)
+    ax.plot([4 - offset, 4 + offset], [m_fant, m_fant], color=none_color, lw=width_lines)
+
+    for i, dd in enumerate(data[f"{cond}-hr-touch-loglinear"]):
+        ax.plot(
+            [0, 1, 3, 4],
+            [
+                data[f"{cond}-hr-touch-loglinear"],
+                data[f"{cond}-fa-touch-loglinear"],
+                data[f"{cond}-hr-notouch-loglinear"],
+                data[f"{cond}-fa-notouch-loglinear"],
+            ],
+            color="k",
+            lw=width_lines - adjust_parti_line,
+            alpha=alpha_partici,
+            zorder=0
+        )
+
+    removeSpines(ax)
+    prettifySpinesTicks(ax)
+
+    ax.set_ylabel("Rate", labelpad=pad_size_label)
+
+    ax.set_ylim([0, 1])
+
+    ax.set_xticks([0, 1, 3, 4])
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+
+    labels[0] = "Hit\nrate"
+    labels[1] = "False alarm\nrate"
+    labels[2] = "Hit\nrate"
+    labels[3] = "False alarm\nrate"
+
+    ax.set_xticklabels(labels)
+
+    plt.tight_layout()
+
+    name = f"hr_fa_{cond}_derma"
+    doubleSave(name, thesis_expt_path)
+    saveStatsFigure(
+        scipy.stats.ttest_rel(
+            data[f"{cond}-hr-notouch-loglinear"],
+            data[f"{cond}-hr-touch-loglinear"],
+            alternative="greater",
+        ),
+        thesis_expt_path,
+        name
+    )
+
+def dPrimePlot(data, cond, thesis_expt_path):
+    print(cond.upper())
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+
+    ax.scatter(
+        np.repeat(0, len(data[f"{cond}-d-prime-touch"])),
+        data[f"{cond}-d-prime-touch"],
+        s=scatter_size,
+        color=t_color,
+    )
+    ax.scatter(
+        np.repeat(1, len(data[f"{cond}-d-prime-notouch"])),
+        data[f"{cond}-d-prime-notouch"],
+        s=scatter_size,
+        color=nt_color,
+    )
+
+    md_notouch = np.mean(data[f"{cond}-d-prime-notouch"])
+    md_touch = np.mean(data[f"{cond}-d-prime-touch"])
+
+    offset = 0.2
+    ax.plot([0 - offset, 0 + offset], [md_touch, md_touch], lw=width_lines, color=t_color)
+    ax.plot([1 - offset, 1 + offset], [md_notouch, md_notouch], lw=width_lines, color=nt_color)
+
+    for i, dd in enumerate(data[f"{cond}-d-prime-touch"]):
+        ax.plot(
+            [0, 1],
+            [data[f"{cond}-d-prime-touch"], data[f"{cond}-d-prime-notouch"]],
+            color="k",
+            lw=width_lines - adjust_parti_line,
+            alpha=alpha_partici,
+            zorder=0
+        )
+
+    removeSpines(ax)
+    prettifySpinesTicks(ax)
+
+    ax.set_ylabel("Sensitivity (d')", labelpad=pad_size_label)
+    # ax.set_xlabel('Time (s)', labelpad=20)
+    ax.set_ylim([0, 3.5])
+
+    ax.set_xticks([])
+
+    plt.tight_layout()
+
+    name = f"d_prime_{cond}_derma"
+    doubleSave(name, thesis_expt_path)
+    saveStatsFigure(
+        scipy.stats.ttest_rel(
+            data[f"{cond}-d-prime-notouch"],
+            data[f"{cond}-d-prime-touch"],
+            alternative="greater",
+        ),
+        thesis_expt_path,
+        name
+    )
+
+def responseBiasPlot(data, cond, thesis_expt_path):
+    fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+
+    ax.scatter(
+        np.repeat(0, len(data[f"{cond}-c-response-touch"])),
+        data[f"{cond}-c-response-touch"],
+        s=scatter_size,
+        color=t_color,
+    )
+    ax.scatter(
+        np.repeat(1, len(data[f"{cond}-c-response-notouch"])),
+        data[f"{cond}-c-response-notouch"],
+        s=scatter_size,
+        color=nt_color,
+    )
+
+    mc_notouch = np.mean(data[f"{cond}-c-response-notouch"])
+    mc_touch = np.mean(data[f"{cond}-c-response-touch"])
+
+    offset = 0.2
+    ax.plot([0 - offset, 0 + offset], [mc_touch, mc_touch], color=t_color, lw=width_lines)
+    ax.plot([1 - offset, 1 + offset], [mc_notouch, mc_notouch], color=nt_color, lw=width_lines)
+
+    for i, dd in enumerate(data[f"{cond}-c-response-touch"]):
+        ax.plot(
+            [0, 1],
+            [data[f"{cond}-c-response-touch"], data[f"{cond}-c-response-notouch"]],
+            color="k",
+            lw=width_lines - adjust_parti_line,
+            alpha=alpha_partici,
+            zorder=0
+        )
+
+    removeSpines(ax)
+    prettifySpinesTicks(ax)
+
+    ax.set_ylabel("Bias (c)", labelpad=pad_size_label)
+
+    ax.set_ylim([-1.5, 1.5])
+
+    ax.set_xticks([])
+    ax.set_yticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
+
+    plt.tight_layout()
+
+    ax.text(
+        -0.1,
+        1.1,
+        "Yes",
+        verticalalignment="bottom",
+        horizontalalignment="left",
+        transform=ax.transAxes,
+        color="red",
+        fontsize=45,
+    )
+
+    ax.text(
+        -0.1,
+        -0.15,
+        "No",
+        verticalalignment="bottom",
+        horizontalalignment="left",
+        transform=ax.transAxes,
+        color="red",
+        fontsize=45,
+    )
+
+    name = f"response_bias_{cond}"
+    doubleSave(name, thesis_expt_path)
+    saveStatsFigure(
+        scipy.stats.ttest_rel(
+            data[f"{cond}-c-response-notouch"],
+            data[f"{cond}-c-response-touch"]
+        ),
+        thesis_expt_path,
+        name
+    )
+
+def ianettiPlotD(data, conditions, name_labels, name, thesis_expt_path):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    for i, cond in enumerate(conditions.values()):
+
+        ax.scatter(
+            np.repeat(i, len(data[f"{cond}-d-prime-touch"])),
+            data[f"{cond}-d-prime-touch"],
+            s=scatter_size,
+            color=t_color,
+        )
+        ax.scatter(
+            np.repeat((i + 0.5), len(data[f"{cond}-d-prime-notouch"])),
+            data[f"{cond}-d-prime-notouch"],
+            s=scatter_size,
+            color=nt_color,
+        )
+
+        md_notouch = np.mean(data[f"{cond}-d-prime-notouch"])
+        md_touch = np.mean(data[f"{cond}-d-prime-touch"])
+
+        offset = 0.1
+        ax.plot([i - offset, i + offset], [md_touch, md_touch], lw=width_lines, color=t_color)
+        ax.plot(
+            [(i + 0.5) - offset, (i + 0.5) + offset],
+            [md_notouch, md_notouch],
+            lw=width_lines,
+            color=nt_color,
+        )
+
+        for un_ied, dd in enumerate(data[f"{cond}-d-prime-touch"]):
+            ax.plot(
+                [i, (i + 0.5)],
+                [data[f"{cond}-d-prime-touch"], data[f"{cond}-d-prime-notouch"]],
+                color="k",
+                lw=width_lines - adjust_parti_line,
+                alpha=alpha_partici,
+                zorder=0
+            )
+
+    removeSpines(ax)
+    prettifySpinesTicks(ax)
+
+    ax.set_ylabel("Sensitivity (d')", labelpad=pad_size_label)
+    ax.set_ylim([0, 3.5])
+
+    ax.set_xticks([0.25, 1.25, 2.25])
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+
+    for idx, label in enumerate(labels):
+        labels[idx] = name_labels[idx]
+
+    ax.set_xticklabels(labels)
+
+    doubleSave(name, thesis_expt_path)
+
+def ianettiPlotC(data, conditions, name_labels, name, thesis_expt_path):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    for i, cond in enumerate(conditions.values()):
+
+        ax.scatter(
+            np.repeat(i, len(data[f"{cond}-c-response-touch"])),
+            data[f"{cond}-c-response-touch"],
+            s=scatter_size,
+            color=t_color,
+        )
+        ax.scatter(
+            np.repeat((i + 0.5), len(data[f"{cond}-c-response-notouch"])),
+            data[f"{cond}-c-response-notouch"],
+            s=scatter_size,
+            color=nt_color,
+        )
+
+        md_notouch = np.mean(data[f"{cond}-c-response-notouch"])
+        md_touch = np.mean(data[f"{cond}-c-response-touch"])
+
+        offset = 0.1
+        ax.plot([i - offset, i + offset], [md_touch, md_touch], lw=width_lines, color=t_color)
+        ax.plot(
+            [(i + 0.5) - offset, (i + 0.5) + offset],
+            [md_notouch, md_notouch],
+            lw=width_lines,
+            color=nt_color,
+        )
+
+        for un_ied, dd in enumerate(data[f"{cond}-c-response-touch"]):
+            ax.plot(
+                [i, (i + 0.5)],
+                [data[f"{cond}-c-response-touch"], data[f"{cond}-c-response-notouch"]],
+                color="k",
+                lw=width_lines - adjust_parti_line,
+                alpha=alpha_partici,
+                zorder=0
+            )
+
+    removeSpines(ax)
+    prettifySpinesTicks(ax)
+
+    ax.set_ylabel("Response bias (c)", labelpad=pad_size_label)
+    ax.set_ylim([-1.5, 1.5])
+    ax.set_yticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
+    ax.set_xticks([0.25, 1.25, 2.25])
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+
+    for idx, label in enumerate(labels):
+        labels[idx] = name_labels[idx]
+
+    ax.set_xticklabels(labels)
+
+    doubleSave(name, thesis_expt_path)
+
+def diffPlotD(dfs, name_labels, name, thesis_expt_path):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    ax.plot([0.25, 1.25, 2.25], dfs, color="k", lw=width_lines)
+
+    removeSpines(ax)
+    prettifySpinesTicks(ax)
+
+    ax.set_ylabel("Cold d' - (Cold + Touch) d'", labelpad=pad_size_label)
+    ax.set_ylim([0, 0.4])
+
+    ax.set_xticks([0.25, 1.25, 2.25])
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+
+    for idx, label in enumerate(labels):
+        labels[idx] = name_labels[idx]
+
+    ax.set_xticklabels(labels)
+
+    doubleSave(name, thesis_expt_path)
+
+def diffPlotC(dfs, name_labels, name, thesis_expt_path):
+    fig, ax = plt.subplots(1, 1, figsize=(20, 15))
+
+    ax.plot([0.25, 1.25, 2.25], dfs, color="k", lw=width_lines)
+
+    removeSpines(ax)
+    prettifySpinesTicks(ax)
+
+    ax.set_ylabel("Cold response bias - (Cold + Touch) response bias", labelpad=pad_size_label)
+    ax.set_ylim([-1.5, 1.5])
+    ax.set_yticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
+
+    ax.set_xticks([0.25, 1.25, 2.25])
+    labels = [item.get_text() for item in ax.get_xticklabels()]
+
+    for idx, label in enumerate(labels):
+        labels[idx] = name_labels[idx]
+
+    ax.set_xticklabels(labels)
+
+    ax.text(
+        -0.1,
+        1.1,
+        "Yes",
+        verticalalignment="bottom",
+        horizontalalignment="left",
+        transform=ax.transAxes,
+        color="red",
+        fontsize=45,
+    )
+
+    ax.text(
+        -0.1,
+        -0.15,
+        "No",
+        verticalalignment="bottom",
+        horizontalalignment="left",
+        transform=ax.transAxes,
+        color="red",
+        fontsize=45,
+    )
+
+    doubleSave(name, thesis_expt_path)
 ############################################################################################################
 ####### Functions PhD
 ############################################################################################################

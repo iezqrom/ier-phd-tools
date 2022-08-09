@@ -3333,6 +3333,11 @@ class TherCam(object):
 ###################### FUNCTIONS ##############################
 ###############################################################
 
+def circularMask(xs, ys, y, x, radius):
+    mask = (xs[np.newaxis, :] - y) ** 2 + (
+        ys[:, np.newaxis] - x
+    ) ** 2 < radius ** 2
+    return mask
 
 def saveh5py(names, datas, frame, file):
     if len(names) != len(datas):

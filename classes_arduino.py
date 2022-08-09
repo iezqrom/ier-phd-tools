@@ -73,28 +73,16 @@ class ArdUIno(grabPorts):
 
         self.arduino.flushInput()
 
-    def readData(self, dataParser=float, event=None):
-        while True:
-            try:
-                read = self.arduino.readline()
-                read_float = dataParser(read)
-                print("Data_ard: " + str(read_float))
-                if read_float > 400:
-                    globals.data = globals.data
-                else:
-                    globals.data = read_float
-            except Exception as e:
-                print(e)
-                globals.data = globals.data
+    def readData(self, dataParser=float):
+        self.read_parsed = None
 
-            if event != None:
-                event.set()
-                # print('EVENT')
+        try:
+            self.read = self.arduino.readline()
+            self.read_parsed = dataParser(self.read)
 
-            if keyboard.is_pressed("e"):
-                break
+        except Exception as e:
+            print(f"Exception from arduino readData method {e}")
 
-        printme("Reading done")
 
     def OpenClose(self, wait_close, wait_open, devices=None):
 

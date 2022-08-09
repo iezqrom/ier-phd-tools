@@ -368,7 +368,7 @@ def responseBiasPlot(data, cond, thesis_expt_path):
     plt.tight_layout()
 
     ax.text(
-        -0.1,
+        -0.4,
         1.1,
         "Yes",
         verticalalignment="bottom",
@@ -379,7 +379,7 @@ def responseBiasPlot(data, cond, thesis_expt_path):
     )
 
     ax.text(
-        -0.1,
+        -0.4,
         -0.15,
         "No",
         verticalalignment="bottom",
@@ -510,6 +510,28 @@ def ianettiPlotC(data, conditions, name_labels, name, thesis_expt_path):
 
     ax.set_xticklabels(labels)
 
+    ax.text(
+        -0.16,
+        1.1,
+        "Yes",
+        verticalalignment="bottom",
+        horizontalalignment="left",
+        transform=ax.transAxes,
+        color="red",
+        fontsize=45,
+    )
+
+    ax.text(
+        -0.16,
+        -0.15,
+        "No",
+        verticalalignment="bottom",
+        horizontalalignment="left",
+        transform=ax.transAxes,
+        color="red",
+        fontsize=45,
+    )
+
     doubleSave(name, thesis_expt_path)
 
 def diffPlotD(dfs, name_labels, name, thesis_expt_path):
@@ -521,7 +543,8 @@ def diffPlotD(dfs, name_labels, name, thesis_expt_path):
     prettifySpinesTicks(ax)
 
     ax.set_ylabel("Cold d' - (Cold + Touch) d'", labelpad=pad_size_label)
-    ax.set_ylim([0, 0.4])
+    ax.set_ylim([-0.1, 0.5])
+    ax.set_yticks([-0.1, 0, 0.1, 0.2, 0.3, 0.4, 0.5])
 
     ax.set_xticks([0.25, 1.25, 2.25])
     labels = [item.get_text() for item in ax.get_xticklabels()]
@@ -552,28 +575,6 @@ def diffPlotC(dfs, name_labels, name, thesis_expt_path):
         labels[idx] = name_labels[idx]
 
     ax.set_xticklabels(labels)
-
-    ax.text(
-        -0.1,
-        1.1,
-        "Yes",
-        verticalalignment="bottom",
-        horizontalalignment="left",
-        transform=ax.transAxes,
-        color="red",
-        fontsize=45,
-    )
-
-    ax.text(
-        -0.1,
-        -0.15,
-        "No",
-        verticalalignment="bottom",
-        horizontalalignment="left",
-        transform=ax.transAxes,
-        color="red",
-        fontsize=45,
-    )
 
     doubleSave(name, thesis_expt_path)
 ############################################################################################################

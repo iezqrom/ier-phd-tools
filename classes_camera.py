@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-
 ### Data structure
-from __future__ import print_function
 import numpy as np
-import ctypes
+import threading
 import struct
 import h5py
 
@@ -39,31 +37,14 @@ try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
-import platform
 
 # from pynput import keyboard
 import os
-import argparse
-
-try:
-    import imutils
-except:
-    pass
-
-
-try:
-    import globals
-
-    # print(globals.shutter_state)
-except:
-    pass
 
 try:
     from failing import *
 except:
     pass
-
-import struct
 
 from classes_text import printme
 
@@ -3339,6 +3320,19 @@ def circularMask(xs, ys, y, x, radius):
     ) ** 2 < radius ** 2
     return mask
 
+def parallelogramMask(xs, ys, y, x, side_x, side_y):
+    mask = np.full([len(ys), len(xs)], False)
+
+    mask_x1 = int((y+1) - side_y/2)
+    mask_x2 = int((y+1) + side_y/2)
+
+    mask_y1 = int((x+1) - side_x/2)
+    mask_y2 = int((x+1) + side_x/2)
+    
+    mask[mask_x1:mask_x2, mask_y1:mask_y2] = True
+
+    return mask
+
 def saveh5py(names, datas, frame, file):
     if len(names) != len(datas):
         print("Names and datas have to be the same length")
@@ -3348,6 +3342,65 @@ def saveh5py(names, datas, frame, file):
         # print('{}'.format(n)+str(frame))
         file.create_dataset(("{}".format(n) + str(frame)), data=d)
 
+###############################################################
+###################### Live plotting ##########################
+###############################################################
+
+# function to change the value of a variable with arrowkeys up and down with library keyboard
+def changeValueVminT(cam):
+    was_pressed_min = False
+    while True:
+        if keyboard.is_pressed('up'):
+            if not was_pressed_min and (cam.vminT + 1) < cam.vmaxT:
+                cam.vminT += 1
+                printme(f'Vmin: {cam.vminT}, Vmax: {cam.vmaxT}')
+                was_pressed_min = True
+        elif keyboard.is_pressed('down'):
+            if not was_pressed_min:
+                cam.vminT -= 1
+                printme(f'Vmin: {cam.vminT}, Vmax: {cam.vmaxT}')
+                was_pressed_min = True
+        elif keyboard.is_pressed('e'):
+            break
+        else:
+            was_pressed_min = False
+
+def changeValueVmaxT(cam):
+    was_pressed_max = False
+    while True:
+        if keyboard.is_pressed('u'):
+            if not was_pressed_max:
+                cam.vmaxT += 1
+                printme(f'Vmin: {cam.vminT}, Vmax: {cam.vmaxT}')
+                was_pressed_max = True
+        elif keyboard.is_pressed('d'):
+            if not was_pressed_max and cam.vmaxT > (cam.vminT + 1):
+                cam.vmaxT -= 1
+                printme(f'Vmin: {cam.vminT}, Vmax: {cam.vmaxT}')
+                was_pressed_max = True
+        elif keyboard.is_pressed('e'):
+            break
+        else:
+            was_pressed_max = False
+
+def changeValuesColorBar(cam):
+    manual_vminT = threading.Thread(
+    target=changeValueVminT,
+    args=[
+        cam
+        ],
+        daemon=True,
+    )
+    manual_vmaxT = threading.Thread(
+    target=changeValueVmaxT,
+    args=[
+        cam
+        ],
+        daemon=True,
+    )
+
+    manual_vminT.start()
+    manual_vmaxT.start()
 
 def generate_colour_map():
     """

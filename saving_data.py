@@ -1,4 +1,5 @@
 import csv
+from fileinput import filename
 import numpy as np
 import os
 import time
@@ -142,11 +143,16 @@ def getSubjNum(situ):
 ################################################################
 
 
-def writeValue(name, value):
-    of = open(f"{name}", "w")
+def writeSingleValue(path, file_name, value):
+    of = open(f"{path}/{file_name}", "w")
     of.write(str(value))
     of.close()
 
+def getSingleValue(path, file_name):
+    f = open(f"{path}/{file_name}", 'r')
+    value = f.readline()
+    f.close()
+    return value
 
 def tempSaving(path, header, temp_file_name="temp_data"):
     """
@@ -157,7 +163,7 @@ def tempSaving(path, header, temp_file_name="temp_data"):
     temp_data_writer = csv.writer(temp_file)
     temp_data_writer.writerow(header)
     temp_file.close()
-    return [temp_data_writer, temp_file, temp_file_name]
+    return [temp_data_writer, temp_file, temp_file_name + ".csv"]
 
 
 def findTempFiles(path):
@@ -519,6 +525,7 @@ def rootToUser(*paths):
 
     path = os.path.realpath(__file__)
     root_path = path.rsplit("/", 1)[0]
+    print(root_path)
 
     for i in paths:
         os.chdir(i)

@@ -518,14 +518,14 @@ def handle_iti_save(temp_row, data, path, file_name):
 ########################################################
 
 
-def rootToUser(*paths):
+def rootToUser(paths):
     pwd = os.getcwd()
     print(f"\nCurrent directory is: {pwd}\n")
     paths = [*paths]
 
     path = os.path.realpath(__file__)
     root_path = path.rsplit("/", 1)[0]
-    print(root_path)
+    print(f"\Root directory is: {root_path}\n")
 
     for i in paths:
         os.chdir(i)

@@ -3342,6 +3342,15 @@ def saveh5py(names, datas, frame, file):
         # print('{}'.format(n)+str(frame))
         file.create_dataset(("{}".format(n) + str(frame)), data=d)
 
+def refreshShutter(cam, timeout=True):
+    cam.performManualff()
+    printme(
+        "Performing shutter refresh and taking a 10-second break\nto let the thermal image stabilise"
+    )
+    if timeout:
+        time.sleep(10)
+
+
 ###############################################################
 ###################### Live plotting ##########################
 ###############################################################

@@ -54,16 +54,16 @@ class Sound(object):
     def stop(self):
         sa.stop_all()
 
-    def playEndGlobal(self, event=None):
+    def playEndGlobal(self, stimulus, event=None):
         try:
             while True:
-                if globals.stimulus == 2:
+                if stimulus == 2:
                     self.play_obj = sa.play_buffer(self.audio, 1, 2, self.fs)
                     print(f"\nTONE ON\n")
                     break
 
             while True:
-                if globals.stimulus == 4:
+                if stimulus == 4:
                     print(f"\nTone OFF\n")
                     break
 

@@ -160,9 +160,9 @@ class InputScreen:
         self.win.columnconfigure(0)
         self.win.rowconfigure(0, weight=1)
 
-        def enterEndTherm(event):
+        def enterEndTherm(event, text_state):
 
-            globals.text_state += 1
+            text_state += 1
 
             self.input = entry.get()
             self.win.destroy()
@@ -224,7 +224,7 @@ class Fixation_cross(tk.Frame):
         # win.after(5000, win.destroy)
         win.mainloop()
 
-    def thermode_screen(self, data):
+    def thermode_screen(self, data, text_state):
 
         while True:
 
@@ -236,7 +236,7 @@ class Fixation_cross(tk.Frame):
             print("we almost started this")
             therm_trio.start()
 
-            if globals.text_state == 1:
+            if text_state == 1:
                 break
             else:
                 continue

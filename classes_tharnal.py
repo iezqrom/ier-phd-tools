@@ -44,7 +44,7 @@ class ReAnRaw(object):
 
         for index, parameter in enumerate(self.parameters):
             for j in np.arange(self.len_subto):
-                temp_parameter_name = f"{parameter}" + str(int(j + 1))
+                temp_parameter_name = f"{parameter}" + str(int(j))
                 try:
                     frame_da = self.read[temp_parameter_name][:]
                     self.data[parameter].append(frame_da)
@@ -530,12 +530,11 @@ def GrabNamesOrder(pattern, folder):
     Example pattern: '^m2_([0-9]+)_mof'
     """
     pattern = re.compile(pattern)
-    names = []
+    names = []    
 
     for filename in os.listdir("{}".format(folder)):
         if pattern.match(filename):
-            name, form = filename.split(".")
-            names.append(name)
+            names.append(filename)
         else:
             continue
     names.sort(key=natural_keys)

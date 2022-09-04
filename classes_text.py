@@ -113,14 +113,14 @@ class TextIO:
                 print("\n ")
                 continue
 
-    def printValues(self):
+    def printValues(self, status, distance, distance_limit, elapsed, time_limit, temp):
         while (
-            globals.status == None
-            and globals.distance > globals.distance_limit
-            and globals.elapsed < globals.time_limit
+            status == None
+            and distance > distance_limit
+            and elapsed < time_limit
         ):
-            print("Temperature:  " + str(globals.temp))
-            print("Distance:  " + str(globals.distance))
+            print("Temperature:  " + str(temp))
+            print("Distance:  " + str(distance))
 
     def famOrder(self):
         while True:
@@ -218,7 +218,7 @@ class TextIO:
                 "\n Which stimulus was oscillating? (Press 1 or 2. Then, press Enter)  "
             )
             if self.decision in ("1", "2"):
-                globals.text_state += 1
+                text_state += 1
                 break
             else:
                 print("\n Only 1 and 2 are valid answers \n")
@@ -231,7 +231,7 @@ class TextIO:
                 "\n Which stimulus was oscillating? (Press 1 or 2. Then, press Enter)  "
             )
             if self.decision_dummy in ("1", "2"):
-                globals.text_state += 1
+                text_state += 1
                 break
             else:
                 print("\n Only 1 and 2 are valid answers \n")

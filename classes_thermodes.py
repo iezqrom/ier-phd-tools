@@ -70,12 +70,6 @@ except:
     # print('This is not a Windows device')
     # import audio
 
-## My scripts
-try:
-    import globals
-except:
-    pass
-
 default_rate = 100
 steps_range = 0.1
 analog_output_mVolts = np.array(

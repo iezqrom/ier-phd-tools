@@ -70,12 +70,6 @@ except:
     # print('This is not a Windows device')
     # import audio
 
-## My scripts
-try:
-    import globals
-except:
-    pass
-
 
 class Thermode(object):
 
@@ -83,10 +77,12 @@ class Thermode(object):
 
     # We first initialise the object by mapping temperatures onto the voltages given by the manual of the thermodes.
     # This manual can be found in office 207a as of December 2019
-    def __init__(self, lower=0, upper=51):
+    def __init__(self, dev, rate, lower=0, upper=51):
         """
         This class is to use a single thermode through a NIDAQ box
         """
+        self.dev = dev
+        self.rate = rate
         ## We need to map the temperatures with the Voltages ##
         self.range_temp = np.arange(lower, upper, self.steps_range)
         self.range_temp = self.range_temp.round(decimals=1)
@@ -105,17 +101,17 @@ class Thermode(object):
         # We stack the data
         self.temp_volt = np.stack((self.range_temp, self.range_volt))
 
-    def readTemp(self, Ai, samples=100, rate=globals.rate_NI, dev=globals.dev):
+    def readTemp(self, Ai, samples=100):
         """
         Method of Zaber (object) to obtain the current temperature.
         Important created attributes: self.temp_current (current temperature) & self.volt_current (voltage equivalent of current temperature).
         """
         self.ai_task = NT.Task()
         self.ai_task.ai_channels.add_ai_voltage_chan(
-            physical_channel="/{}/{}".format(dev, Ai)
+            physical_channel="/{}/{}".format(self.dev, Ai)
         )
         self.ai_task.timing.cfg_samp_clk_timing(
-            rate=rate, samps_per_chan=samples, sample_mode=NC.AcquisitionType.FINITE
+            rate=self.rate, samps_per_chan=samples, sample_mode=NC.AcquisitionType.FINITE
         )
 
         self.ai_task.wait_until_done(timeout=50)
@@ -185,7 +181,7 @@ class Thermode(object):
             )
 
     def IO_thermode(
-        self, Ai, Ao, rate=globals.rate_NI, dev=globals.dev, voltI=None
+        self, Ai, Ao, voltI=None
     ):  # Ai ai8 // Ao ao0
         """
         Method of Zaber (object) to write voltage to and read data (voltage) from thermode.
@@ -203,18 +199,18 @@ class Thermode(object):
 
         self.ai_task = NT.Task()
         self.ai_task.ai_channels.add_ai_voltage_chan(
-            physical_channel="/{}/{}".format(dev, Ai)
+            physical_channel="/{}/{}".format(self.dev, Ai)
         )
         self.ai_task.timing.cfg_samp_clk_timing(
-            rate=rate, samps_per_chan=len(volt), sample_mode=NC.AcquisitionType.FINITE
+            rate=self.rate, samps_per_chan=len(volt), sample_mode=NC.AcquisitionType.FINITE
         )
 
         # configuring ao task: writing data
 
         self.ao_task = NT.Task()
-        self.ao_task.ao_channels.add_ao_voltage_chan("/{}/{}".format(dev, Ao))
+        self.ao_task.ao_channels.add_ao_voltage_chan("/{}/{}".format(self.dev, Ao))
         self.ao_task.timing.cfg_samp_clk_timing(
-            rate=rate,
+            rate=self.rate,
             samps_per_chan=len(volt),
             sample_mode=NC.AcquisitionType.FINITE,
             source="ai/SampleClock",
@@ -245,10 +241,9 @@ class Thermode(object):
 
         self.end_TT = datetime.now() - self.start_TT
         print(self.end_TT)
-        self.rate = rate
 
     def method_of_limits(
-        self, Ai, Ao, direction, rate=globals.rate_NI, temp_rate=0.2, amount=0.1
+        self, Ai, Ao, direction, temp_rate=0.2, amount=0.1
     ):
         """
         Method of Zaber (object) to find thresholds with method of limits strategy.
@@ -288,7 +283,7 @@ class Thermode(object):
 
                 temp_next_amount = self.temp_current + (drt * amount)
                 self.rampCurrTarget(temp_next_amount)
-                self.IO_thermode(rate, Ai, Ao)
+                self.IO_thermode(self.rate, Ai, Ao)
                 if button_state == False:
                     break
 
@@ -302,24 +297,24 @@ class Thermode(object):
         stop_ramp_thread.join()
 
     ##### Working progress
-    def adjust_single(self, rate, Ia, Io, start_temp, target_temp):
+    def adjust_single(self, Ia, Io, start_temp, target_temp):
         """
         Method of Zaber (object)
         This method is in working progress. The aim is to develop a matching paradigm
         """
 
         self.ramp(start_temp, target_temp)
-        self.IO_thermode(rate, Ia, Io)
+        self.IO_thermode(self.rate, Ia, Io)
 
         while True:
 
             if keyboard.is_pressed("up"):
                 self.volt = self.data + 0.0000992
-                self.IO_thermode(rate, Ia, Io)
+                self.IO_thermode(self.rate, Ia, Io)
 
             elif keyboard.is_pressed("up"):
                 self.volt = self.data + 0.0000992
-                self.IO_thermode(rate, Ia, Io)
+                self.IO_thermode(self.rate, Ia, Io)
 
             elif keyboard.is_pressed("e"):
                 break
@@ -346,56 +341,56 @@ class Gethermodes(object):
             self.array_thermodes = [("ai24", "ao2"), ("ai8", "ao0")]
             self.n_channels = 2
 
-    def InputChannels(self, data, dev=globals.dev, rate=globals.rate_NI):
+    def InputChannels(self, data):
 
         if self.n_channels != 2 and self.n_channels != 3:
             print("Wrong number of channels")
         elif self.n_channels == 2:
             self.tisk.ai_channels.add_ai_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[0][0])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[0][0])
             )
             self.tisk.ai_channels.add_ai_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[1][0])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[1][0])
             )
         elif self.n_channels == 3:
             self.tisk.ai_channels.add_ai_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[0][0])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[0][0])
             )
             self.tisk.ai_channels.add_ai_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[1][0])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[1][0])
             )
             self.tisk.ai_channels.add_ai_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[2][0])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[2][0])
             )
 
         self.tisk.timing.cfg_samp_clk_timing(
-            rate=rate, samps_per_chan=len(data), sample_mode=NC.AcquisitionType.FINITE
+            rate=self.rate, samps_per_chan=len(data), sample_mode=NC.AcquisitionType.FINITE
         )
 
-    def OutputChannels(self, data, dev=globals.dev, rate=globals.rate_NI):
+    def OutputChannels(self, data):
 
         if self.n_channels != 2 and self.n_channels != 3:
             print("Wrong number of channels")
         elif self.n_channels == 2:
             self.tosk.ao_channels.add_ao_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[0][1])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[0][1])
             )
             self.tosk.ao_channels.add_ao_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[1][1])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[1][1])
             )
         elif self.n_channels == 3:
             self.tosk.ao_channels.add_ao_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[0][1])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[0][1])
             )
             self.tosk.ao_channels.add_ao_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[1][1])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[1][1])
             )
             self.tosk.ao_channels.add_ao_voltage_chan(
-                physical_channel="/{}/{}".format(dev, self.array_thermodes[2][1])
+                physical_channel="/{}/{}".format(self.dev, self.array_thermodes[2][1])
             )
 
         self.tosk.timing.cfg_samp_clk_timing(
-            rate=rate,
+            rate=self.rate,
             samps_per_chan=len(data),
             sample_mode=NC.AcquisitionType.FINITE,
             source="ai/SampleClock",
@@ -404,7 +399,7 @@ class Gethermodes(object):
     def run(self, data):
         self.stacked = np.stack(data)
 
-        globals.total += 1
+        total += 1
 
         start = time.time()
 
@@ -427,10 +422,10 @@ class Gethermodes(object):
         self.tosk.close()
         self.tisk.close()
         winsound.PlaySound(None, winsound.SND_PURGE)
-        globals.total -= 1
+        total -= 1
 
     def PlotScreen(self, repeats):
-        self.duration = int(1000 * 1 / globals.rate_NI)
+        self.duration = int(1000 * 1 / self.rate)
         self.duration = self.duration * repeats
         self.time = np.arange(0, self.duration, self.duration / (1000 * repeats))
 
@@ -473,9 +468,9 @@ class Oscillation(Thermode, Gethermodes):
         )
 
         # self.volt = np.tile(self.volt, repeats)
-        self.duration = int(1000 * repeats / globals.rate_NI)  # duration of sound
+        self.duration = int(1000 * repeats / self.rate)  # duration of sound
 
-    def IO_osc(self, IaT, OaT, rate=globals.rate_NI):
+    def IO_osc(self, IaT, OaT):
 
         self.start_osc = datetime.now()
 
@@ -494,7 +489,7 @@ class Oscillation(Thermode, Gethermodes):
         # print(self.end_osc)
 
     def plotSingleSine(self, name_save=None, path_save=None, save="Y"):
-        self.durationSine = int(1000 * 1 / globals.rate_NI)  # duration of sound
+        self.durationSine = int(1000 * 1 / self.rate)  # duration of sound
         fig, ax = plt.subplots(1, 1)
         self.timePlotSine = np.arange(0, self.durationSine, self.durationSine / 1000)
         plt.plot(self.timePlotSine, self.data_osc, label="Voltage from Thermode")
@@ -533,10 +528,10 @@ class Constant(Thermode, Gethermodes):
         self.volt_ref = self.volt_ref[0, 1]
         self.volt = np.repeat(self.volt_ref, length)
         # print(len(self.volt))
-        self.durationCons = int(1000 * repeats / globals.rate_NI)  # duration of sound
+        self.durationCons = int(1000 * repeats / rate_NI)  # duration of sound
         self.repeats = repeats
 
-    def IO_constant(self, IaT, OaT, rate=globals.rate_NI):
+    def IO_constant(self, IaT, OaT, rate=rate_NI):
 
         thermode.IO_thermode(self, rate, IaT, OaT)
         self.data_cons = self.data
@@ -572,12 +567,12 @@ class Constant(Thermode, Gethermodes):
             trio.OutputChannels(self.volt)
             trio.run(data)
 
-            if globals.text_state == 1:
+            if text_state == 1:
                 break
             else:
                 continue
 
-    # def IO_cons(self, IaT, OaT, time, cons_dummy = 0.001, rate = globals.rate_NI):
+    # def IO_cons(self, IaT, OaT, time, cons_dummy = 0.001, rate = rate_NI):
     #     self.start_cons = datetime.now()
     #     self.elapsed_cons = 0
     #     self.data_target = []
@@ -597,7 +592,7 @@ class Constant(Thermode, Gethermodes):
     #
     #     self.data_target = np.asarray(list(itertools.chain(*self.data_target)))
 
-    # def IO_constantTrio(self, data, ref_dummy = 0.01, rate = globals.rate_NI):
+    # def IO_constantTrio(self, data, ref_dummy = 0.01, rate = rate_NI):
     #     self.start_ref = datetime.now()
     #     self.data_target = []
     #
@@ -640,7 +635,7 @@ class Target(Thermode, Gethermodes):
         self.volt_ref = self.volt_ref[0, 1]
         self.volt = np.repeat(self.volt_ref, 2)
 
-    def IO_referenceSingle(self, IaT, OaT, ref_dummy=0.01, rate=globals.rate_NI):
+    def IO_referenceSingle(self, IaT, OaT, ref_dummy=0.01, rate=rate_NI):
         self.start_ref = datetime.now()
         self.data_target = []
 
@@ -660,7 +655,7 @@ class Target(Thermode, Gethermodes):
                 self.data_target.append(self.data)
                 continue
 
-    def IO_referenceTrio(self, ref_dummy=0.01, rate=globals.rate_NI):
+    def IO_referenceTrio(self, ref_dummy=0.01, rate=rate_NI):
         self.start_ref = datetime.now()
         self.data_target = []
 
@@ -710,7 +705,7 @@ class Target(Thermode, Gethermodes):
 
         plt.close()
 
-    def IO_targetTrio(self, data, ref_dummy=0.01, rate=globals.rate_NI):
+    def IO_targetTrio(self, data, ref_dummy=0.01, rate=rate_NI):
         self.start_ref = datetime.now()
         self.data_target = []  # hola
 

@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from math import gcd
-from classes_text import *
+from text import *
 
 
 class ConditionsHandler:

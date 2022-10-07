@@ -1,6 +1,6 @@
 ### HOMEMADE CODE
-from classes_conds import ConditionsHandler
-from classes_testData import TestingDataHandler
+from conds import ConditionsHandler
+from testData import TestingDataHandler
 from failing import *
 from saving_data import *
 

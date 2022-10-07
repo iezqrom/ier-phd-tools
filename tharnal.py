@@ -10,7 +10,7 @@ import numpy as np
 import h5py
 from failing import errorloc
 
-from classes_camera import rawToC, CToRaw
+from camera import rawToC, CToRaw
 
 
 class ReAnRaw(object):

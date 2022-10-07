@@ -1,5 +1,5 @@
 import numpy as np
-from classes_text import *
+from text import *
 import time
 from sympy import symbols, solve, Add, Eq, Symbol
 

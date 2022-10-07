@@ -46,7 +46,7 @@ try:
 except:
     pass
 
-from classes_text import printme
+from text import printme
 
 def py_frame_callback(frame, userptr):
 

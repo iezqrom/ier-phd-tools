@@ -8,7 +8,7 @@ import pandas as pd
 import subprocess
 import re
 import shutil
-from classes_text import (
+from text import (
     printme,
     agebyExperimenter,
     sexbyExperimenter,

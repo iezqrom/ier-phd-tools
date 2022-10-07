@@ -60,12 +60,12 @@ try:
 except:
     pass
 
-from classes_arduino import ArdUIno
-from classes_arduino import *
+from arduino import ArdUIno
+from arduino import *
 from grabPorts import grabPorts
 from pyd import PYD
 from saving_data import *
-from classes_text import *
+from text import *
 from index_funcs import *
 
 # Maths

@@ -36,7 +36,7 @@ except:
     pass
 
 
-from classes_arduino import ArdUIno
+from arduino import ArdUIno
 from grabPorts import grabPorts
 
 

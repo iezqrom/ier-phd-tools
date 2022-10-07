@@ -4,7 +4,7 @@ import speech_recognition as sr
 import random
 import pyttsx3
 import globals
-from classes_text import *
+from text import *
 from failing import *
 
 ########################################################################

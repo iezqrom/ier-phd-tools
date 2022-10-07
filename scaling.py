@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
-from classes_text import delta_temperatre_T
+from text import delta_temperatre_T
 import time
 
 

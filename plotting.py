@@ -57,15 +57,15 @@ def setTicksPad(ax, gap):
     ax.tick_params(axis="y", which="major", pad=gap)
     ax.tick_params(axis="x", which="major", pad=gap)
 
-def prettifySpinesTicks(ax):
-    ax.yaxis.set_tick_params(width=width_ticks, length=length_ticks, color='grey')
-    ax.xaxis.set_tick_params(width=width_ticks, length=length_ticks, color='grey')
+def prettifySpinesTicks(ax, colour = 'grey'):
+    ax.yaxis.set_tick_params(width=width_ticks, length=length_ticks, color=colour)
+    ax.xaxis.set_tick_params(width=width_ticks, length=length_ticks, color=colour)
 
     for spine in ax.spines.values():
-        spine.set_edgecolor('grey')
+        spine.set_edgecolor(colour)
 
-    ax.spines["left"].set_linewidth(width_spines)
-    ax.spines["bottom"].set_linewidth(width_spines)
+    for spine in ax.spines.values():
+        spine.set_linewidth(width_spines)
 
     ax.tick_params(axis="y", which="major", pad=pad_size_ticks)
     ax.tick_params(axis="x", which="major", pad=pad_size_ticks)

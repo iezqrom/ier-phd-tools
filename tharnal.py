@@ -49,7 +49,8 @@ class ReAnRaw(object):
                     frame_da = self.read[temp_parameter_name][:]
                     self.data[parameter].append(frame_da)
                 except Exception as e:
-                    errorloc(e)
+                    # errorloc(e)
+                    pass
 
     def attrstoDic(self):
         "Transform videos attributes into a dictionary"

@@ -27,7 +27,7 @@ only_touch_color = "#417743"
 
 degree_sign = u'\N{DEGREE SIGN}'
 
-path_thesis = '/Users/ivan/Documents/aaa_online_stuff/phd_2018_2023/aaa_phd/writing/thesis/figures'
+path_thesis = '/Users/ivan/Documents/aaa_online_stuff/phd_2018_2023/aaa_phd/comms/thesis/figures'
 path_figures = "../../globalfigures/thesis"
 
 def plotParams(colour = "black"):

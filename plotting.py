@@ -20,10 +20,12 @@ alpha_partici = 0.1
 
 adjust_parti_line = 4
 
-nt_color = "#0F4C81"
-t_color = "#B59A48"
-none_color = "#000000"
-only_touch_color = "#417743"
+colours = {
+    'cold': "#0F4C81",
+    'cold_touch': "#B59A48",
+    'none': "#000000",
+    'touch': "#417743"
+}
 
 degree_sign = u'\N{DEGREE SIGN}'
 

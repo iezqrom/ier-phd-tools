@@ -1,109 +1,266 @@
-import re
-import os
-import matplotlib.pyplot as plt
-
-try:
-    from func_anim import *
-except:
-    pass
 import numpy as np
 import h5py
-from failing import errorloc
+import re
+import os
 
-from camera import rawToC, CToRaw
+########################################################################
+############ Class
+#########################################################################
 
 
 class ReAnRaw(object):
     """Grab h5py file. Don't include format in string"""
 
     def __init__(self, input):
-        "We get the data from the h5py files, then we find the parameters used."
 
         self.read = h5py.File("{}.hdf5".format(input), "r")
 
-        self.parameters = []
-
-        for i in self.read.keys():
-            self.parameters.append(re.split("(\d+)", i)[0])
-
-        self.parameters = list(set(self.parameters))
-
-        self.data = {}
-        self.metadata = {}
-
-        for p in self.parameters:
-            self.data[p] = []
-
-        print("These are the parameters measured in this thermal video")
-        print(self.parameters)
-
-    def datatoDic(self):
-        "Transform videos data into a dictionary"
-
-        self.len_subto = len(self.read.keys()) / len(self.parameters)
-
-        for index, parameter in enumerate(self.parameters):
-            for j in np.arange(self.len_subto):
-                temp_parameter_name = f"{parameter}" + str(int(j))
-                try:
-                    frame_da = self.read[temp_parameter_name][:]
-                    self.data[parameter].append(frame_da)
-                except Exception as e:
-                    # errorloc(e)
-                    pass
-
-    def attrstoDic(self):
-        "Transform videos attributes into a dictionary"
-        for attribute_key in self.read.attrs.keys():
-            self.metadata[attribute_key] = self.read.attrs[attribute_key]
-
-    def extractOpenClose(self, name):
-        shus = np.asarray(self.data[name])
-        self.open = np.where(shus[:-1] != shus[1:])[0]
-
-    def extractMeans(self, name_image="image", name_coor="fixed_coor", r=20):
-        """
-        Method to extract mean of ROI (default: fixed_coor)
-        """
+    def getParaMoF(self, r=20):
 
         self.min_pixel = []
         self.means = []
         self.surround = []
+        self.peak_pos = []
+        self.shus = []
+        self.shutterOnOff = []
 
-        for i in np.arange(len(self.data[name_image])):
+        self.indxDD = []
+        self.indyDD = []
 
-            minimoC = np.min(self.data[name_image][i])
+        r = r
+        frame = 1
+
+        for i in np.arange(len(self.read.keys())):
+
+            dataAll = self.read["image" + str(frame)][:]
+            frame += 1
+            dataC = dataAll[0:120]
+
+            shutter = dataAll[120]
+            OnOff = shutter[0]
+
+            minimoC = np.min(dataC)
 
             xs = np.arange(0, 160)
             ys = np.arange(0, 120)
 
-            # print(self.data[name_coor][i])
+            self.indx = dataAll[121][0]
+            self.indy = dataAll[121][-1]
 
-            try:
-                shape = np.shape(self.data[name_coor][i])[1]
-                # print(shape)
-                cs = self.data[name_coor][i][:, 0]
-                cy = cs[1]
-                cx = cs[0]
-            except:
-                cs = self.data[name_coor][i]
-                cy = cs[1]
-                cx = cs[0]
+            self.indxD = dataAll[123][0]
+            self.indyD = dataAll[123][-1]
+            self.indxDD.append(self.indxD)
+            self.indyDD.append(self.indyD)
 
-            mask = (xs[np.newaxis, :] - cy) ** 2 + (
-                ys[:, np.newaxis] - cx
+            mask = (xs[np.newaxis, :] - self.indy) ** 2 + (
+                ys[:, np.newaxis] - self.indx
             ) ** 2 < r ** 2
 
-            roiC = self.data[name_image][i][mask]
+            roiC = dataC[mask]
             mean = round(np.mean(roiC), 2)
 
             unmask = np.invert(mask)
-            unroiC = self.data[name_image][i][unmask]
+            unroiC = dataC[unmask]
             meanSU = round(np.mean(unroiC), 2)
 
             self.means.append(mean)
             self.min_pixel.append(minimoC)
+            self.shutterOnOff.append(OnOff)
             self.surround.append(meanSU)
+
+        shus = np.asarray(self.shutterOnOff)
+        self.open = np.where(shus[:-1] != shus[1:])[0]
+
+    def getParaTempPos(self, r=20):
+
+        self.min_pixel = []
+        self.means = []
+        self.surround = []
+        self.peak_pos = []
+        self.shus = []
+        self.pos = []
+        self.shutterOnOff = []
+        self.time = []
+
+        self.indxDD = []
+        self.indyDD = []
+
+        zero_time = self.read["image1"][122][0]
+
+        r = r
+        frame = 1
+
+        for i in np.arange(len(self.read.keys())):
+
+            dataAll = self.read["image" + str(frame)][:]
+            frame += 1
+            dataC = dataAll[0:120]
+
+            shutter = dataAll[120]
+            OnOff = shutter[0]
+
+            now_time = dataAll[122][0] - zero_time
+
+            minimoC = np.min(dataC)
+
+            xs = np.arange(0, 160)
+            ys = np.arange(0, 120)
+
+            self.indx = dataAll[121][0]
+            self.indy = dataAll[121][-1]
+
+            self.indxD = dataAll[123][0]
+            self.indyD = dataAll[123][-1]
+            self.indxDD.append(self.indxD)
+            self.indyDD.append(self.indyD)
+
+            posI = dataAll[124][0]
+
+            mask = (xs[np.newaxis, :] - self.indy) ** 2 + (
+                ys[:, np.newaxis] - self.indx
+            ) ** 2 < r ** 2
+
+            roiC = dataC[mask]
+            mean = round(np.mean(roiC), 2)
+
+            unmask = np.invert(mask)
+            unroiC = dataC[unmask]
+            meanSU = round(np.mean(unroiC), 2)
+
+            self.means.append(mean)
+            self.min_pixel.append(minimoC)
+            self.shutterOnOff.append(OnOff)
+            self.surround.append(meanSU)
+            self.pos.append(posI)
+            self.time.append(now_time)
+
+        shus = np.asarray(self.shutterOnOff)
+        self.open = np.where(shus[:-1] != shus[1:])[0]
+
+
+# class ReAnRaw(object):
+#     ''' Grab h5py file. Don't include format in string'''
+#     def __init__(self, input):
+
+#         self.read = h5py.File('{}.hdf5'.format(input), 'r')
+
+#     def getParaMoF(self, r = 20):
+
+#         self.min_pixel = []
+#         self.means = []
+#         self.surround = []
+#         self.peak_pos = []
+#         self.shus = []
+#         self.shutterOnOff = []
+
+#         self.indxDD = []
+#         self.indyDD = []
+
+#         r = r
+#         frame = 1
+
+#         for i in np.arange(len(self.read.keys())):
+
+#             dataAll = self.read['image'+str(frame)][:]
+#             frame +=1
+#             dataC = dataAll[0:120]
+
+#             shutter = dataAll[120]
+#             OnOff = shutter[0]
+
+#             minimoC = np.min(dataC)
+
+#             xs = np.arange(0, 160)
+#             ys = np.arange(0, 120)
+
+#             self.indx = dataAll[121][0]
+#             self.indy = dataAll[121][-1]
+
+#             self.indxD = dataAll[123][0]
+#             self.indyD = dataAll[123][-1]
+#             self.indxDD.append(self.indxD)
+#             self.indyDD.append(self.indyD)
+
+#             mask = (xs[np.newaxis,:] - self.indy)**2 + (ys[:,np.newaxis] - self.indx)**2 < r**2
+
+#             roiC = dataC[mask]
+#             mean = round(np.mean(roiC), 2)
+
+#             unmask = np.invert(mask)
+#             unroiC = dataC[unmask]
+#             meanSU = round(np.mean(unroiC), 2)
+
+#             self.means.append(mean)
+#             self.min_pixel.append(minimoC)
+#             self.shutterOnOff.append(OnOff)
+#             self.surround.append(meanSU)
+
+#         shus = np.asarray(self.shutterOnOff)
+#         self.open = np.where(shus[:-1] != shus[1:])[0]
+
+#     def getParaTempPos(self, r = 20):
+
+#         self.min_pixel = []
+#         self.means = []
+#         self.surround = []
+#         self.peak_pos = []
+#         self.shus = []
+#         self.pos = []
+#         self.shutterOnOff = []
+#         self.time = []
+
+#         self.indxDD = []
+#         self.indyDD = []
+
+#         zero_time = self.read['image1'][122][0]
+
+#         r = r
+#         frame = 1
+
+#         for i in np.arange(len(self.read.keys())):
+
+#             dataAll = self.read['image'+str(frame)][:]
+#             frame +=1
+#             dataC = dataAll[0:120]
+
+#             shutter = dataAll[120]
+#             OnOff = shutter[0]
+
+#             now_time = dataAll[122][0] - zero_time
+
+#             minimoC = np.min(dataC)
+
+#             xs = np.arange(0, 160)
+#             ys = np.arange(0, 120)
+
+#             self.indx = dataAll[121][0]
+#             self.indy = dataAll[121][-1]
+
+#             self.indxD = dataAll[123][0]
+#             self.indyD = dataAll[123][-1]
+#             self.indxDD.append(self.indxD)
+#             self.indyDD.append(self.indyD)
+
+#             posI = dataAll[124][0]
+
+#             mask = (xs[np.newaxis,:] - self.indy)**2 + (ys[:,np.newaxis] - self.indx)**2 < r**2
+
+#             roiC = dataC[mask]
+#             mean = round(np.mean(roiC), 2)
+
+#             unmask = np.invert(mask)
+#             unroiC = dataC[unmask]
+#             meanSU = round(np.mean(unroiC), 2)
+
+#             self.means.append(mean)
+#             self.min_pixel.append(minimoC)
+#             self.shutterOnOff.append(OnOff)
+#             self.surround.append(meanSU)
+#             self.pos.append(posI)
+#             self.time.append(now_time)
+
+#         shus = np.asarray(self.shutterOnOff)
+#         self.open = np.where(shus[:-1] != shus[1:])[0]
 
 
 ########################################################################
@@ -270,6 +427,17 @@ def catchThres(self, thresh, solo="Y"):
         self.areas.append(area)
         self.mean_temps.append(temp)
         self.shutterOnOff.append(OnOff)
+
+        # data = cv2.resize(raw_dum[:,:], (640, 480))
+        # img = cv2.LUT(raw_to_8bit(data), generate_colour_map())
+        # rgbImage = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        #
+        # cv2.putText(rgbImage, 'A: {}'.format(area), (5, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0))
+        # cv2.putText(rgbImage, 'T: {}'.format(temp), (5, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0))
+        #
+        # cv2.imshow('Playing video', rgbImage)
+        # cv2.waitKey(1)
+
         frame += 1
     frame = 1
 
@@ -528,16 +696,20 @@ def plotShuTemp(self, output, minY, max):
 
 def GrabNamesOrder(pattern, folder):
     """Get the file names with a given pattern in order
+
     Example pattern: '^m2_([0-9]+)_mof'
+
     """
     pattern = re.compile(pattern)
-    names = []    
+    names = []
 
-    for filename in os.listdir("{}".format(folder)):
+    for filename in os.listdir("./{}".format(folder)):
         if pattern.match(filename):
-            names.append(filename)
+            name, form = filename.split(".")
+            names.append(name)
         else:
             continue
+
     names.sort(key=natural_keys)
 
     return names
@@ -554,56 +726,3 @@ def natural_keys(text):
     (See Toothy's implementation in the comments)
     """
     return [atoi(c) for c in re.split(r"(\d+)", text)]
-
-
-def grabManyvideos(root_path, folder_name, pattern="mol_.*\.hdf5$"):
-    """
-    pattern for SDT videos f'sdt_.*\.hdf5$'
-    """
-
-    patternc = re.compile(pattern)
-    names = []
-
-    for filename in os.listdir(f"{root_path}/{folder_name}/videos/"):
-        if patternc.match(filename):
-            # print(filename)
-            name, form = filename.split(".")
-            names.append(name)
-        else:
-            continue
-
-    names.sort(key=natural_keys)
-    print(names)
-    return names
-
-
-def pairwise(vs):
-    it = iter(vs)
-    while True:
-        try:
-            yield next(it), next(it)
-        except StopIteration:
-            if len(vs) % 2 != 0:
-                yield vs[-1], None
-            return
-
-
-def saveMetadata(metadata, file):
-    for k, v in metadata.items():
-        file.attrs[f"{k}"] = v
-
-
-def init_h5file(path, name_file):
-    f = h5py.File(f"{path}/{name_file}.hdf5", "w")
-    return f
-
-
-def saveh5py(names, datas, frame, file):
-    """
-    Function to save a frameinto the .h5py file
-    """
-    if len(names) != len(datas):
-        print("Names and datas have to be the same length")
-
-    for n, d in zip(names, datas):
-        file.create_dataset(("{}".format(n) + str(frame)), data=d)

@@ -119,10 +119,10 @@ def audioInstance(BUF_MAX_SIZE=BUF_MAX_SIZE, CHUNK=CHUNK):
 
 # initialize speech to text service
 def initSpeech2Text():
-    authenticator = IAMAuthenticator("TYpFrLihy3SW0rwX9X81j6MS9i3XyE1kzhWbVqmlYMuH")
+    authenticator = IAMAuthenticator("iam_apikey")
     speech_to_text = SpeechToTextV1(authenticator=authenticator)
     speech_to_text.set_service_url(
-        "https://api.eu-gb.speech-to-text.watson.cloud.ibm.com/instances/c0042364-1a14-4eb3-b499-d9945a8564bc"
+        "api"
     )
     return speech_to_text
 

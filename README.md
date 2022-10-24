@@ -1,3 +1,5 @@
-# classes_actionNbody
+Classes and functions written during my PhD in the Institute of Cognitive Neuroscience at the University College London (UCL).
 
-This repository contains the classes that I'm developing for my PhD. It will remain private throughout my entire PhD and it'll be used as a back-up and diary of my changes to my classes
+This code is published for transparency and archival purposes. Standard coding practices weren't followed at the start of the development of this code, so the readibility and compatibility of a lot of the code is very low.
+
+This code is used in the following repositories: TBD

@@ -583,7 +583,7 @@ def diffPlotC(dfs, name_labels, name, thesis_expt_path):
 ####### Functions PhD
 ############################################################################################################
 
-def framesToseconds(axis, steps, x):
+def framesToseconds(axis, steps, x, num_format=int):
     """
     Function to convert the x axis from frames to seconds:
     Parameters
@@ -601,7 +601,7 @@ def framesToseconds(axis, steps, x):
     # print(seconds)
     # time.sleep(2)
     for j in enumerate(seconds):
-        labelsx[j[0]] = int(j[1])
+        labelsx[j[0]] = num_format(j[1])
 
     axis.set_xticklabels(labelsx)
 

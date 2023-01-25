@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 ##### HOMEMADE CODE
-import globals
-
 ##### OTHERS' CODE
 import numpy as np
 import math

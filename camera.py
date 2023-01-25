@@ -78,6 +78,7 @@ class TherCam(object):
         self.vmaxT = int(vmaxT)
 
         print(f"\nObject thermal camera initiliased\n")
+        print(f"vminT = {self.vminT} and vmaxT = {self.vmaxT}\n")
 
     def startStream(self):
 
@@ -171,37 +172,21 @@ class TherCam(object):
         perform_manual_ffc(devh)
         print_shutter_info(devh)
 
-    def saveRawData(self, output):
+    def grabDataFunc(self, func, **kwargs):
+
         global dev
         global devh
 
-        tiff_frameLOCAL = 0
+        frame_number = 1
+        end = False
 
-        f = h5py.File("./{}.hdf5".format(output), "w")
+        if kwargs["file_name"] is None:
+            file_name = kwargs["file_name"]
+        else:
+            file_name = kwargs["file_name"]
+            hpy_file = h5py.File(f"{self.pathset}/{file_name}.hdf5", "w")
 
-        import matplotlib as mpl
-
-        mpl.rc("image", cmap="hot")
-
-        fig = plt.figure()
-        ax = plt.axes()
-
-        fig.tight_layout()
-
-        dummy = np.zeros([120, 160])
-
-        img = ax.imshow(
-            dummy,
-            interpolation="nearest",
-            vmin=self.vminT,
-            vmax=self.vmaxT,
-            animated=True,
-        )
-        fig.colorbar(img)
-
-        # current_cmap = plt.cm.get_cmap()
-        # current_cmap.set_bad(color='black')
-
+        print('Starting to grab data')
         try:
             while True:
                 data = q.get(True, 500)
@@ -210,34 +195,27 @@ class TherCam(object):
                     exit(1)
                 data = (data - 27315) / 100
 
-                f.create_dataset(("image" + str(tiff_frameLOCAL)), data=data)
-                tiff_frameLOCAL += 1
+                end = func(data = data, hpy_file = hpy_file, frame_number = frame_number, **kwargs)
 
-                ax.clear()
-                ax.set_xticks([])
-                ax.set_yticks([])
+                frame_number += 1
 
-                ax.spines["top"].set_visible(False)
-                ax.spines["right"].set_visible(False)
-                ax.spines["left"].set_visible(False)
-                ax.spines["bottom"].set_visible(False)
-                ax.imshow(data, vmin=self.vminT, vmax=self.vmaxT)
-
-                plt.pause(0.0005)
-
-                if keyboard.is_pressed("e"):
+                if end:
                     print("We are done")
-                    f.close()
-                    exit(1)
+                    hpy_file.close()
+                    break
 
+        except Exception as e:
+            errorloc(e)
         finally:
+            print("Terminating video streaming")
             libuvc.uvc_stop_streaming(devh)
+
 
     def plotLive(self):
         """
-        Method to plot the thermal camera as a 2-D raster (imshow, heatmap).
-        The min and max values of the heatmap are specified.
-        You can take a pic too.
+            Method to plot the thermal camera as a 2-D raster (imshow, heatmap).
+            The min and max values of the heatmap are specified.
+            You can take a pic too.
         """
         print('Press "r" to refresh the shutter.')
         print('Press "t" to take a thermal pic.')
@@ -322,7 +300,7 @@ class TherCam(object):
 
                 elif keyboard.is_pressed("e"):
                     if not pressed:
-                        cv2.destroyAllWindows()
+                        # cv2.destroyAllWindows()
                         print("We are done")
                         break
 
@@ -386,6 +364,16 @@ def refreshShutter(cam, timeout=True):
 ###############################################################
 ###################### Live plotting ##########################
 ###############################################################
+
+def saveRawData(**kargs):
+    # check whether kwargs data, frame_number and hpy_file are given
+    if "data" in kargs and "frame_number" in kargs and "hpy_file" in kargs:
+        data = kargs["data"]
+        frame_number = kargs["frame_number"]
+        hpy_file = kargs["hpy_file"]
+
+    hpy_file.create_dataset(("frame" + str(frame_number)), data=data)
+
 
 # function to change the value of a variable with arrowkeys up and down with library keyboard
 def changeValueVminT(cam):

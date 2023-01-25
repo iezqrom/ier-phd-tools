@@ -1,10 +1,5 @@
-### HOMEMADE CODE
-from conds import ConditionsHandler
-from testData import TestingDataHandler
-from failing import *
-from saving_data import *
+from saving_data import folderChreation, folderVhrideos, folderArudio
 
-### READY-MADE CODE
 import threading
 import argparse
 
@@ -26,16 +21,17 @@ def mkpaths(situ, numdaysubj=None, folder_name=None):
     return path_day, path_data, path_figs, path_datalocal, path_videos, path_audio
 
 
-def parsing_situation():
+def parsingSituation():
     parser = argparse.ArgumentParser(
         description="Experimental situation: troubleshooting (tb) or experimenting (ex)"
     )
     parser.add_argument("-s", type=str)
     parser.add_argument("-p", type=str, default=None)
     parser.add_argument("-ns", type=str, default=None)
+    
     args = parser.parse_args()
-    situ = args.s
     part = args.p
+    situ = args.s
     n_staircase = args.ns
 
     return situ, part, n_staircase

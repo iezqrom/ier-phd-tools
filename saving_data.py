@@ -1,5 +1,4 @@
 import csv
-from fileinput import filename
 import numpy as np
 import os
 import time
@@ -21,7 +20,7 @@ import copy
 ################################################################
 def buildDict(*keys):
     """
-    Build dictionary to store data during experiment
+        Build dictionary to store data during experiment
     """
     data = {}
     list_llaves = list([*keys])
@@ -41,7 +40,7 @@ def copyDict(data):
 
 def appendDataDict(data, tempdata):
     """
-    Append data to dictionary
+        Append data to dictionary
     """
     keys = data.keys()
     for i, k in enumerate(keys):
@@ -52,7 +51,7 @@ def appendDataDict(data, tempdata):
 
 def subjFile(path, file="subjs.csv"):
     """
-    Function to create subject file (date, time, age, valid, state (ex 1)/tb 1))
+        Function to create subject file (date, time, age, valid, state (ex 1)/tb 1))
     """
     of1 = open(f"{path}/data/{file}", "w")
     data_writer = csv.writer(of1)
@@ -66,7 +65,7 @@ def subjFile(path, file="subjs.csv"):
 
 def setSubjNumDec(age, numdaywithin, situ, file="subjs.csv"):
     """
-    Function to save subject date, time, valid and age
+        Function to save subject date, time, valid and age
     """
     steps_back = depthToSrc()
     path = f"{steps_back}data/{file}"
@@ -664,6 +663,8 @@ def folderTesting(path, testing, numdaysubj=None, existing_folder_name=None):
     else:
         folder_name = head_folder_name + "_" + existing_folder_name
         path = path + "/" + folder_name
+        print('hrere')
+        print(path)
 
     path = checkORcreate(path)
 
@@ -933,7 +934,7 @@ def csvToDictHaxes(path, file="temp_haxes.csv"):
     return haxes
 
 
-def check_file_path_save(path, file_name, variable, subject_n, format="csv"):
+def checkFilePathSave(path, file_name, variable, subject_n, format="csv"):
     if not os.path.exists(f"{path}/{file_name}.{format}"):
         apendSingle(file_name, path, subject_n, variable)
 

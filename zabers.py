@@ -5368,7 +5368,7 @@ class Zaber(grabPorts):
 ################################################################################################################
 
 
-def grid_calculation(
+def gridCalculation(
     zaber,
     grid_separation,
     step_size=default_step_sizes,
@@ -5877,7 +5877,7 @@ def lutsyringe(temp):
     return zebers_inter[where_near_zaber[0][0]]
 
 
-def set_up_big_three(axes):
+def setUpBigThree(axes):
 
     ### Zabers
     colther1 = Zaber(1, who="serial")

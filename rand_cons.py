@@ -65,7 +65,7 @@ def check_twoD(ordered_array, current_chosen, i, coords):
         return True
 
 
-def check_linear(ordered_array, current_chosen, i, coords=None):
+def checkLinear(ordered_array, current_chosen, i, coords=None):
     """
     Function to check whether a chosen position is valid in a line
     """

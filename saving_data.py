@@ -627,7 +627,7 @@ def numberSubjDay(testing="n"):
     nums = []
 
     for foldername in os.listdir(f"./{backwards}data/"):
-        # print(foldername)
+        print(foldername)
         if patternf.match(foldername):
             # print(foldername)
             # name = foldername.split('_')

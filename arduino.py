@@ -117,7 +117,7 @@ def tryexceptArduino(ard, signal):
         writeSingleValue(file_path, file_name, old_value)
 
 
-def movePanTilt(ard, trio_array, usb_port_pantilt, modem_port_pantilt, keydelay = 0.15, trigger_move=8):
+def movePanTilt(ard, trio_array, keydelay = 0.15, trigger_move=8):
     printme(
         f"Sending to PanTilt x: {trio_array[0]}, y: {trio_array[1]}, z: {trio_array[2]}"
     )
@@ -132,7 +132,7 @@ def movePanTilt(ard, trio_array, usb_port_pantilt, modem_port_pantilt, keydelay 
         errorloc(e)
         waitForEnter(f"\n\n Press enter when Arduino PanTilt is fixed...")
         ard = ArdUIno(
-            usb_port=usb_port_pantilt, n_modem=modem_port_pantilt
+            usb_port=ard.usb_port, n_modem = ard.modem_port
         )
         ard.arduino.flushInput()
         time.sleep(1)

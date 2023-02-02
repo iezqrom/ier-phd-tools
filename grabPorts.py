@@ -8,56 +8,25 @@ import re
 
 class grabPorts(object):
     def __init__(self):
-        try:
-            self.ports = glob.glob("/dev/tty.*")
-        except:
-            pass
+        self.ports = glob.glob("/dev/tty.*")
+        print(self.ports)
 
-    # [s for s in ports  if "usbmodem14{}{}01".format(1, 2) in s][0]
-
-    def zaberPort(
-        self,
-        who,
-        head,
-        tail2,
-        tail1,
-        surname_serial="A104BTL5",
-        usb_port=None,
-        n_modem=None,
-        winPort=None,
-    ):
+    def zaberPort(self, name, surname, winPort=None):
 
         if sys.platform.startswith("win"):
             self.zaber_port = winPort
-            # self.zaber_port = serial.Serial('COM{}'.format(winPort), baudrate = 115200, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE);
 
         elif sys.platform.startswith("darwin"):
-            # print("HELLO")
-            # pri
-            if who == "serial":
-                self.zaber_port = [
-                    s for s in self.ports if "serial" and surname_serial in s
-                ]
+            name_zaber = str(name) + str(surname)
 
-                # print(self.zaber_port)
+            zaber_connected = check_string_in_list(name_zaber, self.ports)
 
-            elif who == "modem":
-                # print(who)
-                # print('HELLO')
-                # print(f"usbmodem{str(head)}{str(usb_port)}{str(n_modem)}{str(tail2)}{str(tail1)}")
-                # print([s for s in self.ports if f"usbmodem{str(usb_port)}{str(n_modem)}{str(tail2)}{str(tail1)}"])
-                self.zaber_port = [
-                    s
-                    for s in self.ports
-                    if f"usbmodem{str(head)}{str(usb_port)}{str(n_modem)}{str(tail2)}{str(tail1)}"
-                    in s
-                ]
-                print(self.zaber_port)
+            if zaber_connected:
+                self.zaber_port_list = [s for s in self.ports if name_zaber in s]
+                self.zaber_port = self.zaber_port_list[0]
+            else:
+                raise Exception(f"Zaber {name_zaber} is not connected to the mac machine")
 
-            try:
-                pass
-            except:
-                print("There are not Zabers connected to the mac machine")
 
     def arduinoPort(self, winPort=None, num_ards=1, usb_port=None, n_modem=None):
         if sys.platform.startswith("win"):
@@ -70,6 +39,8 @@ class grabPorts(object):
 
         elif sys.platform.startswith("darwin"):
             if num_ards == 1:
+                arduino_string = f"usbmodem14{usb_port}{n_modem}01"
+                print(arduino_string)
                 self.arduino_ports = [
                     s
                     for s in self.ports
@@ -87,3 +58,9 @@ class grabPorts(object):
                             if "usbmodem142{}01".format(n_modem[i]) in s
                         ]
                     )
+
+def check_string_in_list(string_to_search, list_of_strings):
+    for elem in list_of_strings:
+        if re.search(string_to_search, elem):
+            return True
+    return False

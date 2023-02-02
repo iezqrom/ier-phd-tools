@@ -528,7 +528,7 @@ def ianettiPlotC(data, conditions, name_labels, name, thesis_expt_path):
     removeSpines(ax)
     prettifySpinesTicks(ax, params_figure["width_lines"], params_figure["length_ticks"], params_figure["width_lines"], params_figure["pad_size_ticks"])
 
-    ax.set_ylabel("Response bias (c)", labelpad=params_figure["pad_size_label"])
+    ax.set_ylabel("Response bias (C)", labelpad=params_figure["pad_size_label"])
     ax.set_ylim([-1.5, 1.5])
     ax.set_yticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
     ax.set_xticks([0.25, 1.25, 2.25])
@@ -630,7 +630,7 @@ def diffPlotC(data, conditions, name, thesis_expt_path):
     removeSpines(ax)
     prettifySpinesTicks(ax, params_figure["width_lines"], params_figure["length_ticks"], params_figure["width_lines"], params_figure["pad_size_ticks"])
 
-    ax.set_ylabel("(Cold c) - (Cold & touch c)", labelpad=params_figure["pad_size_label"])
+    ax.set_ylabel("(Cold C) - (Cold & touch C)", labelpad=params_figure["pad_size_label"])
     ax.set_ylim([-1.5, 1.5])
     ax.set_yticks([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
     ax.set_xlim([-0.2, 2.7])
@@ -826,7 +826,7 @@ def framesToseconds(axis, steps, x, num_format=int):
 def meanSD(data):
     mean = np.mean(data)
     sd = np.std(data)
-    return round(mean, 2), round(sd, 2)
+    return round(mean, 4), round(sd, 2)
 
 ####### FITTING SINE
 def guesses(data, phase, freq, amp):

@@ -3333,14 +3333,9 @@ def parallelogramMask(xs, ys, y, x, side_x, side_y):
 
     return mask
 
-def saveh5py(names, datas, frame, file):
-    if len(names) != len(datas):
-        print("Names and datas have to be the same length")
-
-    for n, d in zip(names, datas):
-        # print(n, d)
-        # print('{}'.format(n)+str(frame))
-        file.create_dataset(("{}".format(n) + str(frame)), data=d)
+def saveh5py(data, frame, file):
+    for key in list(data.keys()):
+        file.create_dataset(f"{key}{str(frame)}", data=data[key])
 
 def refreshShutter(cam, timeout=True):
     cam.performManualff()

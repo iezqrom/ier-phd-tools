@@ -189,13 +189,13 @@ class TherCam(object):
         print('Starting to grab data')
         try:
             while True:
-                data = q.get(True, 500)
-                if data is None:
+                thermal_image_kelvin_data = q.get(True, 500)
+                if thermal_image_kelvin_data is None:
                     print("Data is none")
                     exit(1)
-                data = (data - 27315) / 100
+                thermal_image_celsius_data = (thermal_image_kelvin_data - 27315) / 100
 
-                end = func(data = data, hpy_file = hpy_file, frame_number = frame_number, **kwargs)
+                end = func(thermal_image_data = thermal_image_celsius_data, hpy_file = hpy_file, frame_number = frame_number, **kwargs)
 
                 frame_number += 1
 
@@ -227,7 +227,7 @@ class TherCam(object):
 
         global dev
         global devh
-        global tiff_frame
+
         pressed = False
 
         fig = plt.figure()
@@ -343,14 +343,10 @@ def parallelogramMask(xs, ys, y, x, side_x, side_y):
 
     return mask
 
-def saveh5py(names, datas, frame, file):
-    if len(names) != len(datas):
-        print("Names and datas have to be the same length")
+def saveh5py(data, frame, file):
+    for key in list(data.keys()):
+        file.create_dataset(f"{key}{str(frame)}", data=data[key])
 
-    for n, d in zip(names, datas):
-        # print(n, d)
-        # print('{}'.format(n)+str(frame))
-        file.create_dataset(("{}".format(n) + str(frame)), data=d)
 
 def refreshShutter(cam, timeout=True):
     cam.performManualff()

@@ -137,8 +137,8 @@ def create_list(dictionary, index):
 
 
 def rewriteRecoveredData(data, path, file_name):
-    if len(data["subject"]) > 0:
-        temp_file = open(f"{path}/{file_name}.csv", "a")
+    if len(data[list(data.keys())[0]]) > 0:
+        temp_file = open(f"{path}/{file_name}", "a")
         temp_data_writer = csv.writer(temp_file)
 
         for i in np.arange(0, len(data[list(data.keys())[0]])):

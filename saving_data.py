@@ -7,13 +7,14 @@ import pandas as pd
 import subprocess
 import re
 import shutil
+import pickle
+import copy
 from text import (
     printme,
     agebyExperimenter,
     sexbyExperimenter,
     handednessbyExperimenter,
 )
-import copy
 
 ##################################################################
 ###################### Storing data ##############################
@@ -88,21 +89,6 @@ def setSubjNumDec(age, numdaywithin, situ, file="subjs.csv"):
     sf.close()
 
     return todaydate, time_now
-
-
-def getSubjNumDec(file="subjs.csv", day=None):
-    steps_back = depthToSrc()
-
-    if day:
-        numdaywithin = None
-    else:
-        df = pd.read_csv(f"./{steps_back}data/{file}")
-        nums_within = df.loc[:, "NumDayWithin"]
-
-        numdaywithin = int(nums_within.to_numpy()[-1])
-
-    return numdaywithin
-
 
 def getAgeSex(situ, path):
     if situ == "tb":
@@ -195,6 +181,7 @@ def changeNameTempFile(path, outcome="failed"):
     todaydate = date.today().strftime("%Y%m%d")
     for i, n in enumerate(names):
         temp_file_name = n[0].split("temp_", 1)[1]
+        print(n)
         shutil.copyfile(
             f"{path}/{n[0]}.{n[1]}",
             f"./{path}/{temp_file_name}_{outcome}_{todaydate}_{time_now}.{n[1]}",
@@ -502,14 +489,40 @@ def saveHaxesAll(path, data, file="temp_haxes"):
     print(f"\nHaxes saved\n")
 
 
-def handle_iti_save(temp_row, data, path, file_name):
+def handleItiSave(temp_row, data, path, file_name):
     data = appendDataDict(data, temp_row)
-    temp_file = open(f"{path}/{file_name}.csv", "a")
+    temp_file = open(f"{path}/{file_name}", "a")
     temp_data_writer = csv.writer(temp_file)
     temp_data_writer.writerow(temp_row)
     temp_file.close()
 
     return data
+
+def createNotesFile(path):
+    with open(f'{path}/notes.md', "w") as f:
+        f.write('# Notes\n')
+        f.close()
+    
+    print(f"Notes file created")
+
+
+def booleanValueStore(path, file_name, value):
+    with open(f"{path}/{file_name}.pkl", "wb") as f:
+        pickle.dump(value, f)
+        f.close()
+
+# function to read boolean value
+def booleanValueRead(path, file_name):
+    with open(f"{path}/{file_name}.pkl", "rb") as f:
+        value = pickle.load(f)
+        f.close()
+    return value
+
+# function to modify boolean value
+def booleanValueModify(path, file_name, value):
+    with open(f"{path}/{file_name}.pkl", "wb") as f:
+        pickle.dump(value, f)
+        f.close()
 
 
 ########################################################
@@ -663,8 +676,6 @@ def folderTesting(path, testing, numdaysubj=None, existing_folder_name=None):
     else:
         folder_name = head_folder_name + "_" + existing_folder_name
         path = path + "/" + folder_name
-        print('hrere')
-        print(path)
 
     path = checkORcreate(path)
 
@@ -754,7 +765,6 @@ def rm_mk_folder_name(path_day):
 ########## Pipeline to set subject number & others ##############
 #################################################################
 
-
 def setSubjNum(file_pattern="data_subj_(.*).csv", folder_pattern="ex_(.)"):
     """
     Function to set the number of the subject automatically
@@ -802,7 +812,7 @@ def txtToVar(path, file):
     return var
 
 
-def create_temp_name(name):
+def createTempName(name):
     t = time.localtime()
     time_now = time.strftime("%H_%M_%S", t)
     todaydate = date.today().strftime("%Y%m%d")

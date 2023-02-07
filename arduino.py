@@ -52,7 +52,7 @@ class ArdUIno(grabPorts):
 ################################################################################
 
 
-def reLoad(ard, up = 5, down = 6):
+def reLoad(arduino, up = 5, down = 6):
     os.system("clear")
     was_pressed = False
     printme('Position syringe pusher ("d" for down / "u" for up / "e" to move on)')
@@ -63,7 +63,7 @@ def reLoad(ard, up = 5, down = 6):
         elif keyboard.is_pressed("d"):
             if not was_pressed:
                 try:
-                    ard.arduino.write(struct.pack(">B", down))
+                    arduino.arduino.write(struct.pack(">B", down))
                 except Exception as e:
                     errorloc(e)
                 was_pressed = True
@@ -71,7 +71,7 @@ def reLoad(ard, up = 5, down = 6):
         elif keyboard.is_pressed("u"):
             if not was_pressed:
                 try:
-                    ard.arduino.write(struct.pack(">B", up))
+                    arduino.arduino.write(struct.pack(">B", up))
                 except Exception as e:
                     errorloc(e)
                 was_pressed = True
@@ -79,36 +79,36 @@ def reLoad(ard, up = 5, down = 6):
             was_pressed = False
 
 
-def shakeShutter(ard, times, open = 1, close = 0):
+def shakeShutter(arduino, times, open = 1, close = 0):
     for i in np.arange(times):
-        ard.arduino.write(struct.pack(">B", open))
+        arduino.arduino.write(struct.pack(">B", open))
         printme("Open shutter")
 
         time.sleep(0.2)
 
-        ard.arduino.write(struct.pack(">B", close))
+        arduino.arduino.write(struct.pack(">B", close))
 
         printme("Close shutter")
         time.sleep(0.2)
 
 
-def tryexceptArduino(ard, signal):
+def tryexceptArduino(arduino, signal):
     try:
-        ard.arduino.write(struct.pack(">B", signal))
-        print(f"TALKING TO {ard.name}")
+        arduino.arduino.write(struct.pack(">B", signal))
+        print(f"TALKING TO {arduino.name}")
         time.sleep(0.1)
 
     except Exception as e:
         os.system("clear")
         errorloc(e)
-        waitForEnter(f"\n\n Press enter when {ard.name} is fixed...")
-        ard = ArdUIno(usb_port=ard.usb_port, n_modem=ard.n_modem)
-        ard.arduino.flushInput()
+        waitForEnter(f"\n\n Press enter when {arduino.name} is fixed...")
+        arduino = ArdUIno(usb_port=arduino.usb_port, n_modem=arduino.n_modem)
+        arduino.arduino.flushInput()
         time.sleep(1)
-        ard.arduino.write(struct.pack(">B", signal))
+        arduino.arduino.write(struct.pack(">B", signal))
         time.sleep(0.1)
 
-    if signal == 6:
+    if signal == 6 and arduino.name == "syringe":
         file_path = "./data/"
         file_name = "pusher_counter"
         file = open((file_path + file_name))
@@ -117,28 +117,28 @@ def tryexceptArduino(ard, signal):
         writeSingleValue(file_path, file_name, old_value)
 
 
-def movePanTilt(ard, trio_array, keydelay = 0.15, trigger_move=8):
+def movePanTilt(arduino, trio_array, keydelay = 0.15, trigger_move=8):
     printme(
         f"Sending to PanTilt x: {trio_array[0]}, y: {trio_array[1]}, z: {trio_array[2]}"
     )
     try:
-        ard.arduino.write(struct.pack(">B", trigger_move))
+        arduino.arduino.write(struct.pack(">B", trigger_move))
         time.sleep(keydelay)
-        ard.arduino.write(
+        arduino.arduino.write(
             struct.pack(">BBB", trio_array[0], trio_array[1], trio_array[2])
         )
     except Exception as e:
         os.system("clear")
         errorloc(e)
         waitForEnter(f"\n\n Press enter when Arduino PanTilt is fixed...")
-        ard = ArdUIno(
-            usb_port=ard.usb_port, n_modem = ard.modem_port
+        arduino = ArdUIno(
+            usb_port=arduino.usb_port, n_modem = arduino.modem_port
         )
-        ard.arduino.flushInput()
+        arduino.arduino.flushInput()
         time.sleep(1)
-        ard.arduino.write(struct.pack(">B", trigger_move))
+        arduino.arduino.write(struct.pack(">B", trigger_move))
         time.sleep(keydelay)
-        ard.arduino.write(
+        arduino.arduino.write(
             struct.pack(">BBB", trio_array[0], trio_array[1], trio_array[2])
         )
 

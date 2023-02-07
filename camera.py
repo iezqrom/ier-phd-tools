@@ -180,8 +180,9 @@ class TherCam(object):
         frame_number = 1
         end = False
 
-        if kwargs["file_name"] is None:
-            file_name = kwargs["file_name"]
+        if "file_name" not in kwargs:
+            file_name = None
+            hpy_file = None
         else:
             file_name = kwargs["file_name"]
             hpy_file = h5py.File(f"{self.pathset}/{file_name}.hdf5", "w")
@@ -195,21 +196,19 @@ class TherCam(object):
                     exit(1)
                 thermal_image_celsius_data = (thermal_image_kelvin_data - 27315) / 100
 
-                end = func(thermal_image_data = thermal_image_celsius_data, hpy_file = hpy_file, frame_number = frame_number, **kwargs)
+                end = func(thermal_image_data = thermal_image_celsius_data, hpy_file = hpy_file, frame_number = frame_number, cam=self, **kwargs)
 
                 frame_number += 1
 
                 if end:
-                    print("We are done")
-                    hpy_file.close()
+                    if hpy_file is not None:
+                        print("Closing file")
+                        hpy_file.close()
                     break
 
         except Exception as e:
             errorloc(e)
-        finally:
-            print("Terminating video streaming")
             libuvc.uvc_stop_streaming(devh)
-
 
     def plotLive(self):
         """

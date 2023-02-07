@@ -43,18 +43,16 @@ class ReAnRaw(object):
         self.len_subto = len(self.read.keys()) / len(self.parameters)
 
         for index, parameter in enumerate(self.parameters):
-            print(parameter)
             for j in np.arange(self.len_subto):
-                print(j)
                 temp_parameter_name = f"{parameter}" + str(int(j))
-                print(temp_parameter_name)
-                try:
-                    frame_da = self.read[temp_parameter_name][:]
-                    print(frame_da)
-                    self.data[parameter].append(frame_da)
-                except Exception as e:
-                    # errorloc(e)
-                    pass
+                if temp_parameter_name in self.read:
+                    if len(self.read[temp_parameter_name].shape) > 0:
+                        frame_da = self.read[temp_parameter_name][:]
+                        self.data[parameter].append(frame_da)
+                    else:
+                        print("No data for parameter {}".format(temp_parameter_name))
+                else:
+                    print("No data for parameter {}".format(temp_parameter_name))
 
     def attrstoDic(self):
         "Transform videos attributes into a dictionary"

@@ -34,7 +34,7 @@ def rem_chosen(val_left, current_chosen):
     return val_left
 
 
-def check_twoD(ordered_array, current_chosen, i, coords):
+def checkTwoD(ordered_array, current_chosen, i, coords):
     """
     Function to check whether a chosen position is valid in a 2-D grid (n x n)
     """
@@ -84,7 +84,7 @@ def checkLinear(ordered_array, current_chosen, i, coords=None):
         return True
 
 
-def exp_rand(init_rep, func, restart=100, coor_cells=None):
+def expRand(init_rep, func, restart=100, coor_cells=None):
     """
     Function to converge randomisation with constraints algorithm
     """

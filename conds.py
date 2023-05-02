@@ -18,7 +18,7 @@ class ConditionsHandler:
 #################################################################
 
 
-def sdt_setup(n_trials, conds, randomised=True):
+def sdtSetup(n_trials, conds, randomised=True):
     """
     Function to set-up trials for a Signal Detection Theory experiment.
     The number of trials will be distributed equally across the number of conditions.

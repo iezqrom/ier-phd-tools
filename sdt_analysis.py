@@ -6,11 +6,11 @@ import numpy as np
 Z = norm.ppf
 
 
-def tableTosdtDoble(table, num_sdt, name_response = "responses"):
-    table_single_sdt = table.loc[table["touch"] == num_sdt]
+def tableTosdtDoble(table, num_sdt, name_response = "responses", name_stimulus = "cold", name_interactor = "touch"):
+    table_single_sdt = table.loc[table[name_interactor] == num_sdt]
 
-    table_cold = table_single_sdt.loc[table_single_sdt["cold"] == 1]
-    table_nocold = table_single_sdt.loc[table_single_sdt["cold"] == 0]
+    table_cold = table_single_sdt.loc[table_single_sdt[name_stimulus] == 1]
+    table_nocold = table_single_sdt.loc[table_single_sdt[name_stimulus] == 0]
 
     present_yes = table_cold.loc[table_cold[name_response] == 1]
     present_no = table_cold.loc[table_cold[name_response] == 0]
@@ -110,6 +110,9 @@ def SDTloglinear(hits, misses, fas, crs):
     out["hit_rate"] = hit_rate
     out["fa_rate"] = fa_rate
     out["correct"] = (hits + crs) / (hits + misses + fas + crs)
+
+    out['percent_hits'] = hits / (hits + misses)*100
+    out['percent_crs'] = crs / (fas + crs)*100
 
     return out
 

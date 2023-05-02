@@ -179,7 +179,6 @@ class TherCam(object):
 
         frame_number = 1
         end = False
-
         if "file_name" not in kwargs:
             file_name = None
             hpy_file = None
@@ -190,12 +189,14 @@ class TherCam(object):
         print('Starting to grab data')
         try:
             while True:
+                here = time.time()
                 thermal_image_kelvin_data = q.get(True, 500)
+                here2 = time.time()
                 if thermal_image_kelvin_data is None:
                     print("Data is none")
                     exit(1)
                 thermal_image_celsius_data = (thermal_image_kelvin_data - 27315) / 100
-
+                
                 end = func(thermal_image_data = thermal_image_celsius_data, hpy_file = hpy_file, frame_number = frame_number, cam=self, **kwargs)
 
                 frame_number += 1
@@ -346,7 +347,6 @@ def saveh5py(data, frame, file):
     for key in list(data.keys()):
         file.create_dataset(f"{key}{str(frame)}", data=data[key])
 
-
 def refreshShutter(cam, timeout=True):
     cam.performManualff()
     printme(
@@ -354,7 +354,6 @@ def refreshShutter(cam, timeout=True):
     )
     if timeout:
         time.sleep(10)
-
 
 ###############################################################
 ###################### Live plotting ##########################

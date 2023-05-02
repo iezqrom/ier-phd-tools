@@ -39,10 +39,8 @@ class Sound(object):
             print(f"\nTONE ON\n")
 
             if event != None:
-                event.clear()
-
-            if event != None:
-                event.wait()
+                while event.is_set():
+                    pass
                 sa.stop_all()
                 print(f"\nTone OFF\n")
 

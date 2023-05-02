@@ -22,7 +22,8 @@ colours = {
     'cold': "#0F4C81",
     'cold_touch': "#B59A48",
     'none': "#000000",
-    'touch': "#417743"
+    'touch': "#417743",
+    'sound': '#757a4e'
 }
 
 degree_sign = u'\N{DEGREE SIGN}'

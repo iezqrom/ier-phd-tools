@@ -22,7 +22,7 @@ default_haxes = {
 default_step_sizes = {"colther": 0.49609375, "camera": 0.1905, "tactile": 0.1905}
 
 default_positions = {
-    "colther": {"x": 233126, "y": 106874, "z": 0},
+    "colther": {"x": 235000, "y": 127000, "z": 0},
     "camera": {"x": 49507, "y": 535098, "z": 287000},
     "tactile": {"x": 336000, "y": 380000, "z": 270000},
 }
@@ -104,7 +104,7 @@ def setUpBigThree(axes):
     colther3 = Zaber(3, name = "serial", surname = "-A104BTL5", chained_to = colther1)
     print("Colther loaded")
 
-    camera12 = Zaber(1, name = "modem", surname = 141214301)
+    camera12 = Zaber(1, name = "modem", surname = 1424301)
     camera1 = camera12.device.axis(1)
     camera2 = camera12.device.axis(2)
     camera3 = Zaber(1, name = "serial", surname = "-AH0614UB")
@@ -206,7 +206,7 @@ def revDirection(zaber, axis, rule, number):
 
     return number
 
-def moveAxisTo(zabers, zaber, axis, amount, speed=153600 * 4):
+def moveAxisTo(zabers, zaber, axis, amount, speed = 153600 * 4):
     try:
         zabers[zaber][axis].device.send("/set maxspeed {}".format(speed))
         zabers[zaber][axis].device.move_abs(amount)
@@ -215,7 +215,7 @@ def moveAxisTo(zabers, zaber, axis, amount, speed=153600 * 4):
         zabers[zaber][axis].move_abs(amount)
 
 def movetostartZabersConcu(
-    zabers, zaber, axes, pos=default_positions, speed=153600 * 4
+    zabers, zaber, axes, pos = default_positions, speed = 153600 * 4
 ):
     """
     This function is to move one set of Zabers to a defined positions (pos)
@@ -250,7 +250,7 @@ def movetostartZabersConcu(
     for x in threads_zabers:
         x.join()
 
-def homingZabersConcu(zabers, axes=None, concurrently = True, speed=153600 * 4):
+def homingZabersConcu(zabers, axes=None, concurrently = True, speed = 153600 * 4):
     """
     This function is to home all zabers in a Zaber object concurrently
     """
@@ -291,9 +291,9 @@ def homingZabersConcu(zabers, axes=None, concurrently = True, speed=153600 * 4):
             if not concurrently:
                 x.join()
 
-        if concurrently:
-            for x in threads_zabers:
-                x.join()
+    if concurrently:
+        for x in threads_zabers:
+            x.join()
 
 def cmToSteps(z_d, step_size):
     """

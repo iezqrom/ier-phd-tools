@@ -14,14 +14,13 @@ import keyboard
 
 class ArdUIno(grabPorts):
     def __init__(
-        self, winPort=None, num_ards=1, usb_port=None, n_modem=None, name="Arduino"
+        self, winPort = None, num_ards = 1, usbname = None, name="Arduino"
     ):
 
         self.ports = grabPorts()
-        self.n_modem = n_modem
-        self.usb_port = usb_port
+        self.usbname = usbname
         self.name = name
-        self.ports.arduinoPort(winPort, num_ards, usb_port, self.n_modem)
+        self.ports.arduinoPort(winPort, num_ards, self.usbname)
         print(str(self.ports.arduino_ports))
 
         if num_ards == 1:

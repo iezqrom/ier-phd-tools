@@ -90,6 +90,19 @@ def setSubjNumDec(age, numdaywithin, situ, file="subjs.csv"):
 
     return todaydate, time_now
 
+def getSubjNumDec(file="subjs.csv", day=None):
+    steps_back = depthToSrc()
+
+    if day:
+        numdaywithin = None
+    else:
+        df = pd.read_csv(f"./{steps_back}data/{file}")
+        nums_within = df.loc[:, "NumDayWithin"]
+
+        numdaywithin = int(nums_within.to_numpy()[-1])
+
+    return numdaywithin
+
 def getAgeSex(situ, path):
     if situ == "tb":
         age = 1
@@ -507,29 +520,29 @@ def createNotesFile(path):
 
 
 def booleanValueStore(path, file_name, value):
-    with open(f"{path}/{file_name}.pkl", "wb") as f:
-        pickle.dump(value, f)
+    with open(f"{path}/{file_name}.txt", "wb") as f:
+        # write value in txt file as text
+        f.write(str(value).encode())
         f.close()
 
 # function to read boolean value
 def booleanValueRead(path, file_name):
-    with open(f"{path}/{file_name}.pkl", "rb") as f:
-        value = pickle.load(f)
+    with open(f"{path}/{file_name}.txt", "rb") as f:
+        # read value from txt file as text
+        value = f.read().decode()
         f.close()
     return value
 
 # function to modify boolean value
 def booleanValueModify(path, file_name, value):
-    with open(f"{path}/{file_name}.pkl", "wb") as f:
-        pickle.dump(value, f)
+    with open(f"{path}/{file_name}.txt", "wb") as f:
+        # write value in txt file as text
+        f.write(str(value).encode())
         f.close()
-
 
 ########################################################
 ################## PERMISSIONS #########################
 ########################################################
-
-
 def rootToUser(paths):
     pwd = os.getcwd()
     print(f"\nCurrent directory is: {pwd}\n")
@@ -636,26 +649,23 @@ def numberSubjDay(testing="n"):
     folder_name = f"{head_folder_name}_" + todaydate + "_"
 
     patternf = re.compile(folder_name)
-    # print(patternf)
     nums = []
 
     for foldername in os.listdir(f"./{backwards}data/"):
         print(foldername)
         if patternf.match(foldername):
-            # print(foldername)
-            # name = foldername.split('_')
+            print(foldername)
             nums.append(foldername[-1])
         else:
             continue
 
     nums = sorted(nums, reverse=False)
-    print(nums)
+    # print('nums', nums)
     if len(nums) >= 1:
-        numdaysubj = int(nums[-1])
+        return int(nums[-1]) + 1
     else:
-        numdaysubj = 0
+        return 1
 
-    return numdaysubj + 1
 
 
 def folderTesting(path, testing, numdaysubj=None, existing_folder_name=None):

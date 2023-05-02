@@ -82,6 +82,7 @@ class Staircase:
                 and self.reversals == 1
                 or self.force_reverse == True
             ):
+                self.first_ramp = False
                 print("\nTracking algorithm triggered\n")
 
     def XupYdownFixedStepSizesTrackingAlgorithm(
@@ -126,8 +127,7 @@ class Staircase:
                         self.tracked_stimulation = (
                             self.tracked_stimulation + step_up
                         )
-                    self.first_ramp = False
-
+                    
             elif self.direction == "up":
                 if self.response == 0:
                     if self.rules_direction == 0:
@@ -147,8 +147,6 @@ class Staircase:
                         self.tracked_stimulation = (
                             self.tracked_stimulation - step_down
                         )
-
-                    self.first_ramp = False
 
     def clampBoundary(self, lower_boundary, upper_boundary, carryover=True):
         """

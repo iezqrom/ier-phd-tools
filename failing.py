@@ -127,9 +127,10 @@ def spaceLeftWarning():
 
     if free_human < 3:
         os.system("clear")
-        input(
-            f"WARNING: THERE ARE ONLY {free_human} GiB LEFT IN YOUR HARD DRIVE. YOU MIGHT NOT BE ABLE TO FINISH THE EXPERIMENT AND LOSE DATA. CONSIDER REMOVING FILES. Press enter to continue"
+        print(
+            f"WARNING: THERE ARE ONLY {free_human} GiB LEFT IN YOUR HARD DRIVE. YOU MIGHT NOT BE ABLE TO FINISH THE EXPERIMENT AND LOSE DATA. CONSIDER REMOVING FILES."
         )
+        time.sleep(2)
 
 
 def create_list(dictionary, index):

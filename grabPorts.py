@@ -28,7 +28,7 @@ class grabPorts(object):
                 raise Exception(f"Zaber {name_zaber} is not connected to the mac machine")
 
 
-    def arduinoPort(self, winPort=None, num_ards=1, usb_port=None, n_modem=None):
+    def arduinoPort(self, winPort=None, num_ards=1, usbname = None):
         if sys.platform.startswith("win"):
             if num_ards == 1:
                 self.arduino_ports = winPort
@@ -39,12 +39,12 @@ class grabPorts(object):
 
         elif sys.platform.startswith("darwin"):
             if num_ards == 1:
-                arduino_string = f"usbmodem14{usb_port}{n_modem}01"
+                arduino_string = f"usbmodem{usbname}"
                 print(arduino_string)
                 self.arduino_ports = [
                     s
                     for s in self.ports
-                    if "usbmodem14{}{}01".format(usb_port, n_modem) in s
+                    if arduino_string in s
                 ]
                 print(self.arduino_ports)
 
@@ -55,7 +55,7 @@ class grabPorts(object):
                         [
                             s
                             for s in self.ports
-                            if "usbmodem142{}01".format(n_modem[i]) in s
+                            if arduino_string in s
                         ]
                     )
 

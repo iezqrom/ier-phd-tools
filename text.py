@@ -26,12 +26,6 @@ try:
 except:
     pass
 
-# My stuff
-try:
-    import globals
-except:
-    pass
-
 import re
 
 # Maths

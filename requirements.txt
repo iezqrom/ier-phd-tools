@@ -1,7 +1,6 @@
 appnope==0.1.2
 asttokens==2.0.5
 backcall==0.2.0
-black==22.8.0
 blis==0.7.8
 catalogue==2.0.7
 charset-normalizer==2.1.0
@@ -23,7 +22,6 @@ ipython==8.12.2
 ipython-genutils==0.2.0
 iso8601==1.0.2
 jedi==0.18.0
-Jinja2==3.1.2
 jupyter-client==6.1.11
 keyboard==0.13.5
 kiwisolver==1.3.1
@@ -226,7 +224,7 @@ tqdm==4.64.0
 traitlets==5.0.5
 typer==0.4.2
 typing_extensions==4.3.0
-urllib3==1.26.10
+urllib3==2.2.1
 wasabi==0.9.1
 wcwidth==0.2.5
 wordcloud==1.8.2.2

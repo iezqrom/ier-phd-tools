@@ -34,7 +34,7 @@ path_figures = "../../globalfigures/thesis"
 def plotParams(colour = "black"):
     plt.rcParams.update(
         {
-            "font.size": 40,
+            "font.size": 15,
             "axes.labelcolor": f"{colour}",
             "xtick.color": f"{colour}",
             "ytick.color": f"{colour}",

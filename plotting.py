@@ -23,7 +23,7 @@ colours = {
     'cold_touch': "#B59A48",
     'none': "#000000",
     'touch': "#417743",
-    'sound': '#757a4e'
+    'sound': "#47c6a3", #'#757a4e'
 }
 
 degree_sign = u'\N{DEGREE SIGN}'
@@ -31,10 +31,10 @@ degree_sign = u'\N{DEGREE SIGN}'
 path_thesis = '/Users/ivan/Documents/aaa_online_stuff/research/phd_2018_2023/aaa_phd/comms/thesis/figures/'
 path_figures = "../../globalfigures/thesis"
 
-def plotParams(colour = "black"):
+def plotParams(colour = "black", size = 15):
     plt.rcParams.update(
         {
-            "font.size": 15,
+            "font.size": size,
             "axes.labelcolor": f"{colour}",
             "xtick.color": f"{colour}",
             "ytick.color": f"{colour}",

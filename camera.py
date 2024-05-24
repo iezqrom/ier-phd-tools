@@ -71,6 +71,8 @@ class TherCam(object):
         self.vminT = int(vminT)
         self.vmaxT = int(vmaxT)
 
+        self.frames_per_second = 8.7
+
         # check whether we are in windows
         if platform.system() == "Windows":
             self.windows = True
@@ -330,6 +332,30 @@ class TherCam(object):
 ###################### FUNCTIONS ##############################
 ###############################################################
 
+def saveRawDataTimer(**kwargs):
+    # check whether kwargs data, frame_number and hpy_file are given
+    if "thermal_image_data" in kwargs and "frame_number" in kwargs and "hpy_file" in kwargs:
+        data = kwargs["thermal_image_data"]
+        frame_number = kwargs["frame_number"]
+        hpy_file = kwargs["hpy_file"]
+        trial_duration = kwargs["trial_duration"]
+
+    hpy_file.create_dataset(("frame" + str(frame_number)), data=data)
+
+    time_now = time.time()
+
+    if kwargs["start_time"]:
+        start_time = kwargs["start_time"]
+        difference = time_now - start_time
+        print(f"Time difference: {round(difference)}")
+        if difference > trial_duration:
+            print("Saving data...")
+            hpy_file.close()
+            return True
+
+    else:
+        return False
+
 def circularMask(xs, ys, y, x, radius):
     mask = (xs[np.newaxis, :] - y) ** 2 + (
         ys[:, np.newaxis] - x
@@ -360,10 +386,6 @@ def refreshShutter(cam, timeout=True):
     )
     if timeout:
         time.sleep(10)
-
-###############################################################
-###################### Live plotting ##########################
-###############################################################
 
 def saveRawData(**kargs):
     # check whether kwargs data, frame_number and hpy_file are given

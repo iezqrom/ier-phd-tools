@@ -18,14 +18,13 @@ def findParentFolder(marker_file, start_dir=None):
     while current_dir != os.path.dirname(current_dir):
         current_dir = current_dir.replace('//', '/')
         if os.path.exists(os.path.join(current_dir, marker_file)):
-            print(current_dir)
             return current_dir
         current_dir = os.path.dirname(current_dir)
     return None
 
 def importModule(file_path, module_file_name):
     module_name = module_file_name.split('.')[0]
-    file_path = file_path + '/' + module_file_name
+    file_path = os.path.join(file_path, module_file_name)
     spec = importlib.util.spec_from_file_location(module_name, file_path)
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module

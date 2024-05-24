@@ -19,7 +19,10 @@ try:
 except:
     pass
 
-import keyboard
+try:
+    import keyboard
+except:
+    pass
 
 try:
     import winsound

@@ -2,8 +2,8 @@
 ### Data structure
 import numpy as np
 import threading
-import struct
 import h5py
+import platform
 
 try:
     import keyboard
@@ -22,54 +22,48 @@ try:
     from imutils.video import VideoStream
 except:
     pass
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-from matplotlib import animation
-import matplotlib as mpl
 
-## Comms
-try:
-    from uvctypes import *
-except:
-    pass
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
 
-# from pynput import keyboard
-import os
-
-try:
-    from failing import *
-except:
-    pass
-
+from failing import errorloc
 from text import printme
 
+
+
 def py_frame_callback(frame, userptr):
+        array_pointer = cast(
+            frame.contents.data,
+            POINTER(c_uint16 * (frame.contents.width * frame.contents.height)),
+        )
+        data = np.frombuffer(array_pointer.contents, dtype=np.dtype(np.uint16)).reshape(
+            frame.contents.height, frame.contents.width
+        )
 
-    array_pointer = cast(
-        frame.contents.data,
-        POINTER(c_uint16 * (frame.contents.width * frame.contents.height)),
-    )
-    data = np.frombuffer(array_pointer.contents, dtype=np.dtype(np.uint16)).reshape(
-        frame.contents.height, frame.contents.width
-    )
+        if frame.contents.data_bytes != (2 * frame.contents.width * frame.contents.height):
+            return
 
-    if frame.contents.data_bytes != (2 * frame.contents.width * frame.contents.height):
-        return
+        if not q.full():
+            q.put(data)
 
-    if not q.full():
-        q.put(data)
+# check whether we are in windows
+if platform.system() == "Windows":
+    from camera_windows import CameraWindows
 
-
-BUF_SIZE = 2
-q = Queue(BUF_SIZE)
-PTR_PY_FRAME_CALLBACK = CFUNCTYPE(None, POINTER(uvc_frame), c_void_p)(py_frame_callback)
-tiff_frame = 1
-colorMapType = 0
+else:
+    from uvctypes import *
+    BUF_SIZE = 2
+    q = Queue(BUF_SIZE)
+    PTR_PY_FRAME_CALLBACK = CFUNCTYPE(None, POINTER(uvc_frame), c_void_p)(py_frame_callback)
+    tiff_frame = 1
+    colorMapType = 0
 
 
 class TherCam(object):
@@ -77,106 +71,123 @@ class TherCam(object):
         self.vminT = int(vminT)
         self.vmaxT = int(vmaxT)
 
-        print(f"\nObject thermal camera initiliased\n")
-        print(f"vminT = {self.vminT} and vmaxT = {self.vmaxT}\n")
+        # check whether we are in windows
+        if platform.system() == "Windows":
+            self.windows = True
+            self.windows_camera = CameraWindows()
+
+        printme(f"Object thermal camera initiliased")
+        printme(f"vminT = {self.vminT} and vmaxT = {self.vmaxT}")
 
     def startStream(self):
-
+        global devh
+        global dev
         """
         Method to start streaming. This method needs to be called always
         before you can extract the data from the camera.
         """
-        global devh
-        global dev
-        ctx = POINTER(uvc_context)()
-        dev = POINTER(uvc_device)()
-        devh = POINTER(uvc_device_handle)()
-        ctrl = uvc_stream_ctrl()
-        print(ctrl.__dict__)
+        if self.windows:
+            self.windows_camera.initialiseCamera()
+            time.sleep(1)
+            self.windows_camera.startStream()
+        else:
+            ctx = POINTER(uvc_context)()
+            dev = POINTER(uvc_device)()
+            devh = POINTER(uvc_device_handle)()
+            ctrl = uvc_stream_ctrl()
+            print(ctrl.__dict__)
 
-        res = libuvc.uvc_init(byref(ctx), 0)
-        if res < 0:
-            print("uvc_init error")
-            # exit(1)
-
-        try:
-            res = libuvc.uvc_find_device(ctx, byref(dev), PT_USB_VID, PT_USB_PID, 0)
-            print(res)
+            res = libuvc.uvc_init(byref(ctx), 0)
             if res < 0:
-                print("uvc_find_device error")
-                exit(1)
+                print("uvc_init error")
+                # exit(1)
 
             try:
-                res = libuvc.uvc_open(dev, byref(devh))
+                res = libuvc.uvc_find_device(ctx, byref(dev), PT_USB_VID, PT_USB_PID, 0)
                 print(res)
                 if res < 0:
-                    print("uvc_open error")
+                    print("uvc_find_device error")
                     exit(1)
 
-                print("device opened!")
+                try:
+                    res = libuvc.uvc_open(dev, byref(devh))
+                    print(res)
+                    if res < 0:
+                        print("uvc_open error")
+                        exit(1)
 
-                # print(devh)
-                # print_device_info(devh)
-                # print_device_formats(devh)
+                    print("device opened!")
 
-                frame_formats = uvc_get_frame_formats_by_guid(devh, VS_FMT_GUID_Y16)
-                if len(frame_formats) == 0:
-                    print("device does not support Y16")
+                    frame_formats = uvc_get_frame_formats_by_guid(devh, VS_FMT_GUID_Y16)
+                    if len(frame_formats) == 0:
+                        print("device does not support Y16")
+                        exit(1)
+
+                    libuvc.uvc_get_stream_ctrl_format_size(
+                        devh,
+                        byref(ctrl),
+                        UVC_FRAME_FORMAT_Y16,
+                        frame_formats[0].wWidth,
+                        frame_formats[0].wHeight,
+                        int(1e7 / frame_formats[0].dwDefaultFrameInterval),
+                    )
+
+                    res = libuvc.uvc_start_streaming(
+                        devh, byref(ctrl), PTR_PY_FRAME_CALLBACK, None, 0
+                    )
+                    if res < 0:
+                        print("uvc_start_streaming failed: {0}".format(res))
+                        exit(1)
+
+                    print("done starting stream, displaying settings")
+                    print_shutter_info(devh)
+                    print("resetting settings to default")
+                    set_auto_ffc(devh)
+                    set_gain_high(devh)
+                    print("current settings")
+                    print_shutter_info(devh)
+
+                except:
+                    libuvc.uvc_unref_device(dev)
+                    print("Failed to Open Device")
                     exit(1)
-
-                libuvc.uvc_get_stream_ctrl_format_size(
-                    devh,
-                    byref(ctrl),
-                    UVC_FRAME_FORMAT_Y16,
-                    frame_formats[0].wWidth,
-                    frame_formats[0].wHeight,
-                    int(1e7 / frame_formats[0].dwDefaultFrameInterval),
-                )
-
-                res = libuvc.uvc_start_streaming(
-                    devh, byref(ctrl), PTR_PY_FRAME_CALLBACK, None, 0
-                )
-                if res < 0:
-                    print("uvc_start_streaming failed: {0}".format(res))
-                    exit(1)
-
-                print("done starting stream, displaying settings")
-                print_shutter_info(devh)
-                print("resetting settings to default")
-                set_auto_ffc(devh)
-                set_gain_high(devh)
-                print("current settings")
-                print_shutter_info(devh)
-
             except:
-                libuvc.uvc_unref_device(dev)
-                print("Failed to Open Device")
+                libuvc.uvc_exit(ctx)
+                print("Failed to Find Device")
                 exit(1)
-        except:
-            libuvc.uvc_exit(ctx)
-            print("Failed to Find Device")
-            exit(1)
+
+    def setPathName(self, path, png=False):
+        self.pathset = path
+        self.png = png
 
     def setShutterManual(self):
         global devh
+        
         print("Shutter is now manual.")
-        set_manual_ffc(devh)
-
-    def killStreaming(self):
-        print("Terminating video streaming")
-        global devh
-        libuvc.uvc_stop_streaming(devh)
+        if self.windows:
+            self.windows_camera.setShutterManual()
+        else:
+            set_manual_ffc(devh)
 
     def performManualff(self):
-        print("Manual FFC")
-        perform_manual_ffc(devh)
-        print_shutter_info(devh)
-
-    def grabDataFunc(self, func, **kwargs):
-
-        global dev
         global devh
 
+        print("Manual FFC")
+        if self.windows:
+            self.windows_camera.performManualff()
+        else:
+            perform_manual_ffc(devh)
+            print_shutter_info(devh)
+
+    def stopStream(self):
+        global devh
+        print("Stop streaming")
+        if self.windows:
+            self.windows_camera.stopStream()
+        else:
+            libuvc.uvc_stop_streaming(devh)
+
+    def grabDataFunc(self, func, **kwargs):
         frame_number = 1
         end = False
         if "file_name" not in kwargs:
@@ -189,9 +200,7 @@ class TherCam(object):
         print('Starting to grab data')
         try:
             while True:
-                here = time.time()
                 thermal_image_kelvin_data = q.get(True, 500)
-                here2 = time.time()
                 if thermal_image_kelvin_data is None:
                     print("Data is none")
                     exit(1)
@@ -209,7 +218,7 @@ class TherCam(object):
 
         except Exception as e:
             errorloc(e)
-            libuvc.uvc_stop_streaming(devh)
+            self.stopStream()
 
     def plotLive(self):
         """
@@ -220,22 +229,19 @@ class TherCam(object):
         print('Press "r" to refresh the shutter.')
         print('Press "t" to take a thermal pic.')
 
-        import matplotlib as mpl
-        from mpl_toolkits.axes_grid1 import make_axes_locatable
 
         mpl.rc("image", cmap="coolwarm")
 
-        global dev
-        global devh
-
         pressed = False
+
+        if platform.system() == "Windows":
+            plt.ion()  # Enable interactive mode
 
         fig = plt.figure()
         ax = plt.axes()
         div = make_axes_locatable(ax)
         cax = div.append_axes('right', '5%', '5%')
 
-        # fig.tight_layout()
 
         dummy = np.zeros([120, 160])
 
@@ -246,37 +252,43 @@ class TherCam(object):
             vmax=self.vmaxT,
             animated=True,
         )
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.spines["left"].set_visible(False)
+        ax.spines["bottom"].set_visible(False)
+
         fig.colorbar(img, cax=cax)
 
         try:
             while True:
-                # time.sleep(0.01)
-                data = q.get(True, 500)
+                if platform.system() == "Windows":
+                    data = self.windows_camera.getFrame()
+                else:
+                    data = q.get(True, 500)
                 if data is None:
                     print("Data is none")
                     exit(1)
 
                 data = (data - 27315) / 100
 
-                ax.clear()
-                ax.set_xticks([])
-                ax.set_yticks([])
-
-                ax.spines["top"].set_visible(False)
-                ax.spines["right"].set_visible(False)
-                ax.spines["left"].set_visible(False)
-                ax.spines["bottom"].set_visible(False)
-
-                img = ax.imshow(data, vmin=self.vminT, vmax=self.vmaxT)
-                fig.colorbar(img, cax=cax)
+                if platform.system() == "Windows":
+                    img.set_data(data)  # Update image data
+                    fig.canvas.draw()  # Redraw the figure
+                    fig.canvas.flush_events()  # Flush the GUI events for real-time updates
+                else:
+                    ax.clear()
+                    img = ax.imshow(data, vmin=self.vminT, vmax=self.vmaxT)
+                    fig.colorbar(img, cax=cax)
 
                 plt.pause(0.0005)
 
                 if keyboard.is_pressed("r"):
                     if not pressed:
                         print("Manual FFC")
-                        perform_manual_ffc(devh)
-                        print_shutter_info(devh)
+                        self.performManualff()
                         pressed = True
 
                 elif keyboard.is_pressed("t"):
@@ -300,8 +312,8 @@ class TherCam(object):
 
                 elif keyboard.is_pressed("e"):
                     if not pressed:
-                        # cv2.destroyAllWindows()
                         print("We are done")
+                        
                         break
 
                 else:
@@ -309,17 +321,11 @@ class TherCam(object):
 
         except Exception as e:
             print(e)
-            libuvc.uvc_stop_streaming(devh)
+            if platform.system() == "Windows":
+                plt.ioff()
+                plt.close(fig)
 
-    def setPathName(self, path, png=False):
-        self.pathset = path
-        self.png = png
-
-    def StopStream(self):
-        global devh
-        print("Stop streaming")
-        libuvc.uvc_stop_streaming(devh)
-
+            self.stopStream()
 ###############################################################
 ###################### FUNCTIONS ##############################
 ###############################################################
@@ -490,6 +496,7 @@ def gaussian(height, center_x, center_y, width_x, width_y):
 # https://lepton.flir.com/wp-content/uploads/2015/06/PureThermal-2-Basic-Lepton-Features.pdf
 # https://lepton.flir.com/getting-started/quick-start-guide-getting-started-programing-with-python-sdk/
 # https://lepton.flir.com/wp-content/uploads/2015/06/Advanced-Lepton-Usage-on-Windows.pdf
+# https://github.com/zof1985/flirpy
 
 ##Raspberr pi
 # https://github.com/Kheirlb/purethermal1-uvc-capture

@@ -48,7 +48,7 @@ class CameraWindows:
         img = ndimage.rotate(img, angle=0, reshape=True)  # rotation
         self.latest_frame = img.astype(np.float16)  # update the last reading
 
-    def initialiseCamera(self):
+    def initialise_camera(self):
         """
            Initialize the camera and start capturing frames.
         """
@@ -89,13 +89,13 @@ class CameraWindows:
         callback = self.NewBytesFrameEvent(self.add_frame)
         self.reader.SetupGraphWithBytesCallback(callback)
 
-    def startStream(self):
+    def start_stream(self):
         """
             Start capturing frames.
         """
         self.reader.RunGraph()
 
-    def setShutterManual(self):
+    def set_shutter_manual(self):
         """
             Set the shutter mode to manual.
         """
@@ -104,13 +104,13 @@ class CameraWindows:
 
         self.device.sys.SetFfcShutterModeObj(new_shutter_mode_obj)
 
-    def performManualff(self):
+    def perform_manualff(self):
         """
             Perform a manual flat field correction.
         """
         self.device.sys.RunFFCNormalization()
 
-    def stopStream(self):
+    def stop_stream(self):
         """
             Stop capturing frames.
         """
@@ -118,7 +118,7 @@ class CameraWindows:
         pythoncom.CoUninitialize()
         handle_exit(None, None)
 
-    def getFrame(self):
+    def get_frame(self):
         """
         Retrieve the latest frame captured by the camera.
         """

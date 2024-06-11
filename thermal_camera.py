@@ -17,7 +17,7 @@ try:
 except ImportError:
     from Queue import Queue
 
-from failing import errorloc
+from failing import error
 from text import printme
 
 
@@ -95,9 +95,9 @@ class ThermalCamera:
         before you can extract the data from the camera.
         """
         if self.windows:
-            self.windows_camera.initialiseCamera()
+            self.windows_camera.initialise_camera()
             time.sleep(1)
-            self.windows_camera.startStream()
+            self.windows_camera.start_stream()
         else:
             ctx = POINTER(uvc_context)()
             dev = POINTER(uvc_device)()
@@ -164,72 +164,150 @@ class ThermalCamera:
                 print("Failed to Find Device")
                 exit(1)
 
-    def set_output_file(self, path, extra_name, base_file_name = 'thermal-camera', vide_format = 'hdf5', png=False):
-        
-        self.video_format = vide_format
-        self.output_file_name = f"{base_file_name}_{extra_name}.{vide_format}"
+    def set_output_file(self, path, extra_name, base_file_name='thermal-camera', video_format='hdf5', png=False):
+        """
+        Sets the output file for recording the video.
 
+        Args:
+            path (str): The directory where the output file will be saved.
+            extra_name (str): An additional name to be added to the base file name.
+            base_file_name (str, optional): The base name of the output file. Defaults to 'thermal-camera'.
+            video_format (str, optional): The format of the output video file. Defaults to 'hdf5'.
+            png (bool, optional): Whether to save frames as PNG images. Defaults to False.
+        """
+        self.video_format = video_format
+        self.output_file_name = f"{base_file_name}_{extra_name}.{video_format}"
         self.output_path = os.path.join(path, self.output_file_name)
         self.png = png
 
+
     def set_shutter_manual(self):
+        """
+        Sets the camera shutter to manual mode.
+        """
         global devh
-        
+
         print("Shutter is now manual.")
         if self.windows:
-            self.windows_camera.setShutterManual()
+            self.windows_camera.set_shutter_manual()
         else:
             set_manual_ffc(devh)
 
-    def perform_manualff(self):
+
+    def perform_manual_ffc(self):
+        """
+        Performs a manual Flat Field Correction (FFC).
+        """
         global devh
 
         print("Manual FFC")
         if self.windows:
-            self.windows_camera.performManualff()
+            self.windows_camera.perform_manual_ffc()
         else:
             perform_manual_ffc(devh)
             print_shutter_info(devh)
 
+
     def stop_stream(self):
+        """
+        Stops the camera stream.
+        """
         global devh
+
+        # check if there's a file open
+        if self.video_format == "hdf5" and self.create_hdf5_file:
+            self.hpy_file.close()
+
         print("Stop streaming")
         if self.windows:
-            self.windows_camera.stopStream()
+            self.windows_camera.stop_stream()
         else:
             libuvc.uvc_stop_streaming(devh)
+    
+    
+    def create_hdf5_file(self):
+        """
+        Creates an HDF5 file to store the thermal image data.
+        """
+        self.frame_number = 1
+        if self.video_format == "hdf5":
+            self.hpy_file = h5py.File(self.output_path, "w")
+        else:
+            assert False, "Invalid video format. Please set the video format to 'hdf5'."
+
+
+    def capture_frame(self):
+        """
+        Captures a single frame from the thermal camera, converts it to Celsius,
+        and writes it to the output file.
+        """
+
+        #Warning if hdf5 file is not created
+        if self.video_format != "hdf5":
+            assert False, "Invalid video format. Please set the video format to 'hdf5'."
+        
+        if self.windows:
+            thermal_image_kelvin_data = self.windows_camera.get_frame()
+        else:
+            thermal_image_kelvin_data = q.get(True, 500)
+
+        if thermal_image_kelvin_data is None:
+            print("Data is none")
+
+        thermal_image_celsius_data = (thermal_image_kelvin_data - 27315) / 100
+
+        self.hpy_file.create_dataset((f"frame{self.frame_number}"), data = thermal_image_celsius_data)
+
+        # get current time
+        time = datetime.now().strftime("%H:%M:%S")        
+        self.hpy_file.create_dataset((f"time{self.frame_number}"), data = time)
+
 
     def grab_data_func(self, func, **kwargs):
-        frame_number = 1
+        """
+        Grabs data from the thermal camera and processes it using the provided function.
+
+        Args:
+            func (function): A function to process the thermal image data.
+            **kwargs: Additional keyword arguments to pass to the processing function.
+
+        Raises:
+            AssertionError: If the output path is not set.
+            Exception: If an error occurs during data capture and processing.
+        """
         end = False
-        if "file_name" not in kwargs:
-            hpy_file = None
-        else:
-            hpy_file = h5py.File(self.output_path, "w")
+
+        #Warning if hdf5 file is not created
+        if self.video_format != "hdf5":
+            assert False, "Invalid video format. Please set the video format to 'hdf5'."
 
         print('Starting to grab data')
         try:
-            while True:
-                thermal_image_kelvin_data = q.get(True, 500)
+            while not end:
+                if self.windows:
+                    thermal_image_kelvin_data = self.windows_camera.get_frame()
+                else:
+                    thermal_image_kelvin_data = q.get(True, 500) 
                 if thermal_image_kelvin_data is None:
                     print("Data is none")
                     exit(1)
 
                 thermal_image_celsius_data = (thermal_image_kelvin_data - 27315) / 100
-                
-                end = func(thermal_image_data = thermal_image_celsius_data, hpy_file = hpy_file, frame_number = frame_number, cam=self, **kwargs)
 
-                frame_number += 1
+                end = func(
+                    thermal_image_data=thermal_image_celsius_data,
+                    hpy_file=self.hpy_file,
+                    frame_number=self.frame_number,
+                    cam=self,
+                    **kwargs
+                )
 
-                if end:
-                    if hpy_file is not None:
-                        print("Closing file")
-                        hpy_file.close()
-                    break
+                self.frame_number += 1
 
         except Exception as e:
-            errorloc(e)
-            self.stopStream()
+            error(e)
+            self.stop_stream()
+
 
     def plot_live(self):
         """

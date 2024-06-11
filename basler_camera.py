@@ -12,21 +12,21 @@ class BaslerCamera:
         """
         Initializes the BaslerCamera object and opens a connection to the first available camera.
         """
-        self.camera_basler = pylon.InstantCamera(
+        self.basler_camera = pylon.InstantCamera(
             pylon.TlFactory.GetInstance().CreateFirstDevice()
         )
-        self.camera_basler.Open()
+        self.basler_camera.Open()
 
-    def set_frame_rate(self, frame_rate):
+    def set_frames_per_second(self, frames_per_second):
         """
         Sets the frame rate for the camera.
 
         Args:
-            frame_rate (float): The desired frame rate in frames per second.
+            frames_per_second (float): The desired frame rate in frames per second.
         """
-        self.frame_rate = frame_rate
-        self.camera_basler.AcquisitionFrameRateEnable.SetValue(True)
-        self.camera_basler.AcquisitionFrameRateAbs.SetValue(frame_rate)
+        self.frames_per_second = frames_per_second
+        self.basler_camera.AcquisitionFrameRateEnable.SetValue(True)
+        self.basler_camera.AcquisitionFrameRateAbs.SetValue(frames_per_second)
 
     def set_output_file(self, path, extra_name, base_file_name='basler-camera'):
         """
@@ -39,8 +39,8 @@ class BaslerCamera:
         """
         fourcc = cv2.VideoWriter_fourcc(*'MP4V')
 
-        frame_width = int(self.camera_basler.Width.Value)
-        frame_height = int(self.camera_basler.Height.Value)
+        frame_width = int(self.basler_camera.Width.Value)
+        frame_height = int(self.basler_camera.Height.Value)
 
         # Construct the full output file name and path
         self.output_file_name = f"{base_file_name}_{extra_name}.mp4"
@@ -55,14 +55,31 @@ class BaslerCamera:
         """
         Starts the camera recording.
         """
-        self.camera_basler.StartGrabbing()
+        self.basler_camera.StartGrabbing()
 
     def stop_recording(self):
         """
         Stops the camera recording.
         """
-        self.camera_basler.StopGrabbing()
+        self.basler_camera.StopGrabbing()
         self.Close()
 
         if self.out is not None:
             self.out.release()
+
+    def capture_frame(self):
+        """
+        Captures a single frame from the Basler camera, converts it to BGR color format,
+        and writes it to the output file.
+        """
+        try:
+            grab_result = self.basler_camera.RetrieveResult(
+                5000, pylon.TimeoutHandling_ThrowException
+            )
+            if grab_result.GrabSucceeded():
+                img = grab_result.Array
+                img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                self.out.write(img_bgr)
+            grab_result.Release()
+        except Exception as e:
+            print(f"Error during Basler capture: {e}")

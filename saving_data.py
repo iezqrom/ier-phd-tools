@@ -577,7 +577,7 @@ def tbORtesting(testing):
         raise Exception("Variable 'testing' can only take values 'y' or 'n'.")
 
 
-def checkORcreate(path):
+def check_or_create(path):
     """
     Function to check whether a folder exists.
     If it does NOT exist, it is created
@@ -631,7 +631,7 @@ def folderData(backs):
     """
     path = f"./{backs}data"
 
-    path_anal = checkORcreate(path)
+    path_anal = check_or_create(path)
 
     return path_anal
 
@@ -687,17 +687,17 @@ def folderTesting(path, testing, numdaysubj=None, existing_folder_name=None):
         folder_name = head_folder_name + "_" + existing_folder_name
         path = path + "/" + folder_name
 
-    path = checkORcreate(path)
+    path = check_or_create(path)
 
     return path
 
 
 def folderDataLocalFigs(path):
     path_figs = path + "/" + "figures"
-    path_figs = checkORcreate(path_figs)
+    path_figs = check_or_create(path_figs)
 
     path_datalocal = path + "/" + "data"
-    path_datalocal = checkORcreate(path_datalocal)
+    path_datalocal = check_or_create(path_datalocal)
 
     return [path_figs, path_datalocal]
 
@@ -723,7 +723,7 @@ def folderVideos(path):
     """
 
     path_video = path + "/" + "videos"
-    path_video = checkORcreate(path_video)
+    path_video = check_or_create(path_video)
 
     return path_video
 
@@ -747,7 +747,7 @@ def folderAudios(path):
     """
 
     path_audio = path + "/" + "audios"
-    path_audio = checkORcreate(path_audio)
+    path_audio = check_or_create(path_audio)
 
     return path_audio
 

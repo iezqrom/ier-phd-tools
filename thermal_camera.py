@@ -7,6 +7,7 @@ import time
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from datetime import datetime
+import time
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 try:
     import keyboard
@@ -16,6 +17,7 @@ try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
+import csv
 
 from failing import error
 from text import printme
@@ -167,6 +169,16 @@ class ThermalCamera:
                 exit(1)
 
 
+    def set_timer(self, start_time):
+        """
+        Sets the timer for the camera.
+
+        Args:
+            start_time (float): The time at which the camera recording started.
+        """
+        self.start_time = start_time
+
+
     def set_output_file(self, path, extra_name, base_file_name='thermal-camera', video_format='hdf5', png=False):
         """
         Sets the output file for recording the video.
@@ -264,8 +276,8 @@ class ThermalCamera:
             self.hpy_file.create_dataset((f"frame{self.frame_number}"), data = thermal_image_celsius_data)
 
             # get current time
-            time = datetime.now().strftime("%H:%M:%S")        
-            self.hpy_file.create_dataset((f"time{self.frame_number}"), data = [time])
+            timestamp = time.time() - self.start_time
+            self.hpy_file.create_dataset((f"time{self.frame_number}"), data = [timestamp])
 
             self.frame_number += 1
         else:
@@ -428,20 +440,29 @@ class ThermalCamera:
     
     def save_metadata(self):
         """
-        Saves metadata about the recording to a text file in the output directory.
+        Saves metadata about the recording to a CSV file in the output directory.
         """
-        metadata_file_name = f"{self.output_file_name.split('.')[0]}.txt"
+        metadata_file_name = f"{self.output_file_name.split('.')[0]}.csv"
         metadata_path = os.path.join(os.path.dirname(self.output_path), metadata_file_name)
 
-        with open(metadata_path, 'w') as f:
-            f.write(f"Camera: Thermal\n")
-            f.write(f"Resolution: {self.width}x{self.height}\n")
-            f.write(f"Frame Rate: {self.frames_per_second} fps\n")
-            f.write(f"Output File: {self.output_file_name}\n")
-            f.write(f"Temperature Range: {self.vminT} to {self.vmaxT} Celsius\n")
-            f.write(f"Video Format: {self.video_format}\n")
-            f.write(f"PNG Frames: {self.png}\n")
-            f.write(f"Shutter Manual: {self.shutter_manual}\n")
-            if self.video_format == "hdf5":
-                f.write(f"Number of Frames: {self.frame_number}\n")
+        data = {
+            "camera": "thermal",
+            "resolution_width": self.width,
+            "resolution_height": self.height,
+            "frame_rate_fps": self.frames_per_second,
+            "output_file": self.output_file_name,
+            "temperature_min": self.vminT,
+            "temperature_max": self.vmaxT,
+            "video_format": self.video_format,
+            "png_frames": self.png,
+            "shutter_manual": self.shutter_manual
+        }
+
+        if self.video_format == "hdf5":
+            data["number_of_frames"] = self.frame_number
+
+        with open(metadata_path, mode='w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(data.keys())
+            writer.writerow(data.values())
 

@@ -71,6 +71,6 @@ def define_folder_name(name):
         str: The formatted folder name.
     """
     name = str(name)
-    name = ''.join(e if e.isalnum() or e == '-' else '-' for e in name)
+    name = ''.join(e if e.isalnum() or e == '_' else '_' for e in name)
     date = datetime.datetime.now().strftime("%y%m%d")
     return f"{name}_{date}"

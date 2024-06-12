@@ -78,6 +78,8 @@ class ThermalCamera:
         self.width = 160
         self.height = 120
 
+        self.shutter_manual = False
+
         # Check whether we are in Windows
         if platform.system() == "Windows":
             self.windows = True
@@ -164,6 +166,7 @@ class ThermalCamera:
                 print("Failed to Find Device")
                 exit(1)
 
+
     def set_output_file(self, path, extra_name, base_file_name='thermal-camera', video_format='hdf5', png=False):
         """
         Sets the output file for recording the video.
@@ -188,11 +191,15 @@ class ThermalCamera:
         global devh
 
         print("Shutter is now manual.")
-        if self.windows:
-            self.windows_camera.set_shutter_manual()
-        else:
-            set_manual_ffc(devh)
-
+        try:
+            if self.windows:
+                self.windows_camera.set_shutter_manual()
+            else:
+                set_manual_ffc(devh)
+        except:
+            print("Failed to set shutter to manual.")
+        finally:
+            self.shutter_manual = True
 
     def perform_manual_ffc(self):
         """
@@ -251,16 +258,18 @@ class ThermalCamera:
         else:
             thermal_image_kelvin_data = q.get(True, 500)
 
-        if thermal_image_kelvin_data is None:
-            print("Data is none")
+        if thermal_image_kelvin_data is not None:
+            thermal_image_celsius_data = (thermal_image_kelvin_data - 27315) / 100
 
-        thermal_image_celsius_data = (thermal_image_kelvin_data - 27315) / 100
+            self.hpy_file.create_dataset((f"frame{self.frame_number}"), data = thermal_image_celsius_data)
 
-        self.hpy_file.create_dataset((f"frame{self.frame_number}"), data = thermal_image_celsius_data)
+            # get current time
+            time = datetime.now().strftime("%H:%M:%S")        
+            self.hpy_file.create_dataset((f"time{self.frame_number}"), data = time)
 
-        # get current time
-        time = datetime.now().strftime("%H:%M:%S")        
-        self.hpy_file.create_dataset((f"time{self.frame_number}"), data = time)
+            self.frame_number += 1
+        else:
+            print("Thermal data is none")
 
 
     def grab_data_func(self, func, **kwargs):
@@ -415,4 +424,24 @@ class ThermalCamera:
                 plt.close(fig)
 
             self.stopStream()
+
+    
+    def save_metadata(self):
+        """
+        Saves metadata about the recording to a text file in the output directory.
+        """
+        metadata_file_name = f"{self.output_file_name.split('.')[0]}.txt"
+        metadata_path = os.path.join(os.path.dirname(self.output_path), metadata_file_name)
+
+        with open(metadata_path, 'w') as f:
+            f.write(f"Camera: Thermal\n")
+            f.write(f"Resolution: {self.width}x{self.height}\n")
+            f.write(f"Frame Rate: {self.frames_per_second} fps\n")
+            f.write(f"Output File: {self.output_file_name}\n")
+            f.write(f"Temperature Range: {self.vminT} to {self.vmaxT} Celsius\n")
+            f.write(f"Video Format: {self.video_format}\n")
+            f.write(f"PNG Frames: {self.png}\n")
+            f.write(f"Shutter Manual: {self.shutter_manual}\n")
+            if self.video_format == "hdf5":
+                f.write(f"Number of Frames: {self.frame_number}\n")
 

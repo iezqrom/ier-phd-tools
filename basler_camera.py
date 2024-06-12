@@ -17,6 +17,7 @@ class BaslerCamera:
         )
         self.basler_camera.Open()
 
+
     def set_frames_per_second(self, frames_per_second):
         """
         Sets the frame rate for the camera.
@@ -26,7 +27,8 @@ class BaslerCamera:
         """
         self.frames_per_second = frames_per_second
         self.basler_camera.AcquisitionFrameRateEnable.SetValue(True)
-        self.basler_camera.AcquisitionFrameRateAbs.SetValue(frames_per_second)
+        self.basler_camera.AcquisitionFrameRate.SetValue(self.frames_per_second)
+
 
     def set_output_file(self, path, extra_name, base_file_name='basler-camera'):
         """
@@ -48,24 +50,27 @@ class BaslerCamera:
 
         # Create the VideoWriter object for recording
         self.out = cv2.VideoWriter(
-            self.output_path, fourcc, self.frame_rate, (frame_width, frame_height)
+            self.output_path, fourcc, self.frames_per_second, (frame_width, frame_height)
         )
 
     def start_recording(self):
         """
         Starts the camera recording.
         """
+        self.frame_number = 1
         self.basler_camera.StartGrabbing()
+
 
     def stop_recording(self):
         """
         Stops the camera recording.
         """
         self.basler_camera.StopGrabbing()
-        self.Close()
+        self.basler_camera.Close()
 
         if self.out is not None:
             self.out.release()
+
 
     def capture_frame(self):
         """
@@ -80,6 +85,21 @@ class BaslerCamera:
                 img = grab_result.Array
                 img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
                 self.out.write(img_bgr)
+                self.frame_number += 1
             grab_result.Release()
         except Exception as e:
             print(f"Error during Basler capture: {e}")
+
+    def save_metadata(self):
+        """
+        Saves metadata about the recording to a text file in the output directory.
+        """
+        metadata_file_name = f"{self.output_file_name.split('.')[0]}.txt"
+        metadata_path = os.path.join(os.path.dirname(self.output_path), metadata_file_name)
+
+        with open(metadata_path, 'w') as f:
+            f.write(f"Camera: Basler\n")
+            f.write(f"Resolution: {self.basler_camera.Width.Value}x{self.basler_camera.Height.Value}\n")
+            f.write(f"Frame Rate: {self.frames_per_second} fps\n")
+            f.write(f"Output File: {self.output_file_name}\n")
+            f.write(f"Number of Frames: {self.frame_number}\n")

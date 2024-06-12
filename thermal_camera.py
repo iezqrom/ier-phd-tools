@@ -265,7 +265,7 @@ class ThermalCamera:
 
             # get current time
             time = datetime.now().strftime("%H:%M:%S")        
-            self.hpy_file.create_dataset((f"time{self.frame_number}"), data = time)
+            self.hpy_file.create_dataset((f"time{self.frame_number}"), data = [time])
 
             self.frame_number += 1
         else:

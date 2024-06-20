@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import pandas as pd
 import os
+import ast
 
 from systems import find_parent_folder
 from text import printme
@@ -22,6 +23,56 @@ class SessionLogger:
             os.path.splitext(file_name)[0]: find_parent_folder(file_name) for file_name in self.file_names
         }
         self.file_path = self.paths['logbook']
+    
+    def log_weight(self):
+        """
+        Logs the weight of the subject by adding an entry to the weight logbook.
+        """
+        # Subject ID
+        mice_data_dict = self.get_csv_data(self.paths['mice'], 'mice.csv')
+        mice_path = os.path.join(self.paths['mice'], 'mice.csv')
+        mice_data_csv = pd.read_csv(mice_path)
+        mice_options = [f"{value['subject_id']}" for _, value in mice_data_dict.items()]
+        subject_number_id = self.get_input("Enter the ID of the subject", mice_options, start=0)
+        # self.subject_number = subject_number_id.split()[0]
+        self.subject_id = subject_number_id.split()[0]
+
+        print(f"Subject ID: {self.subject_id}")
+
+        # Weight data
+        weight = input("Enter the weight of the subject (in grams): ")
+        self.weight = int(weight) if weight.isdigit() else None
+
+        # get the date in the format DD/MM/YYYY
+        date = datetime.now().strftime('%d/%m/%Y')
+
+        # Add the weight entry to the CSV
+        # check whether there's a row for the subject_id in the CSV
+        if mice_data_csv['subject_id'].isin([self.subject_id]).any():
+            # Retrieve the current cell value
+            current_value = mice_data_csv.loc[mice_data_csv['subject_id'] == self.subject_id, 'weight'].iloc[0]
+            
+            # Check if the cell is not empty and contains a dictionary
+            if pd.notna(current_value):
+                # Convert the string back to a dictionary
+                current_dict = ast.literal_eval(current_value)
+            else:
+                # If the cell is empty, initialize a new dictionary
+                current_dict = {}
+            
+            # Add the new date and weight
+            current_dict[date] = self.weight
+            
+            # Convert the dictionary back to a string and update the DataFrame
+            mice_data_csv.loc[mice_data_csv['subject_id'] == self.subject_id, 'weight'] = str(current_dict)
+
+            # write the updated data to the CSV
+            mice_data_csv.to_csv(mice_path, index=False)
+
+            print(f"Weight of {self.weight} grams logged for subject {self.subject_id} on {date}.")
+        else:
+            print(f"Subject ID {self.subject_id} not found.")
+
 
     def define_session(self):
         """
@@ -29,10 +80,12 @@ class SessionLogger:
         """
         # Subject ID
         mice_data = self.get_csv_data(self.paths['mice'], 'mice.csv')
-        mice_options = [f"{key} {value['subject_id']}" for key, value in mice_data.items()]
+        mice_options = [f"{value['subject_id']}" for _, value in mice_data.items()]
         subject_number_id = self.get_input("Enter the ID of the subject", mice_options, start=0)
-        self.subject_number = subject_number_id.split()[0]
-        self.subject_id = subject_number_id.split()[1]
+        self.subject_id = subject_number_id.split()[0]
+        self.subject_number = self.get_subject_number(self.subject_id)
+
+        print(f"Subject ID: {self.subject_id}, Subject number: {self.subject_number}")
 
         # License data
         license_data = self.get_csv_data(self.paths['licenses'], 'licenses.csv')
@@ -65,13 +118,13 @@ class SessionLogger:
         """
         Logs the session by adding an entry to the logbook.
         """
-
+        
         if self.subject_id is None and self.subject_number is None:
             raise ValueError("Either subject_id or subject_number must be provided.")
         elif self.subject_id is not None and self.subject_number is not None:
             # Optionally, you could add a check to ensure they match
 
-            if int(self.get_subject_number(self.subject_id)) != int(self.subject_number):
+            if int(self.get_subject_number(self.subject_id)) != int(self.subject_number):                
                 raise ValueError("Provided subject_id and subject_number do not match.")
         
         name_logbook_file = 'logbook.csv'
@@ -128,10 +181,10 @@ class SessionLogger:
         # Read the CSV file into a DataFrame
         df = pd.read_csv(file_path)
         # Search for the subject_id and get the corresponding subject_number
-        subject_row = df[df['subject_id'] == int(subject_id)]
+        subject_row = df[df['subject_id'] == subject_id]
         
         if not subject_row.empty:
-            return int(subject_row.iloc[0]['subject_number'])
+            return subject_row.iloc[0]['subject_number']
         else:
             return None
 
@@ -153,10 +206,10 @@ class SessionLogger:
         # Read the CSV file into a DataFrame
         df = pd.read_csv(file_path)
         # Search for the subject_number and get the corresponding subject_id
-        subject_row = df[df['subject_number'] == int(subject_number)]
+        subject_row = df[df['subject_number'] == subject_number]
 
         if not subject_row.empty:
-            return int(subject_row.iloc[0]['subject_id'])
+            return subject_row.iloc[0]['subject_id']
         else:
             return None
 

@@ -42,6 +42,10 @@ class SessionLogger:
         # Weight data
         weight = input("Enter the weight of the subject (in grams): ")
         self.weight = int(weight) if weight.isdigit() else None
+        try:
+            self.weight = float(weight)
+        except ValueError:
+            self.weight = None
 
         # get the date in the format DD/MM/YYYY
         date = datetime.now().strftime('%d/%m/%Y')

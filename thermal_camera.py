@@ -79,6 +79,7 @@ class ThermalCamera:
         self.frames_per_second = 8.7
         self.width = 160
         self.height = 120
+        self.video_format = None
 
         self.shutter_manual = False
 
@@ -375,7 +376,7 @@ class ThermalCamera:
         try:
             while True:
                 if platform.system() == "Windows":
-                    data = self.windows_camera.getFrame()
+                    data = self.windows_camera.get_frame()
                 else:
                     data = q.get(True, 500)
                 if data is None:
@@ -435,7 +436,7 @@ class ThermalCamera:
                 plt.ioff()
                 plt.close(fig)
 
-            self.stopStream()
+            self.stop_stream()
 
     
     def save_metadata(self):

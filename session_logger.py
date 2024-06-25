@@ -150,11 +150,15 @@ class SessionLogger:
         """
         self.get_subject_id_and_number()
 
+        self.get_method_data()
+
+        if self.method == 'weighing':
+            self.log_weight()
+            return
+
         self.get_license_data()
         
         self.get_subproject_data()
-
-        self.get_method_data()
 
         self.get_method_version_data()
 
@@ -370,77 +374,74 @@ class SessionLogger:
         new_subjects = []
 
         while True:
-            subject = {}
 
             # Add subject ID
             while True:
+                subject = {}
                 subject_id = input("Enter the subject ID: ")
                 confirmation = input(f"Confirm subject ID '{subject_id}' (y/n): ").lower()
                 if confirmation == 'y':
+                    #append the subject_id to the subject dictionary
                     subject['subject_id'] = subject_id
+                    new_subjects.append(subject)
                     break
                 elif confirmation == 'n':
                     continue
+                else:
+                    printme("Invalid input. Please enter 'y' for yes or 'n' for no.")
 
             # Confirm adding more subjects
-            add_more_ids = input("Do you want to add more IDs? (y/n): ").lower()
+            add_more_ids = input("Do you want to add more IDs for the same cage? (y/n): ").lower()
             if add_more_ids == 'n':
                 break
 
+
+        # Add sex
+        sex = self.get_input("Enter the sex (male/female): ", ["male", "female"])
+        # Append the sex to all the new subjects
+        [new_subject.update({'sex': sex}) for new_subject in new_subjects]
+
+        # Add date of birth
         while True:
-            # Add sex
-            sex = self.get_input("Enter the sex (male/female): ", ["male", "female"])
-            subject['sex'] = sex
-
-            # Add date of birth
-            while True:
-                date_of_birth = input("Enter the date of birth (DD/MM/YYYY): ")
-                try:
-                    datetime.strptime(date_of_birth, '%d/%m/%Y')
-                    subject['date_of_birth'] = date_of_birth
-                    break
-                except ValueError:
-                    printme("Invalid date format. Please enter in DD/MM/YYYY format.")
-
-            # Add cage number
-            existing_cage_numbers = subjects_data_csv['cage_number'].unique().tolist()
-            cage_number = self.get_input("Enter the cage number or select from existing:", existing_cage_numbers + ["Enter new value"])
-            if cage_number == "Enter new value":
-                cage_number = input("Enter new cage number: ")
-            subject['cage_number'] = cage_number
-
-            # Add species
-            unique_species = genotypes_data_csv['species'].unique().tolist()
-            species = self.get_input("Enter the species:", unique_species)
-            subject['species'] = species
-
-            # Add genotype
-            genotypes_for_species = genotypes_data_csv[genotypes_data_csv['species'] == species]['genotype'].unique().tolist()
-            genotype = self.get_input("Enter the genotype:", genotypes_for_species)
-            subject['genotype'] = genotype
-
-            # Default fields
-            subject['current_license'] = 'ZH_139'
-            subject['current_subproject'] = ''
-            subject['notes'] = input("Enter any notes: ")
-
-            # Repository and weight fields left empty
-            subject['repository'] = ''
-            subject['weight'] = ''
-
-            new_subjects.append(subject)
-
-            # Confirm adding more subjects
-            add_more_subjects = input("Do you want to add another subject? (y/n): ").lower()
-            if add_more_subjects == 'n':
+            date_of_birth = input("Enter the date of birth (DD/MM/YYYY): ")
+            try:
+                datetime.strptime(date_of_birth, '%d/%m/%Y')
+                [new_subject.update({'date_of_birth': date_of_birth}) for new_subject in new_subjects]
                 break
+            except ValueError:
+                printme("Invalid date format. Please enter in DD/MM/YYYY format.")
 
+        # Add cage number
+        existing_cage_numbers = subjects_data_csv['cage_number'].unique().tolist()
+        cage_number = self.get_input("Enter the cage number or select from existing:", existing_cage_numbers + ["Enter new value"])
+        if cage_number == "Enter new value":
+            cage_number = input("Enter new cage number: ")
+        [new_subject.update({'cage_number': cage_number}) for new_subject in new_subjects]
+
+        # Add species
+        unique_species = genotypes_data_csv['species'].unique().tolist()
+        species = self.get_input("Enter the species:", unique_species)
+        [new_subject.update({'species': species}) for new_subject in new_subjects]
+
+        # Add genotype
+        genotypes_for_species = genotypes_data_csv[genotypes_data_csv['species'] == species]['genotype'].unique().tolist()
+        genotype = self.get_input("Enter the genotype:", genotypes_for_species)
+        [new_subject.update({'genotype': genotype}) for new_subject in new_subjects]
+
+        # Default fields
+        [new_subject.update({'current_license': 'ZH_139'}) for new_subject in new_subjects]
+        [new_subject.update({'current_subproject': ''}) for new_subject in new_subjects]
+        [new_subject.update({'weight': ''}) for new_subject in new_subjects]
+        [new_subject.update({'notes': ''}) for new_subject in new_subjects]
+        [new_subject.update({'repository': ''}) for new_subject in new_subjects]
+        
         # Generate subject_number for each new subject
         last_subject_number = subjects_data_csv['subject_number'].max()
         for i, subject in enumerate(new_subjects):
             subject['subject_number'] = last_subject_number + 1 + i
 
         # Append new subjects to the CSV
+        print(new_subjects)
         new_subjects_df = pd.DataFrame(new_subjects)
         subjects_data_csv = pd.concat([subjects_data_csv, new_subjects_df], ignore_index=True)
         subjects_data_csv.to_csv(self.paths['subjects'], index=False)

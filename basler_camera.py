@@ -14,10 +14,19 @@ class BaslerCamera:
         """
         Initializes the BaslerCamera object and opens a connection to the first available camera.
         """
-        self.basler_camera = pylon.InstantCamera(
-            pylon.TlFactory.GetInstance().CreateFirstDevice()
-        )
-        self.basler_camera.Open()
+        self.basler_camera = None
+        while self.basler_camera is None:
+            try:
+                # Try to create and open the camera
+                self.basler_camera = pylon.InstantCamera(
+                    pylon.TlFactory.GetInstance().CreateFirstDevice()
+                )
+                self.basler_camera.Open()
+                print("Camera opened successfully.")
+            except pylon.RuntimeException as e:
+                # Handle the case where the camera is busy or not available
+                print(f"Failed to open camera: {e}")
+                input("Please make the camera available and press Enter to try again...")
 
 
     def set_frames_per_second(self, frames_per_second):

@@ -54,28 +54,27 @@ class SessionLogger:
         Retrieves the license data for the subject.
         """
 
-        subjects_data_csv = pd.read_csv(self.paths['subjects'])
-        self.current_license = subjects_data_csv[subjects_data_csv['subject_id'] == self.subject_id]['current_license'].iloc[0]
-        if self.current_license in ['ZH_139', 'X9016_21', 'G0167_23']:
+        self.license = self.get_current_license()
+        if self.license in ['ZH_139', 'X9016_21', 'G0167_23']:
             license_data = self.get_csv_data(self.paths['licenses'])
-            self.current_license = self.get_input("Enter the license", list(license_data.keys()))
+            self.license = self.get_input("Enter the license", list(license_data.keys()))
 
-        printme(f"License: {self.current_license}")
+        printme(f"License: {self.license}")
 
 
     def get_subproject_data(self):
         """
         Retrieves the subproject data for the subject.
         """
-        subjects_path = os.path.join(self.paths['subjects'])
-        subjects_data_csv = pd.read_csv(subjects_path)
-        self.current_subproject = subjects_data_csv[subjects_data_csv['subject_id'] == self.subject_id]['current_subproject'].iloc[0]
-        if self.current_subproject is None:
+
+        self.subproject = self.get_current_subproject()
+        print(self.subproject)
+        if self.subproject is None:
             license_data = self.get_csv_data(self.paths['licenses'])
             subprojects = eval(license_data[self.license]['subprojects'])
-            self.current_subproject = self.get_input("Enter the subproject", subprojects)
+            self.subproject = self.get_input("Enter the subproject", subprojects)
 
-        printme(f"Subproject: {self.current_subproject}")
+        printme(f"Subproject: {self.subproject}")
     
 
     def get_method_data(self):
@@ -110,6 +109,7 @@ class SessionLogger:
             self.experimenter = self.get_input("Enter the experimenter", list(experimenter_data.keys()))
 
         printme(f"Experimenter: {self.experimenter}")
+
 
     def get_condition_data(self):
         """
@@ -179,16 +179,16 @@ class SessionLogger:
         self.get_experimenter_data()
         self.get_duration_data()
         self.get_notes_data()
+
         for subject_id in subject_ids:
             self.subject_id = subject_id
             self.subject_number = self.get_subject_number(subject_id)
 
             # License data
-            self.license = self.get_current_license()
+            self.get_license_data()
 
             # Subproject data
-            self.subproject = self.get_current_subproject()
-
+            self.get_subproject_data()
             # Condition data
             self.condition = self.get_mouse_condition()
 
@@ -200,13 +200,14 @@ class SessionLogger:
         """
         Logs the weight of the subject by adding an entry to the weight logbook.
         """
-        # Subject ID
-        subjects_data_dict = self.get_csv_data(self.paths['subjects'])
         subjects_data_csv = pd.read_csv(self.paths['subjects'])
-        subjects_options = [f"{value['subject_id']}" for _, value in subjects_data_dict.items()]
-        subject_number_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
-        # self.subject_number = subject_number_id.split()[0]
-        self.subject_id = subject_number_id.split()[0]
+        # Subject ID
+        if self.subject_id is None:
+            subjects_data_dict = self.get_csv_data(self.paths['subjects'])            
+            subjects_options = [f"{value['subject_id']}" for _, value in subjects_data_dict.items()]
+            subject_number_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
+            # self.subject_number = subject_number_id.split()[0]
+            self.subject_id = subject_number_id.split()[0]
 
         print(f"Subject ID: {self.subject_id}")
 
@@ -252,7 +253,6 @@ class SessionLogger:
             self.condition = self.get_mouse_condition()
             self.experimenter = 'IER'
             self.notes = f"Weight of {str(self.weight)} grams"
-            self.log_session()
 
             print(f"Weight of {self.weight} grams logged for subject {self.subject_id} on {date}.")
         else:
@@ -298,12 +298,12 @@ class SessionLogger:
         df = pd.read_csv(self.paths['subjects'])
         # Search for the subject_id and get the corresponding subproject
         subject_row = df[df['subject_id'] == self.subject_id]
-        
-        if not subject_row.empty:
+
+        if not pd.isnull(subject_row.iloc[0]['current_subproject']):
             return subject_row.iloc[0]['current_subproject']
         else:
             return None
-
+  
 
     def get_mouse_condition(self):
         """
@@ -323,7 +323,7 @@ class SessionLogger:
             df['subjects'] = df['subjects'].apply(ast.literal_eval)
 
             subject_row = df[df['subjects'].apply(lambda x: self.subject_id in x)]
-            print(subject_row)
+
             if not subject_row.empty:
                 return subject_row.iloc[0]['condition']
             else:

@@ -24,7 +24,6 @@ from IR16Filters import IR16Capture, NewBytesFrameEvent
 def handle_exit(sig, frame):
     print("Exiting and cleaning up...")
     pythoncom.CoUninitialize()
-    exit(0)
 
 # Register signal handlers for clean exit
 signal.signal(signal.SIGINT, handle_exit)
@@ -89,7 +88,7 @@ class CameraWindows:
         callback = self.NewBytesFrameEvent(self.add_frame)
         self.reader.SetupGraphWithBytesCallback(callback)
 
-    def start_stream(self):
+    def start_streaming(self):
         """
             Start capturing frames.
         """
@@ -110,7 +109,7 @@ class CameraWindows:
         """
         self.device.sys.RunFFCNormalization()
 
-    def stop_stream(self):
+    def stop_streaming(self):
         """
             Stop capturing frames.
         """

@@ -58,6 +58,10 @@ class SessionLogger:
         if self.license in ['ZH_139', 'X9016_21', 'G0167_23']:
             license_data = self.get_csv_data(self.paths['licenses'])
             self.license = self.get_input("Enter the license", list(license_data.keys()))
+            # update the current license in the subjects.csv file
+            subjects_data_csv = pd.read_csv(self.paths['subjects'])
+            subjects_data_csv.loc[subjects_data_csv['subject_id'] == self.subject_id, 'current_license'] = self.license
+            subjects_data_csv.to_csv(self.paths['subjects'], index=False)
 
         printme(f"License: {self.license}")
 
@@ -68,11 +72,14 @@ class SessionLogger:
         """
 
         self.subproject = self.get_current_subproject()
-        print(self.subproject)
         if self.subproject is None:
             license_data = self.get_csv_data(self.paths['licenses'])
             subprojects = eval(license_data[self.license]['subprojects'])
             self.subproject = self.get_input("Enter the subproject", subprojects)
+            # update the current subproject in the subjects.csv file
+            subjects_data_csv = pd.read_csv(self.paths['subjects'])
+            subjects_data_csv.loc[subjects_data_csv['subject_id'] == self.subject_id, 'current_subproject'] = self.subproject
+            subjects_data_csv.to_csv(self.paths['subjects'], index=False)
 
         printme(f"Subproject: {self.subproject}")
     

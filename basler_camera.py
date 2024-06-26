@@ -15,6 +15,8 @@ class BaslerCamera:
         Initializes the BaslerCamera object and opens a connection to the first available camera.
         """
         self.basler_camera = None
+        self.out = None
+        
         while self.basler_camera is None:
             try:
                 # Try to create and open the camera
@@ -161,10 +163,13 @@ class BaslerCamera:
             writer.writerow(data.keys())
             writer.writerow(data.values())
 
-    def stream_video(self):
+
+    def stream_video(self, window_width=None, window_height=None):
         """
         Streams the live video feed from the Basler camera.
         """
+        print("Press 'e' to quit the video stream.")
+
         while True:
             grab_result = self.basler_camera.RetrieveResult(
                 5000, pylon.TimeoutHandling_ThrowException
@@ -172,11 +177,15 @@ class BaslerCamera:
             if grab_result.GrabSucceeded():
                 img = grab_result.Array
                 img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+
+                            # Resize the image if window size is specified
+                if window_width is not None and window_height is not None:
+                    img_bgr = cv2.resize(img_bgr, (round(window_width), round(window_height)))
                 
                 cv2.imshow("Basler Camera", img_bgr)
                 
                 # Break the loop if 'q' is pressed
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                if cv2.waitKey(1) & 0xFF == ord('e'):
                     break
 
             grab_result.Release()

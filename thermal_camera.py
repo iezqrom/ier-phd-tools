@@ -92,7 +92,7 @@ class ThermalCamera:
         printme(f"vminT = {self.vminT} and vmaxT = {self.vmaxT}")
 
 
-    def start_stream(self):
+    def start_streaming(self):
         global devh
         global dev
         """
@@ -102,7 +102,7 @@ class ThermalCamera:
         if self.windows:
             self.windows_camera.initialise_camera()
             time.sleep(1)
-            self.windows_camera.start_stream()
+            self.windows_camera.start_streaming()
         else:
             ctx = POINTER(uvc_context)()
             dev = POINTER(uvc_device)()
@@ -113,7 +113,7 @@ class ThermalCamera:
             res = libuvc.uvc_init(byref(ctx), 0)
             if res < 0:
                 print("uvc_init error")
-                # exit(1)
+                exit(1)
 
             try:
                 res = libuvc.uvc_find_device(ctx, byref(dev), PT_USB_VID, PT_USB_PID, 0)
@@ -214,6 +214,7 @@ class ThermalCamera:
         finally:
             self.shutter_manual = True
 
+
     def perform_manual_ffc(self):
         """
         Performs a manual Flat Field Correction (FFC).
@@ -312,7 +313,8 @@ class ThermalCamera:
                     thermal_image_kelvin_data = q.get(True, 500) 
                 if thermal_image_kelvin_data is None:
                     print("Data is none")
-                    exit(1)
+                    #make an empty frame
+                    thermal_image_celsius_data = np.zeros([120, 160])
 
                 thermal_image_celsius_data = (thermal_image_kelvin_data - 27315) / 100
 
@@ -339,7 +341,7 @@ class ThermalCamera:
         """
         print('Press "r" to refresh the shutter.')
         print('Press "t" to take a thermal pic.')
-
+        print('Press "e" to exit.')
 
         mpl.rc("image", cmap="coolwarm")
 
@@ -381,7 +383,8 @@ class ThermalCamera:
                     data = q.get(True, 500)
                 if data is None:
                     print("Data is none")
-                    exit(1)
+                    #make an empty frame
+                    data = np.zeros([120, 160])
 
                 data = (data - 27315) / 100
 
@@ -424,7 +427,6 @@ class ThermalCamera:
                 elif keyboard.is_pressed("e"):
                     if not pressed:
                         print("We are done")
-                        
                         break
 
                 else:

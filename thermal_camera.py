@@ -440,6 +440,11 @@ class ThermalCamera:
 
             self.stop_streaming()
 
+        finally:
+            if platform.system() == "Windows":
+                plt.ioff()
+                plt.close(fig)
+
     
     def save_metadata(self):
         """

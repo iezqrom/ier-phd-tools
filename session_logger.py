@@ -40,7 +40,7 @@ class SessionLogger:
         Prompts user to enter the subject ID and retrieves the corresponding subject number.
         """
         subjects_data_dict = self.get_csv_data(self.paths['subjects'])
-        subjects_options = [f"{value['subject_id']}" for _, value in subjects_data_dict.items()]
+        subjects_options = [f"{key}" for key, _ in subjects_data_dict.items()]
         subject_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
         self.subject_id = subject_id.split()[0]
 
@@ -208,7 +208,7 @@ class SessionLogger:
         # Subject ID
         if self.subject_id is None:
             subjects_data_dict = self.get_csv_data(self.paths['subjects'])            
-            subjects_options = [f"{value['subject_id']}" for _, value in subjects_data_dict.items()]
+            subjects_options = [f"{key}" for key, _ in subjects_data_dict.items()]
             subject_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
             self.subject_id = subject_id.split()[0]
 
@@ -450,7 +450,7 @@ class SessionLogger:
             list: A list of selected subject IDs.
         """
         subjects_data_dict = self.get_csv_data(self.paths['subjects'])
-        subjects_options = [f"{value['subject_id']}" for _, value in subjects_data_dict.items()]
+        subjects_options = [f"{key}" for key, _ in subjects_data_dict.items()]
 
         printme("Select the IDs of the subjects (separated by commas):")
         for i, option in enumerate(subjects_options):

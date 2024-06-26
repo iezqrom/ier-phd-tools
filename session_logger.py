@@ -25,7 +25,6 @@ class SessionLogger:
         }
 
         self.subject_id = None
-        self.subject_number = None
         self.license = None
         self.subproject = None
         self.method = None
@@ -36,17 +35,16 @@ class SessionLogger:
         self.notes = None
 
 
-    def get_subject_id_and_number(self):
+    def get_subject_id(self):
         """
         Prompts user to enter the subject ID and retrieves the corresponding subject number.
         """
         subjects_data_dict = self.get_csv_data(self.paths['subjects'])
         subjects_options = [f"{value['subject_id']}" for _, value in subjects_data_dict.items()]
-        subject_number_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
-        self.subject_id = subject_number_id.split()[0]
-        self.subject_number = self.get_subject_number(self.subject_id)
+        subject_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
+        self.subject_id = subject_id.split()[0]
 
-        printme(f"Subject ID: {self.subject_id}, Subject number: {self.subject_number}")
+        printme(f"Subject ID: {self.subject_id}")
 
 
     def get_license_data(self):
@@ -155,7 +153,7 @@ class SessionLogger:
         """
         Logs a session by collecting various data points from the user and writing them to a logbook.
         """
-        self.get_subject_id_and_number()
+        self.get_subject_id()
 
         self.get_method_data()
 
@@ -189,7 +187,6 @@ class SessionLogger:
 
         for subject_id in subject_ids:
             self.subject_id = subject_id
-            self.subject_number = self.get_subject_number(subject_id)
 
             # License data
             self.get_license_data()
@@ -212,9 +209,8 @@ class SessionLogger:
         if self.subject_id is None:
             subjects_data_dict = self.get_csv_data(self.paths['subjects'])            
             subjects_options = [f"{value['subject_id']}" for _, value in subjects_data_dict.items()]
-            subject_number_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
-            # self.subject_number = subject_number_id.split()[0]
-            self.subject_id = subject_number_id.split()[0]
+            subject_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
+            self.subject_id = subject_id.split()[0]
 
         print(f"Subject ID: {self.subject_id}")
 
@@ -342,18 +338,13 @@ class SessionLogger:
         Logs the session by adding an entry to the logbook.
         """
         
-        if self.subject_id is None and self.subject_number is None:
-            raise ValueError("Either subject_id or subject_number must be provided.")
-        elif self.subject_id is not None and self.subject_number is not None:
-            # Optionally, you could add a check to ensure they match
-
-            if int(self.get_subject_number(self.subject_id)) != int(self.subject_number):                
-                raise ValueError("Provided subject_id and subject_number do not match.")
-        
+        if self.subject_id is None:
+            raise ValueError("subject_id must be provided.")
+    
         os.makedirs(os.path.dirname(self.paths['logbook']), exist_ok=True)
 
         log_entry_data = [
-            str(self.subject_id), str(self.subject_number), str(self.license), 
+            str(self.subject_id), str(self.license), 
             str(self.subproject), str(self.method), str(self.method_version), str(self.duration_s),
             str(self.condition), str(self.experimenter), str(self.notes)
         ]
@@ -364,7 +355,7 @@ class SessionLogger:
             with open(self.paths['logbook'], mode='a', newline='') as file:
                 writer = csv.writer(file)
                 if not file_exists:
-                    writer.writerow(['timestamp', 'subject_id', 'subject_number', 'license', 'subproject', 'method', 'method_version', 'duration_s', 'condition', 'experimenter', 'notes'])
+                    writer.writerow(['timestamp', 'subject_id', 'license', 'subproject', 'method', 'method_version', 'duration_s', 'condition', 'experimenter', 'notes'])
                 writer.writerow(log_entry_with_timestamp)
             print(f"Log entry added: {log_entry_with_timestamp}")
         except Exception as e:
@@ -442,11 +433,6 @@ class SessionLogger:
         [new_subject.update({'notes': ''}) for new_subject in new_subjects]
         [new_subject.update({'repository': ''}) for new_subject in new_subjects]
         
-        # Generate subject_number for each new subject
-        last_subject_number = subjects_data_csv['subject_number'].max()
-        for i, subject in enumerate(new_subjects):
-            subject['subject_number'] = last_subject_number + 1 + i
-
         # Append new subjects to the CSV
         print(new_subjects)
         new_subjects_df = pd.DataFrame(new_subjects)
@@ -479,52 +465,6 @@ class SessionLogger:
                 return selected_ids
             except (ValueError, IndexError):
                 printme("Invalid input, please enter valid numbers corresponding to the subjects.")
-
-
-    def get_subject_number(self, subject_id):
-        """
-        Given a subject_id, output the corresponding subject_number from the CSV file.
-
-        Parameters:
-            subject_id (str): ID of the subject.
-
-        Returns:
-            str: The subject number corresponding to the provided subject_id.
-            None: If the subject_id is not found.
-        """
-
-        # Read the CSV file into a DataFrame
-        df = pd.read_csv(self.paths['subjects'])
-        # Search for the subject_id and get the corresponding subject_number
-        subject_row = df[df['subject_id'] == subject_id]
-        
-        if not subject_row.empty:
-            return subject_row.iloc[0]['subject_number']
-        else:
-            return None
-
-
-    def get_subject_id(self, subject_number):
-        """
-        Given a subject_number, output the corresponding subject_id from the CSV file.
-
-        Parameters:
-            subject_number (str): Number of the subject.
-
-        Returns:
-            str: The subject ID corresponding to the provided subject_number.
-            None: If the subject_number is not found.
-        """
-
-        # Read the CSV file into a DataFrame
-        df = pd.read_csv(self.paths['subjects'])
-        # Search for the subject_number and get the corresponding subject_id
-        subject_row = df[df['subject_number'] == subject_number]
-
-        if not subject_row.empty:
-            return subject_row.iloc[0]['subject_id']
-        else:
-            return None
 
 
     @staticmethod

@@ -98,7 +98,7 @@ class BaslerCamera:
         self.start_time = start_time
 
 
-    def start_recording(self):
+    def start_streaming(self):
         """
         Starts the camera recording.
         """
@@ -106,7 +106,7 @@ class BaslerCamera:
         self.basler_camera.StartGrabbing()
 
 
-    def stop_recording(self):
+    def stop_streaming(self):
         """
         Stops the camera recording.
         """
@@ -160,3 +160,25 @@ class BaslerCamera:
             writer = csv.writer(csvfile)
             writer.writerow(data.keys())
             writer.writerow(data.values())
+
+    def stream_video(self):
+        """
+        Streams the live video feed from the Basler camera.
+        """
+        while True:
+            grab_result = self.basler_camera.RetrieveResult(
+                5000, pylon.TimeoutHandling_ThrowException
+            )
+            if grab_result.GrabSucceeded():
+                img = grab_result.Array
+                img_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+                
+                cv2.imshow("Basler Camera", img_bgr)
+                
+                # Break the loop if 'q' is pressed
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+            grab_result.Release()
+
+        cv2.destroyAllWindows()

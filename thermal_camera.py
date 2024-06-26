@@ -228,7 +228,7 @@ class ThermalCamera:
             print_shutter_info(devh)
 
 
-    def stop_stream(self):
+    def stop_streaming(self):
         """
         Stops the camera stream.
         """
@@ -240,9 +240,9 @@ class ThermalCamera:
 
         print("Stop streaming")
         if self.windows:
-            self.windows_camera.stop_stream()
+            self.windows_camera.stop_streaming()
         else:
-            libuvc.uvc_stop_streaming(devh)
+            libuvc.uvc_stop_streaminging(devh)
     
     
     def create_hdf5_file(self):
@@ -328,7 +328,7 @@ class ThermalCamera:
 
         except Exception as e:
             error(e)
-            self.stop_stream()
+            self.stop_streaming()
 
 
     def plot_live(self):
@@ -436,7 +436,7 @@ class ThermalCamera:
                 plt.ioff()
                 plt.close(fig)
 
-            self.stop_stream()
+            self.stop_streaming()
 
     
     def save_metadata(self):

@@ -173,6 +173,8 @@ class SessionLogger:
 
         self.get_duration_data()
 
+        self.get_notes_data()
+
 
     def define_multiple_sessions(self):
         """

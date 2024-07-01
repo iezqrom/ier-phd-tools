@@ -3,6 +3,7 @@ import cv2
 import os
 import time
 import csv
+import json
 
 
 class BaslerCamera:
@@ -144,9 +145,9 @@ class BaslerCamera:
 
     def save_metadata(self):
         """
-        Saves metadata about the recording to a CSV file in the output directory.
+        Saves metadata about the recording to a JSON file in the output directory.
         """
-        metadata_file_name = f"{self.output_file_name.split('.')[0]}.csv"
+        metadata_file_name = f"{self.output_file_name.split('.')[0]}.json"
         metadata_path = os.path.join(os.path.dirname(self.output_path), metadata_file_name)
 
         data = {
@@ -158,10 +159,8 @@ class BaslerCamera:
             "number_of_frames": self.frame_number
         }
 
-        with open(metadata_path, mode='w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(data.keys())
-            writer.writerow(data.values())
+        with open(metadata_path, 'w') as f:
+            json.dump(data, f, indent=4)
 
 
     def stream_video(self, window_width=None, window_height=None):
@@ -170,6 +169,8 @@ class BaslerCamera:
         """
         print("Press 'e' to quit the video stream.")
 
+        window_name = "Basler camera"
+        
         while True:
             grab_result = self.basler_camera.RetrieveResult(
                 5000, pylon.TimeoutHandling_ThrowException
@@ -182,7 +183,7 @@ class BaslerCamera:
                 if window_width is not None and window_height is not None:
                     img_bgr = cv2.resize(img_bgr, (round(window_width), round(window_height)))
                 
-                cv2.imshow("Basler Camera", img_bgr)
+                cv2.imshow(window_name, img_bgr)
                 
                 # Break the loop if 'q' is pressed
                 if cv2.waitKey(1) & 0xFF == ord('e'):

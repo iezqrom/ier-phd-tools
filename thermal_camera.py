@@ -17,7 +17,7 @@ try:
     from queue import Queue
 except ImportError:
     from Queue import Queue
-import csv
+import json
 
 from failing import error
 from text import printme
@@ -448,9 +448,9 @@ class ThermalCamera:
     
     def save_metadata(self):
         """
-        Saves metadata about the recording to a CSV file in the output directory.
+        Saves metadata about the recording to a JSON file in the output directory.
         """
-        metadata_file_name = f"{self.output_file_name.split('.')[0]}.csv"
+        metadata_file_name = f"{self.output_file_name.split('.')[0]}.json"
         metadata_path = os.path.join(os.path.dirname(self.output_path), metadata_file_name)
 
         data = {
@@ -469,8 +469,6 @@ class ThermalCamera:
         if self.video_format == "hdf5":
             data["number_of_frames"] = self.frame_number
 
-        with open(metadata_path, mode='w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(data.keys())
-            writer.writerow(data.values())
+        with open(metadata_path, 'w') as f:
+            json.dump(data, f, indent=4)
 

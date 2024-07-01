@@ -4,8 +4,7 @@ import os
 import pandas as pd
 import os
 import ast
-import sys
-import select
+import platform
 
 from text import printme
 
@@ -577,5 +576,10 @@ class SessionLogger:
         """
         Clears the input buffer to prevent unexpected behavior.
         """
-        while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
-            sys.stdin.read(sys.stdin.in_waiting)
+        if platform.system() == 'Windows':
+            import msvcrt
+            while msvcrt.kbhit():
+                msvcrt.getch()
+        else:
+            import sys, termios
+            termios.tcflush(sys.stdin, termios.TCIOFLUSH)

@@ -3,7 +3,7 @@ import os
 import importlib.util
 import sys
 import datetime
-
+import json
 
 def grab_system_info():
     """
@@ -82,3 +82,16 @@ def get_raw_data_path(base_path, raw_data_path_file):
     with open(raw_data_path_file_path, 'r') as f:
         raw_data_path = f.read().strip()
     return raw_data_path
+
+def get_globals():
+    """
+    Get the global variables for the experiment.
+    """
+    name_globals_file = 'globals.json'
+    base_path = find_parent_folder(name_globals_file)
+    globals_json_path = os.path.join(base_path, name_globals_file)
+
+    with open(globals_json_path, 'r') as f:
+        globals_json = json.load(f)
+
+    return globals_json

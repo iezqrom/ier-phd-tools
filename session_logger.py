@@ -4,6 +4,8 @@ import os
 import pandas as pd
 import os
 import ast
+import sys
+import select
 
 from text import printme
 
@@ -33,6 +35,8 @@ class SessionLogger:
         self.condition = None
         self.experimenter = None
         self.notes = None
+
+        self.clear_input_buffer()
 
 
     def get_subject_id(self):
@@ -161,6 +165,8 @@ class SessionLogger:
         """
         Logs a session by collecting various data points from the user and writing them to a logbook.
         """
+        self.clear_input_buffer()
+
         self.get_subject_id()
 
         self.get_method_data()
@@ -188,6 +194,7 @@ class SessionLogger:
         """
         Logs multiple sessions for selected subject IDs with common parameters.
         """
+        self.clear_input_buffer()
         subject_ids = self.select_multiple_subjects()
         self.get_method_data()
         self.get_method_version_data()
@@ -214,6 +221,7 @@ class SessionLogger:
         """
         Logs the weight of the subject by adding an entry to the weight logbook.
         """
+        self.clear_input_buffer()
         subjects_data_csv = pd.read_csv(self.paths['subjects'])
         # Subject ID
         if self.subject_id is None:
@@ -384,6 +392,7 @@ class SessionLogger:
         """
         Adds new subjects to the subjects.csv file.
         """
+        self.clear_input_buffer()
         subjects_data_csv = pd.read_csv(self.paths['subjects'])
         genotypes_data_csv = pd.read_csv(self.paths['genotypes'])
 
@@ -467,6 +476,7 @@ class SessionLogger:
         Returns:
             list: A list of selected subject IDs.
         """
+        self.clear_input_buffer()
         subjects_data_dict = self.get_csv_data(self.paths['subjects'])
         subjects_options = [f"{key}" for key, _ in subjects_data_dict.items()]
 
@@ -561,3 +571,11 @@ class SessionLogger:
         """
         current_timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         return [current_timestamp] + data
+    
+    @staticmethod
+    def clear_input_buffer():
+        """
+        Clears the input buffer to prevent unexpected behavior.
+        """
+        while sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+            sys.stdin.read(sys.stdin.in_waiting)

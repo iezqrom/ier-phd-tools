@@ -5,7 +5,6 @@ import pandas as pd
 import os
 import ast
 
-from systems import find_parent_folder
 from text import printme
 
 class SessionLogger:
@@ -14,14 +13,15 @@ class SessionLogger:
     and writing them to a logbook.
     """
 
-    def __init__(self):
+    def __init__(self, path):
         self.file_names = [
             'logbook.csv', 'subjects.csv', 'licenses.csv',
-            'methods.csv', 'experimenters.csv', 'experimental_design.csv',
+            'methods.csv', 'experimenters.csv', 'experimental_designs.csv',
             'genotypes.csv'
         ]
+        self.path = path
         self.paths = {
-            os.path.splitext(file_name)[0]: os.path.join(find_parent_folder(file_name), file_name) for file_name in self.file_names
+            os.path.splitext(file_name)[0]: os.path.join(path, file_name) for file_name in self.file_names
         }
 
         self.subject_id = None
@@ -122,8 +122,16 @@ class SessionLogger:
         """
         self.condition = self.get_mouse_condition()
         if self.condition is None:
-            condition_data = self.get_csv_data(self.paths['experimental_design'])
-            self.condition = self.get_input("Enter the condition", list(condition_data.keys()))
+            conditions_data_csv = pd.read_csv(self.paths['experimental_designs'])
+            #get the rows with license_numner is self.license
+            license_rows = conditions_data_csv[conditions_data_csv['license_number'] == self.license]
+            #get the rows with subproject is self.subproject
+            subproject_rows = license_rows[license_rows['subproject'] == self.subproject]
+            #get the values in the column condition
+            condition_data = subproject_rows['condition'].unique().tolist()
+
+            print(condition_data)
+            self.condition = self.get_input("Enter the condition", list(condition_data))
 
         printme(f"Condition: {self.condition}")
 
@@ -322,12 +330,20 @@ class SessionLogger:
         if self.license != 'ZH_139' or self.license != 'X9016_21' or self.license != 'G0167_23':
 
             # Read the CSV file into a DataFrame
-            df = pd.read_csv(self.paths['experimental_design'])
-            
-            # Convert the 'subjects' column from string to list
-            df['subjects'] = df['subjects'].apply(ast.literal_eval)
+            df = pd.read_csv(self.paths['experimental_designs'])
 
-            subject_row = df[df['subjects'].apply(lambda x: self.subject_id in x)]
+            # Get the rows in which the license_number is self.license
+            license_rows = df[df['license_number'] == self.license]
+
+            # Get the rows in which the subproject is self.subproject
+            subproject_rows = license_rows[license_rows['subproject'] == self.subproject]
+            print(subproject_rows)
+            # Convert the 'subjects' column from string to list
+            subproject_rows['subjects'] = subproject_rows['subjects'].apply(ast.literal_eval)
+
+            subject_row = subproject_rows[subproject_rows['subjects'].apply(lambda x: self.subject_id in x)]
+
+            print(self.subject_id)
 
             if not subject_row.empty:
                 return subject_row.iloc[0]['condition']

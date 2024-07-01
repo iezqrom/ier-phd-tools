@@ -74,3 +74,11 @@ def define_folder_name(name):
     name = ''.join(e if e.isalnum() or e == '_' else '_' for e in name)
     date = datetime.datetime.now().strftime("%y%m%d")
     return f"{name}_{date}"
+
+
+def get_raw_data_path(base_path, raw_data_path_file):
+    raw_data_path_file_path = os.path.join(base_path, raw_data_path_file)
+
+    with open(raw_data_path_file_path, 'r') as f:
+        raw_data_path = f.read().strip()
+    return raw_data_path

@@ -148,7 +148,7 @@ class BaslerCamera:
                 self.frame_number += 1
             grab_result.Release()
         except Exception as e:
-            print(f"Error during Basler capture: {e}")
+            self.log_error(e, self.error_log_file)
 
 
     def save_metadata(self):
@@ -211,8 +211,8 @@ class BaslerCamera:
             message (str): The error message to be logged.
             error_log_file (str): The path to the error log file.
         """
+        print(f"\nError saving timestamp: {error}")
         if error_log_file is not None:
             logging.error(f"Error saving timestamp: {error}", exc_info=True)
         else:
-            print(f"Error saving timestamp: {error}")
-            print("Please set the error log file path using set_error_log_path() to log errors.")
+            print("\nPlease set the error log file path using set_error_log_path() to log errors.")

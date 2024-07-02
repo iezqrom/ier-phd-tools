@@ -43,6 +43,8 @@ class SessionLogger:
         Prompts user to enter the subject ID and retrieves the corresponding subject number.
         """
         subjects_data_dict = self.get_csv_data(self.paths['subjects'])
+        #remove the subjects in which active is False
+        subjects_data_dict = {k: v for k, v in subjects_data_dict.items() if v['active'] == True}
         subjects_options = [f"{key}" for key, _ in subjects_data_dict.items()]
         subject_id = self.get_input("Enter the ID of the subject", subjects_options, start=0)
         self.subject_id = subject_id.split()[0]
@@ -497,7 +499,7 @@ class SessionLogger:
     @staticmethod
     def get_csv_data(file_path):
         """
-        Navigate up one directory, find the specified CSV file, and extract
+        Find the specified CSV file, and extract
         its data into a nested dictionary where the first column's values 
         are keys and the rest of the columns form the nested dictionary.
 

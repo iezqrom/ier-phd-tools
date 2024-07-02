@@ -4,7 +4,7 @@ import os
 import time
 import csv
 import json
-
+import logging
 
 class BaslerCamera:
     """
@@ -17,6 +17,7 @@ class BaslerCamera:
         """
         self.basler_camera = None
         self.out = None
+        self.set_error_log_file = None
         
         while self.basler_camera is None:
             try:
@@ -76,6 +77,13 @@ class BaslerCamera:
                 writer.writerow(["timestamp"])
 
 
+    def set_error_log_path(self, path, file_name):
+        """
+        Sets the error log file for recording errors during the session.
+        """
+        self.error_log_file = os.path.join(path, file_name)
+
+
     def save_timestamp(self, timestamp):
         """
         Save the timestamp to a CSV file.
@@ -88,9 +96,9 @@ class BaslerCamera:
                 writer = csv.writer(csvfile)
                 writer.writerow([timestamp])
         except Exception as e:
-            print(f"Error saving timestamp: {e}")
+            self.log_error(e, self.error_log_file)
 
-
+    
     def set_timer(self, start_time):
         """
         Sets the timer for the camera.
@@ -192,3 +200,19 @@ class BaslerCamera:
             grab_result.Release()
 
         cv2.destroyAllWindows()
+
+    
+    @staticmethod
+    def log_error(error, error_log_file):
+        """
+        Logs an error message to a log file.
+
+        Args:
+            message (str): The error message to be logged.
+            error_log_file (str): The path to the error log file.
+        """
+        if error_log_file is not None:
+            logging.error(f"Error saving timestamp: {error}", exc_info=True)
+        else:
+            print(f"Error saving timestamp: {error}")
+            print("Please set the error log file path using set_error_log_path() to log errors.")
